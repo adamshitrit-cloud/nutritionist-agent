@@ -395,6 +395,11 @@ def _twilio_reply(text: str) -> Response:
     return Response(xml, mimetype="text/xml")
 
 
+@app.route("/ping")
+def ping():
+    return "ok", 200
+
+
 if __name__ == "__main__":
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
