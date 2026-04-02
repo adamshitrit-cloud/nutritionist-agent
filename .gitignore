@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+ngrok.exe
+data/
+*.log
+.env
+setup_api_key.bat
+start.bat
+start_whatsapp.bat
+launch_browser.vbs
+create_shortcut.ps1
+create_url_shortcut.ps1
+create_whatsapp_shortcut.ps1

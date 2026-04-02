@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: nutritionist-agent
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn web_agent:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: PYTHONUTF8
+        value: "1"

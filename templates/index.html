@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>התזונאי החכם 🥗</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Arial Hebrew', Arial, sans-serif;
+      background: #0f1117;
+      color: #e8e8e8;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      direction: rtl;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a2f1a, #0d1f0d);
+      border-bottom: 1px solid #2a4a2a;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    header .logo { font-size: 28px; }
+    header h1 { font-size: 18px; font-weight: 700; color: #7dcc7d; }
+    header .subtitle { font-size: 12px; color: #5a9a5a; margin-top: 2px; }
+    header .stats {
+      margin-right: auto;
+      display: flex;
+      gap: 18px;
+      font-size: 12px;
+      color: #888;
+    }
+    header .stats span { display: flex; align-items: center; gap: 5px; }
+    header .stats .val { color: #7dcc7d; font-weight: 600; }
+
+    /* ── Chat area ── */
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+    #chat::-webkit-scrollbar { width: 6px; }
+    #chat::-webkit-scrollbar-track { background: #1a1a1a; }
+    #chat::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 3px; }
+
+    .msg { display: flex; gap: 10px; max-width: 82%; animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform:none; } }
+
+    .msg.user { align-self: flex-start; flex-direction: row-reverse; }
+    .msg.agent { align-self: flex-end; }
+
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0; margin-top: 2px;
+    }
+    .msg.user .avatar { background: #1e3a5f; }
+    .msg.agent .avatar { background: #1a3a1a; }
+
+    .bubble {
+      padding: 12px 16px;
+      border-radius: 18px;
+      line-height: 1.6;
+      font-size: 14.5px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .msg.user .bubble {
+      background: #1e3a5f;
+      border-top-right-radius: 4px;
+      color: #cde8ff;
+    }
+    .msg.agent .bubble {
+      background: #1a2a1a;
+      border-top-left-radius: 4px;
+      color: #e0f0e0;
+      border: 1px solid #2a4a2a;
+    }
+
+    /* Markdown-like formatting inside bubbles */
+    .bubble strong { color: #7dcc7d; }
+    .bubble em { color: #a0d0a0; }
+    .bubble .section-title {
+      color: #7dcc7d;
+      font-weight: 700;
+      font-size: 15px;
+      border-bottom: 1px solid #2a4a2a;
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+      margin-top: 6px;
+    }
+    .bubble ul { padding-right: 18px; }
+    .bubble li { margin: 3px 0; }
+    .bubble .divider { border: none; border-top: 1px solid #2a4a2a; margin: 10px 0; }
+    .bubble .tag {
+      display: inline-block;
+      background: #1e3a1e;
+      border: 1px solid #3a6a3a;
+      border-radius: 10px;
+      padding: 2px 10px;
+      font-size: 12px;
+      color: #7dcc7d;
+      margin: 2px;
+    }
+
+    /* Typing indicator */
+    .typing .bubble {
+      background: #1a2a1a;
+      border: 1px solid #2a4a2a;
+      padding: 14px 18px;
+    }
+    .dots { display: flex; gap: 5px; align-items: center; }
+    .dots span {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #5a9a5a; animation: bounce .9s infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: .2s; }
+    .dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes bounce { 0%,80%,100%{transform:scale(1)} 40%{transform:scale(1.4)} }
+
+    /* Image preview */
+    #img-preview {
+      display: none;
+      margin: 8px 16px 0;
+      padding: 10px 14px;
+      background: #1a2a1a;
+      border: 1px dashed #3a6a3a;
+      border-radius: 12px;
+      font-size: 13px;
+      color: #7dcc7d;
+      align-items: center;
+      gap: 10px;
+    }
+    #img-preview img { height: 60px; border-radius: 8px; object-fit: cover; }
+    #img-preview .remove { cursor: pointer; color: #cc5555; font-size: 16px; margin-right: auto; }
+
+    /* ── Input bar ── */
+    #input-bar {
+      padding: 12px 16px 16px;
+      background: #0f1117;
+      border-top: 1px solid #2a2a2a;
+    }
+    #input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: #1a1a2a;
+      border: 1px solid #2a3a4a;
+      border-radius: 18px;
+      padding: 8px 12px;
+      transition: border-color .2s;
+    }
+    #input-row:focus-within { border-color: #3a7a3a; }
+
+    #msg-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: #e8e8e8;
+      font-size: 15px;
+      font-family: inherit;
+      resize: none;
+      max-height: 120px;
+      direction: rtl;
+      line-height: 1.5;
+      padding: 4px 0;
+    }
+    #msg-input::placeholder { color: #555; }
+
+    .btn-icon {
+      background: none; border: none; cursor: pointer;
+      font-size: 20px; padding: 4px; border-radius: 8px;
+      transition: background .2s; color: #666; flex-shrink: 0;
+    }
+    .btn-icon:hover { background: #2a2a3a; color: #aaa; }
+
+    #send-btn {
+      background: #1e5a1e; border: none; cursor: pointer;
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; transition: background .2s; flex-shrink: 0;
+    }
+    #send-btn:hover { background: #2a7a2a; }
+    #send-btn:disabled { background: #2a2a2a; cursor: default; }
+
+    /* ── Quick actions ── */
+    #quick-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .qa-btn {
+      background: #1a2a1a;
+      border: 1px solid #2a4a2a;
+      color: #7dcc7d;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .qa-btn:hover { background: #2a4a2a; border-color: #4a8a4a; }
+
+    /* Hidden file input */
+    #file-input { display: none; }
+
+    /* Meal cards inside bubble */
+    .meal-card {
+      background: #0f1f0f;
+      border: 1px solid #2a4a2a;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin: 6px 0;
+    }
+    .meal-card .meal-title { color: #7dcc7d; font-weight: 700; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🥗</div>
+  <div>
+    <h1>התזונאי החכם</h1>
+    <div class="subtitle">מלווה אישי לירידה במשקל</div>
+  </div>
+  <div class="stats">
+    <span>⚖️ <span class="val" id="stat-weight">93</span> kg</span>
+    <span>🎯 יעד: <span class="val">85-86</span> kg</span>
+    <span>📉 ירדת: <span class="val" id="stat-lost">0</span> kg</span>
+    <span>🔥 <span class="val">2100</span> קל/יום</span>
+  </div>
+</header>
+
+<div id="chat"></div>
+
+<div id="img-preview">
+  <img id="img-thumb" src="" alt="תמונה">
+  <span id="img-name"></span>
+  <span class="remove" onclick="clearImage()">✕</span>
+</div>
+
+<div id="input-bar">
+  <div id="quick-actions">
+    <button class="qa-btn" onclick="quickSend('תראה לי את תפריט היום')">📅 תפריט היום</button>
+    <button class="qa-btn" onclick="quickSend('תראה לי את התפריט השבועי המלא')">📆 תפריט שבוע</button>
+    <button class="qa-btn" onclick="quickSend('תראה לי סיכום התקדמות')">📊 התקדמות</button>
+    <button class="qa-btn" onclick="promptWeight()">⚖️ עדכן משקל</button>
+    <button class="qa-btn" onclick="document.getElementById('file-input').click()">📸 שלח תמונת אוכל</button>
+  </div>
+  <div id="input-row">
+    <button class="btn-icon" onclick="document.getElementById('file-input').click()" title="העלה תמונת אוכל">📷</button>
+    <textarea id="msg-input" rows="1" placeholder="שאל אותי כל דבר על תזונה, דווח על ארוחה, שלח תמונה..."></textarea>
+    <button id="send-btn" onclick="sendMessage()" title="שלח">➤</button>
+  </div>
+</div>
+
+<input type="file" id="file-input" accept="image/*" onchange="handleImageSelect(event)">
+
+<script>
+  let selectedImageBase64 = null;
+  let selectedImageName = null;
+  let isLoading = false;
+
+  // Auto-resize textarea
+  const textarea = document.getElementById('msg-input');
+  textarea.addEventListener('input', () => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  });
+  textarea.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  // Drag & drop images onto the whole page
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) loadImage(file);
+  });
+
+  function handleImageSelect(e) {
+    const file = e.target.files[0];
+    if (file) loadImage(file);
+  }
+
+  function loadImage(file) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      selectedImageBase64 = ev.target.result;
+      selectedImageName = file.name;
+      document.getElementById('img-thumb').src = selectedImageBase64;
+      document.getElementById('img-name').textContent = file.name;
+      document.getElementById('img-preview').style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearImage() {
+    selectedImageBase64 = null;
+    selectedImageName = null;
+    document.getElementById('img-preview').style.display = 'none';
+    document.getElementById('file-input').value = '';
+  }
+
+  function promptWeight() {
+    const w = prompt('מה המשקל שלך היום? (קילוגרם)');
+    if (w && !isNaN(parseFloat(w))) {
+      sendMessageText(`המשקל שלי היום הוא ${w} קג`);
+    }
+  }
+
+  function quickSend(text) { sendMessageText(text); }
+
+  function addMsg(role, html, isHtml=false) {
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    const avatar = role === 'user' ? '👤' : '🥗';
+    div.innerHTML = `
+      <div class="avatar">${avatar}</div>
+      <div class="bubble">${isHtml ? html : escapeHtml(html)}</div>
+    `;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+  }
+
+  function addTyping() {
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'msg agent typing';
+    div.id = 'typing-indicator';
+    div.innerHTML = `<div class="avatar">🥗</div><div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typing-indicator');
+    if (t) t.remove();
+  }
+
+  function escapeHtml(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function formatResponse(text) {
+    // Bold **text**
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // ### headings
+    text = text.replace(/^### (.+)$/gm, '<div class="section-title">$1</div>');
+    text = text.replace(/^## (.+)$/gm, '<div class="section-title">$1</div>');
+    // Bullet points
+    text = text.replace(/^  • (.+)$/gm, '<li>$1</li>');
+    text = text.replace(/^• (.+)$/gm, '<li>$1</li>');
+    // Horizontal rule
+    text = text.replace(/^---$/gm, '<hr class="divider">');
+    return text;
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text && !selectedImageBase64) return;
+    if (isLoading) return;
+
+    const userText = text || (selectedImageName ? `📸 ${selectedImageName}` : '');
+    addMsg('user', userText);
+    input.value = '';
+    input.style.height = 'auto';
+
+    const payload = { message: text };
+    if (selectedImageBase64) {
+      payload.image = selectedImageBase64;
+      payload.image_name = selectedImageName;
+    }
+    clearImage();
+
+    isLoading = true;
+    document.getElementById('send-btn').disabled = true;
+    addTyping();
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      removeTyping();
+
+      if (data.error) {
+        addMsg('agent', `❌ שגיאה: ${data.error}`);
+      } else {
+        const formatted = formatResponse(data.response);
+        addMsg('agent', formatted, true);
+        // Update stats if weight changed
+        if (data.weight) {
+          document.getElementById('stat-weight').textContent = data.weight;
+          document.getElementById('stat-lost').textContent = (93 - data.weight).toFixed(1);
+        }
+      }
+    } catch(e) {
+      removeTyping();
+      addMsg('agent', `❌ שגיאת חיבור: ${e.message}`);
+    }
+
+    isLoading = false;
+    document.getElementById('send-btn').disabled = false;
+    document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+  }
+
+  function sendMessageText(text) {
+    document.getElementById('msg-input').value = text;
+    sendMessage();
+  }
+
+  // Initial greeting
+  window.onload = () => {
+    sendMessageText('שלום! תראה לי את התפריט של היום ותסביר לי מה חשוב לדעת.');
+  };
+</script>
+</body>
+</html>
