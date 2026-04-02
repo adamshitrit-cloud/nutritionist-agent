@@ -27,7 +27,39 @@ app = Flask(__name__, template_folder="templates")
 client = None
 
 
+def _redis_get_history() -> list:
+    url   = os.environ.get("UPSTASH_REDIS_REST_URL",   "").rstrip("/")
+    token = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+    if not url or not token:
+        return None
+    import urllib.request
+    req = urllib.request.Request(f"{url}/get/conversation_history",
+                                 headers={"Authorization": f"Bearer {token}"})
+    with urllib.request.urlopen(req, timeout=5) as resp:
+        result = json.loads(resp.read()).get("result")
+    return json.loads(result) if result else []
+
+def _redis_set_history(history: list):
+    url   = os.environ.get("UPSTASH_REDIS_REST_URL",   "").rstrip("/")
+    token = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+    if not url or not token:
+        return
+    import urllib.request
+    body = json.dumps(["SET", "conversation_history",
+                       json.dumps(history, ensure_ascii=False)]).encode("utf-8")
+    req = urllib.request.Request(url, data=body,
+                                 headers={"Authorization": f"Bearer {token}",
+                                          "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=5) as resp:
+        resp.read()
+
 def load_history() -> list:
+    try:
+        result = _redis_get_history()
+        if result is not None:
+            return result
+    except Exception as e:
+        print(f"[Redis] load_history error: {e}")
     if HISTORY_FILE.exists():
         try:
             with open(HISTORY_FILE, "r", encoding="utf-8") as f:
@@ -68,6 +100,11 @@ def save_history(history: list):
             {"role": m["role"], "content": _serialize_content(m["content"])}
             for m in history
         ]
+        try:
+            _redis_set_history(serializable)
+            return
+        except Exception as e:
+            print(f"[Redis] save_history error: {e}")
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(serializable, f, ensure_ascii=False, indent=2)
     except Exception:

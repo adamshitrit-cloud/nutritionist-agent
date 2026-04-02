@@ -27,14 +27,49 @@ PROFILE_FILE   = DATA_DIR / "user_profile.json"
 PROGRESS_FILE  = DATA_DIR / "progress.json"
 MEMORY_FILE    = DATA_DIR / "agent_memory.json"
 
-# ── Load data ──────────────────────────────────────────────────────────────
+# ── Redis helpers (Upstash REST API) ───────────────────────────────────────
+import urllib.request as _urllib_req
+
+_REDIS_URL   = os.environ.get("UPSTASH_REDIS_REST_URL",   "").rstrip("/")
+_REDIS_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+
+def _redis_get(key: str) -> dict:
+    url = f"{_REDIS_URL}/get/{key}"
+    req = _urllib_req.Request(url, headers={"Authorization": f"Bearer {_REDIS_TOKEN}"})
+    with _urllib_req.urlopen(req, timeout=5) as resp:
+        result = json.loads(resp.read()).get("result")
+    return json.loads(result) if result else {}
+
+def _redis_set(key: str, data: dict):
+    body = json.dumps(["SET", key, json.dumps(data, ensure_ascii=False)]).encode("utf-8")
+    req = _urllib_req.Request(
+        _REDIS_URL,
+        data=body,
+        headers={"Authorization": f"Bearer {_REDIS_TOKEN}", "Content-Type": "application/json"}
+    )
+    with _urllib_req.urlopen(req, timeout=5) as resp:
+        resp.read()
+
+# ── Load / save data (Redis when available, files as fallback) ──────────────
 def load_json(path: Path) -> dict:
+    if _REDIS_URL and _REDIS_TOKEN:
+        try:
+            return _redis_get(path.stem)
+        except Exception as e:
+            print(f"[Redis] load error for {path.stem}: {e}")
     if path.exists():
         with open(path, encoding="utf-8") as f:
             return json.load(f)
     return {}
 
 def save_json(path: Path, data: dict):
+    if _REDIS_URL and _REDIS_TOKEN:
+        try:
+            _redis_set(path.stem, data)
+            return
+        except Exception as e:
+            print(f"[Redis] save error for {path.stem}: {e}")
+    path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
