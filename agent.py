@@ -33,15 +33,24 @@ import urllib.request as _urllib_req
 _REDIS_URL   = os.environ.get("UPSTASH_REDIS_REST_URL",   "").rstrip("/")
 _REDIS_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
 
+# Set by web_agent before each request to namespace Redis keys per user
+_current_user_id: str = None
+
+def _namespaced(key: str) -> str:
+    """Prefix Redis key with current user ID when set."""
+    return f"{_current_user_id}:{key}" if _current_user_id else key
+
 def _redis_get(key: str) -> dict:
-    url = f"{_REDIS_URL}/get/{key}"
+    full_key = _namespaced(key)
+    url = f"{_REDIS_URL}/get/{full_key}"
     req = _urllib_req.Request(url, headers={"Authorization": f"Bearer {_REDIS_TOKEN}"})
     with _urllib_req.urlopen(req, timeout=5) as resp:
         result = json.loads(resp.read()).get("result")
     return json.loads(result) if result else {}
 
 def _redis_set(key: str, data: dict):
-    body = json.dumps(["SET", key, json.dumps(data, ensure_ascii=False)]).encode("utf-8")
+    full_key = _namespaced(key)
+    body = json.dumps(["SET", full_key, json.dumps(data, ensure_ascii=False)]).encode("utf-8")
     req = _urllib_req.Request(
         _REDIS_URL,
         data=body,

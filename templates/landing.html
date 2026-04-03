@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriAI — התזונאי החכם</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --green:#4ade80;--green-dark:#16a34a;--green-dim:#1a3a1a;
+      --bg:#0a0f0a;--card:#111811;--border:#1e3a1e;
+      --text:#e8f5e8;--sub:#8aab8a;
+    }
+    body{
+      font-family:'Segoe UI',Arial,sans-serif;
+      background:var(--bg);color:var(--text);
+      min-height:100vh;display:flex;flex-direction:column;
+      direction:rtl;
+    }
+    /* ── Language switcher ── */
+    .lang-bar{
+      position:fixed;top:16px;left:16px;
+      display:flex;gap:6px;z-index:100;
+    }
+    .lang-btn{
+      background:#1a1a1a;border:1px solid #333;
+      color:#aaa;padding:5px 12px;border-radius:20px;
+      font-size:12px;cursor:pointer;transition:all .2s;
+    }
+    .lang-btn.active{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+    /* ── Hero ── */
+    .hero{
+      flex:1;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      padding:40px 20px;text-align:center;
+      background:radial-gradient(ellipse at top,#0d2010 0%,#0a0f0a 70%);
+    }
+    .logo-wrap{font-size:64px;margin-bottom:16px;animation:float 3s ease-in-out infinite;}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .hero h1{font-size:clamp(28px,5vw,48px);font-weight:800;
+      background:linear-gradient(135deg,var(--green),#86efac);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      margin-bottom:10px;}
+    .hero .tagline{font-size:clamp(14px,2.5vw,18px);color:var(--sub);margin-bottom:36px;max-width:480px;}
+    /* Feature pills */
+    .features{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:40px;}
+    .feat{background:#111;border:1px solid #222;border-radius:20px;padding:7px 16px;font-size:13px;color:#aaa;}
+    /* ── Auth card ── */
+    .auth-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:20px;padding:32px;width:100%;max-width:420px;
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    .tabs{display:flex;margin-bottom:24px;border-bottom:1px solid var(--border);}
+    .tab{
+      flex:1;padding:10px;text-align:center;cursor:pointer;
+      font-size:15px;font-weight:600;color:var(--sub);
+      border-bottom:2px solid transparent;transition:all .2s;
+    }
+    .tab.active{color:var(--green);border-bottom-color:var(--green);}
+    .form{display:none;flex-direction:column;gap:14px;}
+    .form.active{display:flex;}
+    .field label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;}
+    .field input{
+      width:100%;padding:11px 14px;background:#0d170d;
+      border:1px solid #2a4a2a;border-radius:10px;
+      color:var(--text);font-size:14px;font-family:inherit;
+      outline:none;transition:border-color .2s;
+    }
+    .field input:focus{border-color:var(--green);}
+    .lang-select{
+      display:flex;gap:8px;
+    }
+    .lang-opt{
+      flex:1;padding:8px;border:1px solid #2a4a2a;border-radius:8px;
+      background:#0d170d;color:var(--sub);cursor:pointer;
+      font-size:13px;text-align:center;transition:all .2s;
+    }
+    .lang-opt.selected{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+    .submit-btn{
+      width:100%;padding:12px;background:var(--green-dark);
+      border:none;border-radius:10px;color:#fff;
+      font-size:15px;font-weight:700;cursor:pointer;
+      font-family:inherit;transition:background .2s;
+      margin-top:4px;
+    }
+    .submit-btn:hover{background:#15803d;}
+    .err{color:#f87171;font-size:13px;text-align:center;display:none;}
+    .divider{text-align:center;color:#333;font-size:12px;margin:4px 0;}
+    /* ── LTR override for English ── */
+    body.ltr{direction:ltr;}
+    body.ltr .hero h1,body.ltr .hero .tagline,body.ltr .auth-card{text-align:left;}
+    body.ltr .tabs,.ltr .lang-bar{flex-direction:row;}
+  </style>
+</head>
+<body>
+
+<div class="lang-bar">
+  <button class="lang-btn active" id="btn-he" onclick="setLang('he')">עברית</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">English</button>
+</div>
+
+<div class="hero">
+  <div class="logo-wrap">🥗</div>
+  <h1 id="hero-title">התזונאי החכם שלך</h1>
+  <p class="tagline" id="hero-sub">ליווי תזונתי אישי מבוסס AI — דרך הווב ודרך WhatsApp</p>
+
+  <div class="features">
+    <div class="feat" id="f1">📊 מעקב משקל</div>
+    <div class="feat" id="f2">🍽️ תפריט שבועי</div>
+    <div class="feat" id="f3">📸 ניתוח תמונות אוכל</div>
+    <div class="feat" id="f4">💬 WhatsApp + Web</div>
+    <div class="feat" id="f5">🔒 נתונים אישיים מאובטחים</div>
+  </div>
+
+  <div class="auth-card">
+    <div class="tabs">
+      <div class="tab active" id="tab-login" onclick="switchTab('login')" data-he="כניסה" data-en="Login">כניסה</div>
+      <div class="tab" id="tab-register" onclick="switchTab('register')" data-he="הרשמה" data-en="Register">הרשמה</div>
+    </div>
+
+    <!-- Login -->
+    <form class="form active" id="form-login" onsubmit="doLogin(event)">
+      <div class="field">
+        <label id="lbl-email-l" data-he="אימייל" data-en="Email">אימייל</label>
+        <input type="email" id="login-email" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label id="lbl-pass-l" data-he="סיסמה" data-en="Password">סיסמה</label>
+        <input type="password" id="login-pass" required autocomplete="current-password">
+      </div>
+      <div class="err" id="login-err"></div>
+      <button type="submit" class="submit-btn" id="login-btn">כניסה →</button>
+    </form>
+
+    <!-- Register -->
+    <form class="form" id="form-register" onsubmit="doRegister(event)">
+      <div class="field">
+        <label id="lbl-name-r" data-he="שם מלא" data-en="Full Name">שם מלא</label>
+        <input type="text" id="reg-name" required>
+      </div>
+      <div class="field">
+        <label id="lbl-email-r" data-he="אימייל" data-en="Email">אימייל</label>
+        <input type="email" id="reg-email" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label id="lbl-pass-r" data-he="סיסמה (לפחות 6 תווים)" data-en="Password (min 6 chars)">סיסמה (לפחות 6 תווים)</label>
+        <input type="password" id="reg-pass" required minlength="6" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label id="lbl-lang-r" data-he="שפה מועדפת" data-en="Preferred Language">שפה מועדפת</label>
+        <div class="lang-select">
+          <div class="lang-opt selected" id="opt-he" onclick="selectLangOpt('he')">🇮🇱 עברית</div>
+          <div class="lang-opt" id="opt-en" onclick="selectLangOpt('en')">🇺🇸 English</div>
+        </div>
+      </div>
+      <div class="err" id="reg-err"></div>
+      <button type="submit" class="submit-btn" id="reg-btn" data-he="צור חשבון →" data-en="Create Account →">צור חשבון →</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  let currentLang = 'he';
+  let selectedRegLang = 'he';
+
+  const i18n = {
+    he: {
+      title: 'התזונאי החכם שלך',
+      sub: 'ליווי תזונתי אישי מבוסס AI — דרך הווב ודרך WhatsApp',
+      f1:'📊 מעקב משקל',f2:'🍽️ תפריט שבועי',f3:'📸 ניתוח תמונות אוכל',
+      f4:'💬 WhatsApp + Web',f5:'🔒 נתונים אישיים מאובטחים',
+      loginBtn:'כניסה →',regBtn:'צור חשבון →',
+      loginErr:'שגיאה בכניסה',regErr:'שגיאה בהרשמה'
+    },
+    en: {
+      title: 'Your Smart Nutritionist',
+      sub: 'AI-powered personal nutrition coaching — Web & WhatsApp',
+      f1:'📊 Weight Tracking',f2:'🍽️ Weekly Meal Plan',f3:'📸 Food Photo Analysis',
+      f4:'💬 WhatsApp + Web',f5:'🔒 Private & Secure',
+      loginBtn:'Login →',regBtn:'Create Account →',
+      loginErr:'Login error',regErr:'Registration error'
+    }
+  };
+
+  function setLang(lang) {
+    currentLang = lang;
+    const isHe = lang === 'he';
+    document.getElementById('html-root').setAttribute('lang', lang);
+    document.getElementById('html-root').setAttribute('dir', isHe ? 'rtl' : 'ltr');
+    document.body.classList.toggle('ltr', !isHe);
+    document.getElementById('btn-he').classList.toggle('active', isHe);
+    document.getElementById('btn-en').classList.toggle('active', !isHe);
+
+    const t = i18n[lang];
+    document.getElementById('hero-title').textContent = t.title;
+    document.getElementById('hero-sub').textContent = t.sub;
+    ['f1','f2','f3','f4','f5'].forEach(id => document.getElementById(id).textContent = t[id]);
+    document.getElementById('login-btn').textContent = t.loginBtn;
+    document.getElementById('reg-btn').textContent = t.regBtn;
+
+    // Update labels
+    document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+      el.textContent = el.getAttribute('data-' + lang);
+    });
+  }
+
+  function switchTab(tab) {
+    document.getElementById('form-login').classList.toggle('active', tab === 'login');
+    document.getElementById('form-register').classList.toggle('active', tab === 'register');
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  }
+
+  function selectLangOpt(lang) {
+    selectedRegLang = lang;
+    document.getElementById('opt-he').classList.toggle('selected', lang === 'he');
+    document.getElementById('opt-en').classList.toggle('selected', lang === 'en');
+  }
+
+  async function doLogin(e) {
+    e.preventDefault();
+    const errEl = document.getElementById('login-err');
+    errEl.style.display = 'none';
+    try {
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          email: document.getElementById('login-email').value,
+          password: document.getElementById('login-pass').value
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        window.location.href = '/app';
+      } else {
+        errEl.textContent = data.error || i18n[currentLang].loginErr;
+        errEl.style.display = 'block';
+      }
+    } catch(err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+    }
+  }
+
+  async function doRegister(e) {
+    e.preventDefault();
+    const errEl = document.getElementById('reg-err');
+    errEl.style.display = 'none';
+    const pass = document.getElementById('reg-pass').value;
+    if (pass.length < 6) {
+      errEl.textContent = currentLang === 'he' ? 'סיסמה חייבת להיות לפחות 6 תווים' : 'Password must be at least 6 characters';
+      errEl.style.display = 'block';
+      return;
+    }
+    try {
+      const res = await fetch('/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          name: document.getElementById('reg-name').value,
+          email: document.getElementById('reg-email').value,
+          password: pass,
+          lang: selectedRegLang
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        window.location.href = '/app';
+      } else {
+        errEl.textContent = data.error || i18n[currentLang].regErr;
+        errEl.style.display = 'block';
+      }
+    } catch(err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>
