@@ -4,16 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NutriAI 🥗</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --green:#4ade80;--green-dark:#16a34a;--green-dim:#0d2010;
-      --bg:#0a0f0a;--sidebar:#0d150d;--card:#111811;--border:#1e3a1e;
-      --text:#e8f5e8;--sub:#8aab8a;--user-bg:#0d2040;--user-border:#1e4a7a;
+      --em:#10b981;--em-l:#34d399;--em-dim:rgba(16,185,129,.1);--em-border:rgba(16,185,129,.25);
+      --vi:#8b5cf6;--vi-l:#a78bfa;--vi-dim:rgba(139,92,246,.1);
+      --bg:#050a08;--sidebar:#080f0b;--card:rgba(255,255,255,.04);
+      --border:rgba(255,255,255,.07);--text:#f0faf5;--sub:#6b9e84;--muted:#2d4a38;
+      --user-bg:rgba(139,92,246,.15);--user-border:rgba(139,92,246,.3);
     }
     body{
-      font-family:'Segoe UI','Arial Hebrew',Arial,sans-serif;
+      font-family:'Inter',sans-serif;
       background:var(--bg);color:var(--text);
       height:100vh;display:flex;overflow:hidden;
       direction:{{ 'rtl' if lang == 'he' else 'ltr' }};
@@ -21,175 +25,222 @@
 
     /* ── Sidebar ── */
     #sidebar{
-      width:260px;min-width:260px;background:var(--sidebar);
+      width:268px;min-width:268px;
+      background:var(--sidebar);
       border-{{ 'left' if lang == 'he' else 'right' }}:1px solid var(--border);
-      display:flex;flex-direction:column;overflow-y:auto;
+      display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
     }
-    .sidebar-header{
-      padding:20px 16px 12px;
+    #sidebar::-webkit-scrollbar{width:4px;}
+    #sidebar::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px;}
+
+    .sb-header{
+      padding:22px 18px 16px;
       border-bottom:1px solid var(--border);
     }
-    .sidebar-logo{font-size:28px;margin-bottom:4px;}
-    .sidebar-app-name{font-size:16px;font-weight:700;color:var(--green);}
-    .sidebar-user{font-size:12px;color:var(--sub);margin-top:2px;}
+    .sb-brand{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+    .sb-icon{
+      width:38px;height:38px;border-radius:10px;
+      background:linear-gradient(135deg,var(--em-dim),var(--vi-dim));
+      border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;font-size:20px;
+    }
+    .sb-name{font-size:16px;font-weight:700;color:var(--em-l);}
+    .sb-user{font-size:12px;color:var(--sub);font-weight:400;}
 
-    .sidebar-section{padding:14px 16px 8px;}
-    .sidebar-section h3{font-size:11px;color:#4a7a4a;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+    /* Status pill */
+    .status-pill{
+      display:inline-flex;align-items:center;gap:5px;
+      background:var(--em-dim);border:1px solid var(--em-border);
+      border-radius:20px;padding:4px 10px;font-size:11px;color:var(--em);font-weight:500;
+    }
+    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--em);animation:blink 2s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-    /* Stats cards */
+    /* Section */
+    .sb-sec{padding:16px 18px 8px;}
+    .sb-sec-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:10px;}
+
+    /* Stat cards */
+    .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
     .stat-card{
       background:var(--card);border:1px solid var(--border);
-      border-radius:10px;padding:10px 14px;margin-bottom:8px;
+      border-radius:12px;padding:12px 14px;
     }
-    .stat-label{font-size:11px;color:var(--sub);margin-bottom:2px;}
-    .stat-value{font-size:20px;font-weight:700;color:var(--green);}
-    .stat-sub{font-size:11px;color:#5a8a5a;margin-top:1px;}
+    .stat-card.full{grid-column:1/-1;}
+    .stat-lbl{font-size:10px;color:var(--sub);margin-bottom:4px;font-weight:500;}
+    .stat-val{font-size:22px;font-weight:800;
+      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .stat-sub{font-size:10px;color:var(--sub);margin-top:2px;}
 
-    /* Progress bar */
-    .progress-wrap{margin-bottom:10px;}
-    .progress-bar-bg{height:6px;background:#1a2a1a;border-radius:3px;overflow:hidden;}
-    .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green));border-radius:3px;transition:width .5s;}
+    /* Progress */
+    .prog-wrap{margin-bottom:12px;}
+    .prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:6px;}
+    .prog-bg{height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+    .prog-fill{
+      height:100%;border-radius:3px;
+      background:linear-gradient(90deg,var(--em),var(--vi-l));
+      transition:width .6s cubic-bezier(.4,0,.2,1);
+    }
 
-    /* Weight chart */
-    .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
-    .chart-title{font-size:11px;color:var(--sub);margin-bottom:8px;}
-    canvas{max-height:120px;}
+    /* Chart */
+    .chart-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px;margin-bottom:12px;
+    }
+    .chart-title{font-size:11px;color:var(--sub);margin-bottom:10px;font-weight:500;}
+    canvas{max-height:110px;}
 
     /* Quick actions */
-    .qa-grid{display:flex;flex-direction:column;gap:6px;}
+    .qa-list{display:flex;flex-direction:column;gap:5px;}
     .qa-btn{
-      background:var(--green-dim);border:1px solid #1e4a1e;
-      color:#7dcc7d;border-radius:8px;padding:8px 12px;
-      font-size:13px;cursor:pointer;font-family:inherit;
+      display:flex;align-items:center;gap:8px;
+      background:var(--card);border:1px solid var(--border);
+      color:var(--sub);border-radius:10px;padding:9px 12px;
+      font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;
       text-align:{{ 'right' if lang == 'he' else 'left' }};
-      transition:all .15s;width:100%;
+      transition:all .15s;width:100%;font-weight:500;
     }
-    .qa-btn:hover{background:#1a3a1a;border-color:#2a6a2a;}
+    .qa-btn:hover{background:var(--em-dim);border-color:var(--em-border);color:var(--em-l);}
 
-    /* Sidebar footer */
-    .sidebar-footer{margin-top:auto;padding:14px 16px;border-top:1px solid var(--border);}
+    /* Footer */
+    .sb-footer{margin-top:auto;padding:16px 18px;border-top:1px solid var(--border);}
     .logout-btn{
-      width:100%;padding:8px;background:none;
-      border:1px solid #3a2a2a;border-radius:8px;
-      color:#7a5a5a;font-size:13px;cursor:pointer;
-      font-family:inherit;transition:all .2s;
+      width:100%;padding:9px;
+      background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.15);
+      border-radius:10px;color:rgba(244,63,94,.7);
+      font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;
+      transition:all .2s;font-weight:500;
     }
-    .logout-btn:hover{background:#1a0a0a;color:#cc7777;}
+    .logout-btn:hover{background:rgba(244,63,94,.12);color:#f43f5e;}
 
-    /* ── Main chat area ── */
-    #main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    /* ── Main ── */
+    #main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
 
-    /* Top bar */
+    /* Topbar */
     #topbar{
-      padding:12px 20px;background:var(--sidebar);
+      padding:14px 20px;
+      background:rgba(8,15,11,.8);
       border-bottom:1px solid var(--border);
-      display:flex;align-items:center;gap:10px;
+      backdrop-filter:blur(12px);
+      display:flex;align-items:center;gap:12px;
+      position:relative;z-index:10;
     }
-    #topbar .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    #topbar h2{font-size:15px;font-weight:600;flex:1;}
-    #topbar .top-stat{font-size:12px;color:var(--sub);}
+    .top-avatar{
+      width:36px;height:36px;border-radius:10px;
+      background:linear-gradient(135deg,var(--em-dim),var(--vi-dim));
+      border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;font-size:18px;
+    }
+    .top-title{font-size:15px;font-weight:600;flex:1;}
+    .top-badge{font-size:12px;color:var(--sub);}
 
-    /* Chat messages */
+    /* Chat */
     #chat{
-      flex:1;overflow-y:auto;padding:20px 16px;
-      display:flex;flex-direction:column;gap:14px;
+      flex:1;overflow-y:auto;padding:20px 18px;
+      display:flex;flex-direction:column;gap:16px;
       scroll-behavior:smooth;
     }
-    #chat::-webkit-scrollbar{width:5px;}
-    #chat::-webkit-scrollbar-track{background:transparent;}
-    #chat::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px;}
+    #chat::-webkit-scrollbar{width:4px;}
+    #chat::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px;}
 
-    .msg{display:flex;gap:10px;max-width:80%;animation:fadeIn .2s ease;}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+    .msg{display:flex;gap:10px;max-width:78%;animation:msgIn .25s cubic-bezier(.4,0,.2,1);}
+    @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
     .msg.user{align-self:flex-start;flex-direction:row-reverse;}
     .msg.agent{align-self:flex-end;}
 
-    .avatar{width:34px;height:34px;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      font-size:16px;flex-shrink:0;margin-top:3px;}
-    .msg.user .avatar{background:var(--user-bg);}
-    .msg.agent .avatar{background:var(--green-dim);}
+    .msg-avatar{
+      width:32px;height:32px;border-radius:9px;flex-shrink:0;margin-top:2px;
+      display:flex;align-items:center;justify-content:center;font-size:15px;
+    }
+    .msg.user .msg-avatar{background:var(--user-bg);border:1px solid var(--user-border);}
+    .msg.agent .msg-avatar{background:var(--em-dim);border:1px solid var(--em-border);}
 
+    .msg-body{}
     .bubble{
-      padding:11px 15px;border-radius:16px;
-      line-height:1.65;font-size:14px;
-      white-space:pre-wrap;word-break:break-word;
+      padding:12px 16px;border-radius:16px;
+      line-height:1.65;font-size:14px;white-space:pre-wrap;word-break:break-word;
     }
     .msg.user .bubble{
       background:var(--user-bg);border:1px solid var(--user-border);
-      border-top-{{ 'right' if lang == 'he' else 'left' }}-radius:4px;
-      color:#c8e0ff;
+      border-top-{{ 'right' if lang == 'he' else 'left' }}-radius:4px;color:#d4c6ff;
     }
     .msg.agent .bubble{
       background:var(--card);border:1px solid var(--border);
       border-top-{{ 'left' if lang == 'he' else 'right' }}-radius:4px;
-      color:var(--text);
+      backdrop-filter:blur(8px);
     }
-    .bubble strong{color:var(--green);}
-    .bubble .section-title{
-      color:var(--green);font-weight:700;font-size:14px;
-      border-bottom:1px solid var(--border);
-      padding-bottom:3px;margin:8px 0 5px;
-    }
-    .bubble ul{padding-{{ 'right' if lang == 'he' else 'left' }}:16px;}
-    .bubble li{margin:2px 0;}
+    .bubble strong{color:var(--em-l);}
+    .bubble .hd{color:var(--em-l);font-weight:700;font-size:13px;border-bottom:1px solid var(--border);padding-bottom:3px;margin:8px 0 5px;}
     .bubble hr{border:none;border-top:1px solid var(--border);margin:8px 0;}
-    .msg-time{font-size:10px;color:#3a5a3a;margin-top:4px;text-align:{{ 'left' if lang == 'he' else 'right' }};}
+    .bubble li{margin:2px 0;padding-{{ 'right' if lang == 'he' else 'left' }}:4px;}
+    .msg-time{font-size:10px;color:var(--muted);margin-top:4px;padding:0 4px;}
 
     /* Typing */
     .typing .bubble{padding:14px 18px;}
     .dots{display:flex;gap:5px;align-items:center;}
-    .dots span{width:7px;height:7px;border-radius:50%;
-      background:#4a8a4a;animation:bounce .9s infinite;}
-    .dots span:nth-child(2){animation-delay:.2s;}
-    .dots span:nth-child(3){animation-delay:.4s;}
-    @keyframes bounce{0%,80%,100%{transform:scale(1)}40%{transform:scale(1.4)}}
+    .dots span{
+      width:7px;height:7px;border-radius:50%;
+      background:var(--em);animation:bounce .9s infinite;
+    }
+    .dots span:nth-child(2){animation-delay:.18s;}
+    .dots span:nth-child(3){animation-delay:.36s;}
+    @keyframes bounce{0%,80%,100%{transform:scale(1)}40%{transform:scale(1.5)}}
 
     /* Image preview */
     #img-preview{
-      display:none;margin:0 16px 0;padding:8px 14px;
-      background:var(--green-dim);border:1px dashed #2a5a2a;
-      border-radius:10px;font-size:13px;color:var(--green);
+      display:none;margin:0 18px;padding:8px 14px;
+      background:var(--em-dim);border:1px dashed var(--em-border);
+      border-radius:12px;font-size:13px;color:var(--em);
       align-items:center;gap:10px;
     }
-    #img-preview img{height:50px;border-radius:6px;object-fit:cover;}
-    #img-preview .remove{cursor:pointer;color:#cc5555;margin-{{ 'right' if lang == 'he' else 'left' }}:auto;}
+    #img-preview img{height:48px;border-radius:8px;object-fit:cover;}
+    #img-preview .rm{cursor:pointer;color:#f43f5e;margin-{{ 'right' if lang == 'he' else 'left' }}:auto;font-size:16px;}
 
-    /* ── Input bar ── */
-    #input-bar{padding:10px 16px 14px;background:var(--bg);border-top:1px solid #1a1a1a;}
+    /* Input bar */
+    #input-bar{
+      padding:10px 18px 16px;
+      background:rgba(5,10,8,.9);backdrop-filter:blur(12px);
+      border-top:1px solid var(--border);
+    }
     #input-row{
       display:flex;gap:8px;align-items:flex-end;
-      background:#111;border:1px solid #222;
-      border-radius:16px;padding:7px 10px;transition:border-color .2s;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);border-radius:16px;
+      padding:8px 10px;transition:border-color .2s,box-shadow .2s;
     }
-    #input-row:focus-within{border-color:var(--green-dark);}
+    #input-row:focus-within{
+      border-color:var(--em-border);
+      box-shadow:0 0 0 3px var(--em-dim);
+    }
     #msg-input{
       flex:1;background:none;border:none;outline:none;
-      color:var(--text);font-size:14px;font-family:inherit;
-      resize:none;max-height:100px;direction:{{ 'rtl' if lang == 'he' else 'ltr' }};
-      line-height:1.5;padding:4px 0;
+      color:var(--text);font-size:14px;font-family:'Inter',sans-serif;
+      resize:none;max-height:100px;
+      direction:{{ 'rtl' if lang == 'he' else 'ltr' }};
+      line-height:1.5;padding:4px 0;font-weight:400;
     }
-    #msg-input::placeholder{color:#3a5a3a;}
+    #msg-input::placeholder{color:var(--muted);}
     .icon-btn{
       background:none;border:none;cursor:pointer;
-      font-size:20px;padding:3px;color:#4a7a4a;
+      font-size:20px;padding:3px;color:var(--sub);
       transition:color .2s;flex-shrink:0;
     }
-    .icon-btn:hover{color:var(--green);}
+    .icon-btn:hover{color:var(--em-l);}
     #send-btn{
-      width:36px;height:36px;border-radius:50%;
-      background:var(--green-dark);border:none;cursor:pointer;
+      width:36px;height:36px;border-radius:10px;
+      background:linear-gradient(135deg,var(--em),#059669);
+      border:none;cursor:pointer;flex-shrink:0;
       display:flex;align-items:center;justify-content:center;
-      font-size:16px;transition:background .2s;flex-shrink:0;
+      font-size:15px;transition:all .2s;
+      box-shadow:0 4px 12px rgba(16,185,129,.25);
     }
-    #send-btn:hover{background:#15803d;}
-    #send-btn:disabled{background:#1a2a1a;cursor:default;}
+    #send-btn:hover{transform:scale(1.05);box-shadow:0 6px 16px rgba(16,185,129,.4);}
+    #send-btn:disabled{background:var(--muted);cursor:default;box-shadow:none;transform:none;}
 
     /* Mobile */
     @media(max-width:640px){
       #sidebar{display:none;}
-      body{flex-direction:column;}
       .msg{max-width:90%;}
     }
     #file-input{display:none;}
@@ -199,318 +250,241 @@
 
 <!-- Sidebar -->
 <div id="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-logo">🥗</div>
-    <div class="sidebar-app-name">NutriAI</div>
-    <div class="sidebar-user">{{ user_name }}</div>
-  </div>
-
-  <div class="sidebar-section">
-    <h3 id="lbl-stats">{{ 'סטטיסטיקות' if lang == 'he' else 'Stats' }}</h3>
-    <div class="stat-card">
-      <div class="stat-label">{{ '⚖️ משקל נוכחי' if lang == 'he' else '⚖️ Current Weight' }}</div>
-      <div class="stat-value" id="s-weight">—</div>
-      <div class="stat-sub" id="s-lost"></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">{{ '🎯 יעד' if lang == 'he' else '🎯 Target' }}</div>
-      <div class="stat-value" id="s-target">—</div>
-    </div>
-    <div class="progress-wrap">
-      <div class="stat-label" style="font-size:11px;color:var(--sub);margin-bottom:5px;" id="lbl-progress">
-        {{ 'התקדמות לקראת היעד' if lang == 'he' else 'Progress to goal' }}
+  <div class="sb-header">
+    <div class="sb-brand">
+      <div class="sb-icon">🥗</div>
+      <div>
+        <div class="sb-name">NutriAI</div>
+        <div class="sb-user">{{ user_name }}</div>
       </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      {{ 'פעיל' if lang == 'he' else 'Active' }}
+    </div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-sec-title">{{ 'סטטיסטיקות' if lang == 'he' else 'Stats' }}</div>
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-lbl">⚖️ {{ 'משקל' if lang == 'he' else 'Weight' }}</div>
+        <div class="stat-val" id="s-w">—</div>
+        <div class="stat-sub">kg</div>
       </div>
-      <div style="font-size:11px;color:#4a7a4a;margin-top:3px;" id="progress-pct">0%</div>
+      <div class="stat-card">
+        <div class="stat-lbl">🎯 {{ 'יעד' if lang == 'he' else 'Target' }}</div>
+        <div class="stat-val" id="s-t">—</div>
+        <div class="stat-sub">kg</div>
+      </div>
+      <div class="stat-card full">
+        <div class="stat-lbl">📉 {{ 'ירדת' if lang == 'he' else 'Lost so far' }}</div>
+        <div class="stat-val" id="s-l">—</div>
+        <div class="stat-sub" id="s-ls"></div>
+      </div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-label">
+        <span>{{ 'התקדמות לקראת היעד' if lang == 'he' else 'Progress to goal' }}</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
     </div>
   </div>
 
-  <div class="sidebar-section">
-    <h3>{{ 'גרף משקל' if lang == 'he' else 'Weight Chart' }}</h3>
-    <div class="chart-wrap">
-      <canvas id="weight-chart"></canvas>
+  <div class="sb-sec">
+    <div class="sb-sec-title">{{ 'גרף משקל' if lang == 'he' else 'Weight Chart' }}</div>
+    <div class="chart-card">
+      <div class="chart-title">{{ 'היסטוריית שקילות' if lang == 'he' else 'Weight History' }}</div>
+      <canvas id="wChart"></canvas>
     </div>
   </div>
 
-  <div class="sidebar-section">
-    <h3>{{ 'פעולות מהירות' if lang == 'he' else 'Quick Actions' }}</h3>
-    <div class="qa-grid">
-      <button class="qa-btn" onclick="quickSend('{% if lang == "he" %}תראה לי את תפריט היום{% else %}Show me today\'s meal plan{% endif %}')">
-        📅 {{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}
+  <div class="sb-sec">
+    <div class="sb-sec-title">{{ 'פעולות מהירות' if lang == 'he' else 'Quick Actions' }}</div>
+    <div class="qa-list">
+      <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today\'s meal plan{% endif %}')">
+        <span>📅</span><span>{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</span>
       </button>
-      <button class="qa-btn" onclick="quickSend('{% if lang == "he" %}תראה לי את התפריט השבועי{% else %}Show me the weekly plan{% endif %}')">
-        📆 {{ 'תפריט שבוע' if lang == 'he' else 'Weekly Plan' }}
+      <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את התפריט השבועי{% else %}Show me the weekly plan{% endif %}')">
+        <span>📆</span><span>{{ 'תפריט שבועי' if lang == 'he' else 'Weekly Plan' }}</span>
       </button>
-      <button class="qa-btn" onclick="quickSend('{% if lang == "he" %}תראה לי סיכום התקדמות{% else %}Show me my progress summary{% endif %}')">
-        📊 {{ 'התקדמות' if lang == 'he' else 'Progress' }}
+      <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי סיכום התקדמות{% else %}Show my progress summary{% endif %}')">
+        <span>📊</span><span>{{ 'התקדמות' if lang == 'he' else 'Progress' }}</span>
       </button>
       <button class="qa-btn" onclick="promptWeight()">
-        ⚖️ {{ 'עדכן משקל' if lang == 'he' else 'Log Weight' }}
+        <span>⚖️</span><span>{{ 'עדכן משקל' if lang == 'he' else 'Log Weight' }}</span>
       </button>
       <button class="qa-btn" onclick="document.getElementById('file-input').click()">
-        📸 {{ 'שלח תמונת אוכל' if lang == 'he' else 'Send Food Photo' }}
+        <span>📸</span><span>{{ 'שלח תמונת אוכל' if lang == 'he' else 'Send Food Photo' }}</span>
       </button>
     </div>
   </div>
 
-  <div class="sidebar-footer">
-    <a href="/logout"><button class="logout-btn">🚪 {{ 'התנתקות' if lang == 'he' else 'Logout' }}</button></a>
+  <div class="sb-footer">
+    <a href="/logout" style="text-decoration:none;">
+      <button class="logout-btn">🚪 {{ 'התנתקות' if lang == 'he' else 'Logout' }}</button>
+    </a>
   </div>
 </div>
 
 <!-- Main -->
 <div id="main">
   <div id="topbar">
-    <div class="status-dot"></div>
-    <h2>{{ 'התזונאי החכם 🥗' if lang == 'he' else 'Smart Nutritionist 🥗' }}</h2>
-    <span class="top-stat" id="topbar-weight"></span>
+    <div class="top-avatar">🥗</div>
+    <div class="top-title">{{ 'התזונאי החכם' if lang == 'he' else 'Smart Nutritionist' }}</div>
+    <span class="top-badge" id="top-w"></span>
   </div>
 
   <div id="chat"></div>
 
   <div id="img-preview">
     <img id="img-thumb" src="" alt="">
-    <span id="img-name"></span>
-    <span class="remove" onclick="clearImage()">✕</span>
+    <span id="img-nm"></span>
+    <span class="rm" onclick="clearImg()">✕</span>
   </div>
 
   <div id="input-bar">
     <div id="input-row">
-      <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="📷">📷</button>
+      <button class="icon-btn" onclick="document.getElementById('file-input').click()">📷</button>
       <textarea id="msg-input" rows="1"
         placeholder="{{ 'שאל אותי כל דבר, דווח על ארוחה, שלח תמונה...' if lang == 'he' else 'Ask anything, log a meal, send a photo...' }}"></textarea>
-      <button id="send-btn" onclick="sendMessage()">➤</button>
+      <button id="send-btn" onclick="send()">➤</button>
     </div>
   </div>
 </div>
 
-<input type="file" id="file-input" accept="image/*" onchange="handleImageSelect(event)">
+<input type="file" id="file-input" accept="image/*" onchange="onImg(event)">
 
 <script>
-  const LANG = '{{ lang }}';
-  let selectedImageBase64 = null;
-  let selectedImageName   = null;
-  let isLoading           = false;
-  let weightChart         = null;
+  const LANG='{{ lang }}';
+  let imgB64=null,imgName=null,loading=false,wChart=null;
 
-  // ── Auto-resize textarea ──
-  const textarea = document.getElementById('msg-input');
-  textarea.addEventListener('input', () => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
-  });
-  textarea.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
+  // textarea auto-resize
+  const ta=document.getElementById('msg-input');
+  ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,100)+'px';});
+  ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 
-  // ── Drag & drop images ──
-  document.addEventListener('dragover', e => e.preventDefault());
-  document.addEventListener('drop', e => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) loadImage(file);
-  });
+  // drag & drop
+  document.addEventListener('dragover',e=>e.preventDefault());
+  document.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type.startsWith('image/'))loadImg(f);});
 
-  function handleImageSelect(e) {
-    const file = e.target.files[0];
-    if (file) loadImage(file);
+  function onImg(e){const f=e.target.files[0];if(f)loadImg(f);}
+  function loadImg(f){
+    const r=new FileReader();
+    r.onload=ev=>{
+      imgB64=ev.target.result;imgName=f.name;
+      document.getElementById('img-thumb').src=imgB64;
+      document.getElementById('img-nm').textContent=f.name;
+      document.getElementById('img-preview').style.display='flex';
+    };r.readAsDataURL(f);
+  }
+  function clearImg(){imgB64=null;imgName=null;document.getElementById('img-preview').style.display='none';document.getElementById('file-input').value='';}
+
+  function promptWeight(){
+    const p=LANG==='he'?'מה המשקל שלך היום? (קג)':'Your weight today? (kg)';
+    const w=window.prompt(p);
+    if(w&&!isNaN(+w))qs(LANG==='he'?`המשקל שלי היום ${w} קג`:`My weight today is ${w} kg`);
   }
 
-  function loadImage(file) {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      selectedImageBase64 = ev.target.result;
-      selectedImageName   = file.name;
-      document.getElementById('img-thumb').src = selectedImageBase64;
-      document.getElementById('img-name').textContent = file.name;
-      document.getElementById('img-preview').style.display = 'flex';
-    };
-    reader.readAsDataURL(file);
+  function qs(t){document.getElementById('msg-input').value=t;send();}
+
+  // chat rendering
+  function addMsg(role,html,isHtml=false){
+    const chat=document.getElementById('chat');
+    const d=document.createElement('div');
+    d.className=`msg ${role}`;
+    const av=role==='user'?'👤':'🥗';
+    const now=new Date().toLocaleTimeString(LANG==='he'?'he-IL':'en-US',{hour:'2-digit',minute:'2-digit'});
+    d.innerHTML=`<div class="msg-avatar">${av}</div><div class="msg-body"><div class="bubble">${isHtml?html:esc(html)}</div><div class="msg-time">${now}</div></div>`;
+    chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+    return d;
+  }
+  function showTyping(){
+    const d=document.createElement('div');
+    d.className='msg agent typing';d.id='typing';
+    d.innerHTML='<div class="msg-avatar">🥗</div><div class="msg-body"><div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div></div>';
+    document.getElementById('chat').appendChild(d);
+    document.getElementById('chat').scrollTop=9999;
+  }
+  function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+  function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function fmt(t){
+    t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    t=t.replace(/^#{1,3} (.+)$/gm,'<div class="hd">$1</div>');
+    t=t.replace(/^---$/gm,'<hr>');
+    t=t.replace(/^[•\-] (.+)$/gm,'<li>$1</li>');
+    return t;
   }
 
-  function clearImage() {
-    selectedImageBase64 = null; selectedImageName = null;
-    document.getElementById('img-preview').style.display = 'none';
-    document.getElementById('file-input').value = '';
+  async function send(){
+    const txt=ta.value.trim();
+    if(!txt&&!imgB64)return;
+    if(loading)return;
+    addMsg('user',txt||(imgName?`📸 ${imgName}`:''));
+    ta.value='';ta.style.height='auto';
+    const payload={message:txt};
+    if(imgB64){payload.image=imgB64;payload.image_name=imgName;}
+    clearImg();
+    loading=true;document.getElementById('send-btn').disabled=true;
+    showTyping();
+    try{
+      const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      const d=await r.json();
+      hideTyping();
+      if(d.error)addMsg('agent',`❌ ${d.error}`);
+      else{addMsg('agent',fmt(d.response),true);if(d.weight)refreshWeight(d.weight);}
+    }catch(e){hideTyping();addMsg('agent',`❌ ${LANG==='he'?'שגיאת חיבור':'Connection error'}: ${e.message}`);}
+    loading=false;document.getElementById('send-btn').disabled=false;
   }
 
-  function promptWeight() {
-    const prompt = LANG === 'he' ? 'מה המשקל שלך היום? (קילוגרם)' : 'What is your weight today? (kg)';
-    const w = window.prompt(prompt);
-    if (w && !isNaN(parseFloat(w))) {
-      const msg = LANG === 'he' ? `המשקל שלי היום הוא ${w} קג` : `My weight today is ${w} kg`;
-      sendMessageText(msg);
-    }
-  }
-
-  function quickSend(text) { sendMessageText(text); }
-
-  // ── Chat rendering ──
-  function addMsg(role, html, isHtml = false) {
-    const chat = document.getElementById('chat');
-    const div  = document.createElement('div');
-    div.className = `msg ${role}`;
-    const avatar = role === 'user' ? '👤' : '🥗';
-    const now    = new Date().toLocaleTimeString(LANG === 'he' ? 'he-IL' : 'en-US', {hour:'2-digit',minute:'2-digit'});
-    div.innerHTML = `
-      <div class="avatar">${avatar}</div>
-      <div>
-        <div class="bubble">${isHtml ? html : escapeHtml(html)}</div>
-        <div class="msg-time">${now}</div>
-      </div>`;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-    return div;
-  }
-
-  function addTyping() {
-    const div = document.createElement('div');
-    div.className = 'msg agent typing'; div.id = 'typing-indicator';
-    div.innerHTML = `<div class="avatar">🥗</div><div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>`;
-    document.getElementById('chat').appendChild(div);
-    document.getElementById('chat').scrollTop = 9999;
-  }
-
-  function removeTyping() { const t = document.getElementById('typing-indicator'); if(t) t.remove(); }
-
-  function escapeHtml(t) {
-    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function formatResponse(text) {
-    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    text = text.replace(/^#{1,3} (.+)$/gm, '<div class="section-title">$1</div>');
-    text = text.replace(/^---$/gm, '<hr>');
-    text = text.replace(/^[•\-] (.+)$/gm, '<li>$1</li>');
-    return text;
-  }
-
-  // ── Send ──
-  async function sendMessage() {
-    const input    = document.getElementById('msg-input');
-    const text     = input.value.trim();
-    if (!text && !selectedImageBase64) return;
-    if (isLoading) return;
-
-    const userText = text || (selectedImageName ? `📸 ${selectedImageName}` : '');
-    addMsg('user', userText);
-    input.value = ''; input.style.height = 'auto';
-
-    const payload = { message: text };
-    if (selectedImageBase64) { payload.image = selectedImageBase64; payload.image_name = selectedImageName; }
-    clearImage();
-
-    isLoading = true;
-    document.getElementById('send-btn').disabled = true;
-    addTyping();
-
-    try {
-      const res  = await fetch('/chat', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      removeTyping();
-
-      if (data.error) {
-        addMsg('agent', `❌ ${data.error}`);
-      } else {
-        addMsg('agent', formatResponse(data.response), true);
-        if (data.weight) updateWeightDisplay(data.weight);
-      }
-    } catch(e) {
-      removeTyping();
-      addMsg('agent', `❌ ${LANG === 'he' ? 'שגיאת חיבור' : 'Connection error'}: ${e.message}`);
-    }
-
-    isLoading = false;
-    document.getElementById('send-btn').disabled = false;
-  }
-
-  function sendMessageText(text) {
-    document.getElementById('msg-input').value = text;
-    sendMessage();
-  }
-
-  // ── Stats ──
-  function updateWeightDisplay(w) {
-    document.getElementById('s-weight').textContent = `${w} kg`;
-    document.getElementById('topbar-weight').textContent = `⚖️ ${w} kg`;
+  function refreshWeight(w){
+    document.getElementById('s-w').textContent=w;
+    document.getElementById('top-w').textContent=`⚖️ ${w} kg`;
     loadStats();
   }
 
-  async function loadStats() {
-    try {
-      const res  = await fetch('/api/stats');
-      const data = await res.json();
-      if (data.current_weight) {
-        document.getElementById('s-weight').textContent = `${data.current_weight} kg`;
-        document.getElementById('topbar-weight').textContent = `⚖️ ${data.current_weight} kg`;
+  async function loadStats(){
+    try{
+      const d=await(await fetch('/api/stats')).json();
+      if(d.current_weight){document.getElementById('s-w').textContent=d.current_weight;document.getElementById('top-w').textContent=`⚖️ ${d.current_weight} kg`;}
+      if(d.target_min&&d.target_max)document.getElementById('s-t').textContent=`${d.target_min}–${d.target_max}`;
+      if(d.lost!=null){
+        document.getElementById('s-l').textContent=`${d.lost} kg`;
+        document.getElementById('s-ls').textContent=LANG==='he'?`מ-${d.start_weight} kg`:`from ${d.start_weight} kg`;
       }
-      if (data.target_min && data.target_max) {
-        document.getElementById('s-target').textContent = `${data.target_min}-${data.target_max} kg`;
+      const logs=d.weight_log||[];
+      if(d.start_weight&&d.current_weight&&d.target_min){
+        const pct=Math.max(0,Math.min(100,Math.round(((d.start_weight-d.current_weight)/(d.start_weight-d.target_min))*100)));
+        document.getElementById('prog-fill').style.width=pct+'%';
+        document.getElementById('prog-pct').textContent=pct+'%';
       }
-      if (data.lost !== null && data.lost !== undefined) {
-        const lostLabel = LANG === 'he' ? `📉 ירדת ${data.lost} kg` : `📉 Lost ${data.lost} kg`;
-        document.getElementById('s-lost').textContent = lostLabel;
-      }
-      // Progress bar
-      if (data.start_weight && data.current_weight && data.target_min) {
-        const total = data.start_weight - data.target_min;
-        const done  = data.start_weight - data.current_weight;
-        const pct   = Math.max(0, Math.min(100, Math.round((done / total) * 100)));
-        document.getElementById('progress-fill').style.width = `${pct}%`;
-        document.getElementById('progress-pct').textContent  = `${pct}%`;
-      }
-      // Weight chart
-      const logs = data.weight_log || [];
-      if (logs.length >= 2) renderChart(logs);
-    } catch(e) {
-      console.log('Stats load error', e);
-    }
+      if(logs.length>=2)drawChart(logs);
+    }catch(e){console.log('stats err',e);}
   }
 
-  function renderChart(logs) {
-    const labels = logs.map(l => l.date.slice(5));  // MM-DD
-    const values = logs.map(l => l.weight_kg);
-    const ctx    = document.getElementById('weight-chart').getContext('2d');
-    if (weightChart) weightChart.destroy();
-    weightChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          data: values,
-          borderColor: '#4ade80',
-          backgroundColor: 'rgba(74,222,128,.08)',
-          borderWidth: 2,
-          pointRadius: 3,
-          pointBackgroundColor: '#4ade80',
-          tension: .35,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.parsed.y} kg` } } },
-        scales: {
-          x: { ticks: { color: '#4a7a4a', font: { size: 10 } }, grid: { color: '#1a2a1a' } },
-          y: { ticks: { color: '#4a7a4a', font: { size: 10 } }, grid: { color: '#1a2a1a' } }
+  function drawChart(logs){
+    const labels=logs.map(l=>l.date.slice(5));
+    const vals=logs.map(l=>l.weight_kg);
+    const ctx=document.getElementById('wChart').getContext('2d');
+    if(wChart)wChart.destroy();
+    wChart=new Chart(ctx,{
+      type:'line',
+      data:{labels,datasets:[{data:vals,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.08)',
+        borderWidth:2,pointRadius:3,pointBackgroundColor:'#10b981',tension:.4,fill:true}]},
+      options:{responsive:true,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} kg`}}},
+        scales:{
+          x:{ticks:{color:'#3d5c4a',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},
+          y:{ticks:{color:'#3d5c4a',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}
         }
       }
     });
   }
 
-  // ── Init ──
-  window.onload = () => {
+  window.onload=()=>{
     loadStats();
-    const greet = LANG === 'he'
-      ? 'שלום! תראה לי את התפריט של היום ותסביר לי מה חשוב לדעת.'
-      : 'Hello! Show me today\'s meal plan and what I should know.';
-    sendMessageText(greet);
+    qs(LANG==='he'?'שלום! תראה לי את תפריט היום ותסביר מה חשוב.':'Hello! Show me today\'s meal plan and what I should know.');
   };
 </script>
 </body>
