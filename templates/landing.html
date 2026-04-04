@@ -357,13 +357,15 @@
     err.style.display='none';
     const btn=document.getElementById('reg-btn');
     btn.textContent=uiLang==='he'?'יוצר חשבון...':'Creating...';
+    const urlRef=new URLSearchParams(window.location.search).get('ref')||'';
     try{
       const r=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name:document.getElementById('reg-name').value,
           email:document.getElementById('reg-email').value,
           password:document.getElementById('reg-pass').value,
           phone:document.getElementById('reg-phone').value,
-          lang:regLang})});
+          lang:regLang,
+          ref_code:urlRef})});
       const d=await r.json();
       if(d.ok){window.location.href='/onboarding';}
       else{err.textContent=d.error;err.style.display='block';}

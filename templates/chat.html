@@ -323,7 +323,8 @@
         <div class="sb-name">NutriAI</div>
         <div class="sb-user">{{ user_name }}</div>
       </div>
-      <div id="premium-badge" style="margin-right:auto;cursor:pointer;" onclick="document.getElementById('premium-modal').style.display='flex'"></div>
+      <div id="premium-badge" onclick="document.getElementById('premium-modal').style.display='flex'"
+        style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;cursor:pointer;margin-top:6px;">⭐ שדרג לפרמיום</div>
     </div>
     <div class="status-pill">
       <div class="status-dot"></div>
@@ -736,6 +737,19 @@
       // Measurements
       updateMeasurements(d.measurements||{});
 
+      // Premium badge
+      if(d.is_premium){
+        const badge=document.getElementById('premium-badge');
+        if(badge){badge.style.display='inline-flex';badge.textContent='💎 פרמיום';}
+      } else {
+        const badge=document.getElementById('premium-badge');
+        if(badge){badge.style.display='inline-flex';}
+        const pText=document.getElementById('premium-progress-text');
+        const pBar=document.getElementById('premium-bar');
+        if(pText)pText.textContent=(d.referral_count||0)+'/3 חברים הצטרפו';
+        if(pBar)pBar.style.width=Math.min(100,(d.referral_count||0)/3*100)+'%';
+      }
+
     }catch(e){console.log('stats err',e);}
   }
 
@@ -1015,12 +1029,103 @@
     link.click();
   }
 
+  // ── Referral ──
+  async function loadReferral(){
+    try{
+      const d=await(await fetch('/api/referral')).json();
+      if(d.link){
+        document.getElementById('ref-link').textContent=d.link;
+        document.getElementById('ref-count').textContent=d.referrals+' חברים הצטרפו';
+      }
+    }catch(e){}
+  }
+  function copyRefLink(){
+    const link=document.getElementById('ref-link').textContent;
+    navigator.clipboard.writeText(link).then(()=>{
+      document.getElementById('ref-link').textContent='✅ הועתק!';
+      setTimeout(loadReferral,2000);
+    });
+  }
+
+  // ── Barcode Scanner ──
+  let barcodeStream=null,barcodeInterval=null;
+  async function openBarcodeScanner(){
+    document.getElementById('barcode-modal').style.display='flex';
+    try{
+      barcodeStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      document.getElementById('barcode-video').srcObject=barcodeStream;
+      if('BarcodeDetector' in window){
+        const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','qr_code']});
+        barcodeInterval=setInterval(async()=>{
+          try{
+            const codes=await det.detect(document.getElementById('barcode-video'));
+            if(codes.length>0){clearInterval(barcodeInterval);lookupBarcode(codes[0].rawValue);}
+          }catch(e){}
+        },500);
+      } else {
+        document.getElementById('barcode-status').textContent='הכנס ברקוד ידנית (הדפדפן לא תומך בסריקה אוטומטית)';
+      }
+    }catch(e){
+      document.getElementById('barcode-status').textContent='לא ניתן לגשת למצלמה — הכנס ידנית';
+    }
+  }
+  function closeBarcodeScanner(){
+    clearInterval(barcodeInterval);
+    if(barcodeStream)barcodeStream.getTracks().forEach(t=>t.stop());
+    barcodeStream=null;
+    document.getElementById('barcode-modal').style.display='none';
+  }
+  function lookupBarcode(code){
+    if(!code||code.trim().length<4)return;
+    closeBarcodeScanner();
+    qs('סרקתי ברקוד: '+code.trim()+' — מה המוצר הזה? כמה קלוריות יש ב-100 גרם? מה הערכים התזונתיים?');
+  }
+
   window.onload=()=>{
     if('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');
     loadStats();
     loadWater();
+    loadReferral();
     qs(LANG==='he'?'שלום! תראה לי את תפריט היום ותסביר מה חשוב.':'Hello! Show me today\'s meal plan and what I should know.');
   };
 </script>
+
+<!-- Premium Modal -->
+<div id="premium-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;">
+  <div style="background:#0d1a12;border:1px solid rgba(251,191,36,.4);border-radius:20px;padding:32px;max-width:380px;width:90%;text-align:center;">
+    <div style="font-size:52px;margin-bottom:12px;">💎</div>
+    <h3 style="color:#fbbf24;margin-bottom:8px;font-size:18px;">NutriAI פרמיום</h3>
+    <p style="color:var(--sub);font-size:13px;margin-bottom:20px;line-height:1.6;">הזמן 3 חברים ותקבל גישה פרמיום לצמיתות — חינם לגמרי!</p>
+    <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:16px;margin-bottom:20px;">
+      <div id="premium-progress-text" style="color:#fbbf24;font-size:15px;font-weight:600;margin-bottom:10px;">0/3 חברים הצטרפו</div>
+      <div style="background:rgba(255,255,255,.1);border-radius:4px;height:8px;">
+        <div id="premium-bar" style="background:linear-gradient(90deg,#fbbf24,#f59e0b);height:8px;border-radius:4px;width:0%;transition:width .5s;"></div>
+      </div>
+    </div>
+    <button onclick="copyRefLink();document.getElementById('premium-modal').style.display='none'"
+      style="width:100%;padding:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:10px;color:#000;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;margin-bottom:8px;">
+      📋 העתק קישור הזמנה
+    </button>
+    <button onclick="document.getElementById('premium-modal').style.display='none'"
+      style="width:100%;padding:8px;background:none;border:none;color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;">סגור</button>
+  </div>
+</div>
+
+<!-- Barcode Modal -->
+<div id="barcode-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;">
+  <div style="background:#0d1a12;border:1px solid var(--em-border);border-radius:20px;padding:24px;width:90%;max-width:400px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="color:var(--em);font-size:15px;">📷 סריקת ברקוד</h3>
+      <button onclick="closeBarcodeScanner()" style="background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <video id="barcode-video" style="width:100%;border-radius:10px;background:#000;max-height:220px;" autoplay playsinline muted></video>
+    <div id="barcode-status" style="text-align:center;color:var(--sub);font-size:12px;margin:10px 0;">מכוון את המצלמה לברקוד...</div>
+    <input id="barcode-manual" type="text" placeholder="או הכנס ברקוד ידנית (EAN-13...)"
+      style="width:100%;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;margin-bottom:8px;">
+    <button onclick="lookupBarcode(document.getElementById('barcode-manual').value)"
+      style="width:100%;padding:9px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:8px;color:var(--em);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">חפש מוצר</button>
+  </div>
+</div>
+
 </body>
 </html>
