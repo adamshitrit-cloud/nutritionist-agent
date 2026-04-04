@@ -265,6 +265,9 @@ def get_user_stats(user_id: str) -> dict:
         today_meals = [m for m in progress.get("meal_log", []) if m.get("date") == today_iso]
         today_calories = sum(m.get("calories_estimate", 0) for m in today_meals)
 
+        measurements = progress.get("measurement_log", [])
+        latest_measurements = measurements[-1] if measurements else {}
+
         return {
             "current_weight": current_w,
             "start_weight": start_w,
@@ -275,7 +278,8 @@ def get_user_stats(user_id: str) -> dict:
             "name": profile.get("name", ""),
             "streak": streak,
             "today_calories": today_calories,
-            "target_kcal": profile.get("target_kcal", 2100)
+            "target_kcal": profile.get("target_kcal", 2100),
+            "measurements": latest_measurements
         }
     except Exception as e:
         return {}
@@ -690,6 +694,159 @@ def _twilio_reply(text: str) -> Response:
   <Message>{text}</Message>
 </Response>"""
     return Response(xml, mimetype="text/xml")
+
+def _send_whatsapp(to_phone: str, message: str):
+    """Send WhatsApp message via Twilio REST API"""
+    import urllib.request, urllib.parse, base64
+    account_sid = os.environ.get("TWILIO_ACCOUNT_SID", "")
+    auth_token = os.environ.get("TWILIO_AUTH_TOKEN", "")
+    if not account_sid or not auth_token:
+        return False
+
+    url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
+    digits = re.sub(r'\D', '', to_phone)
+    if not digits.startswith('0') and not digits.startswith('+'):
+        wa_to = f"whatsapp:+{digits}"
+    else:
+        wa_to = f"whatsapp:+{digits.lstrip('0')}" if digits.startswith('0') else f"whatsapp:{digits}"
+
+    data = urllib.parse.urlencode({
+        "From": "whatsapp:+14155238886",
+        "To": wa_to,
+        "Body": message
+    }).encode()
+
+    credentials = base64.b64encode(f"{account_sid}:{auth_token}".encode()).decode()
+    req = urllib.request.Request(url, data=data, headers={
+        "Authorization": f"Basic {credentials}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.status == 201
+    except Exception as e:
+        print(f"[Twilio] send error: {e}")
+        return False
+
+
+def _generate_weekly_summary(user_id: str, user_name: str) -> str:
+    """Generate a personalized weekly summary message"""
+    from datetime import date, timedelta
+    nutritionist._current_user_id = user_id
+    try:
+        progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+        profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
+
+        # Last 7 days of data
+        seven_days_ago = str(date.today() - timedelta(days=7))
+        recent_meals = [m for m in progress.get("meal_log", []) if m.get("date", "") >= seven_days_ago]
+        recent_weights = [w for w in progress.get("weight_log", []) if w.get("date", "") >= seven_days_ago]
+
+        total_days_logged = len(set(m.get("date") for m in recent_meals))
+        total_calories = sum(m.get("calories_estimate", 0) for m in recent_meals)
+        avg_daily_calories = total_calories // 7 if total_calories else 0
+
+        latest_weight = recent_weights[-1]["weight_kg"] if recent_weights else profile.get("current_weight_kg", "?")
+        target = profile.get("target_range", {}).get("max", 86)
+
+        msg = f"""📊 *סיכום שבועי — NutriAI*
+שלום {user_name}! הנה הסיכום שלך לשבוע:
+
+⚖️ משקל נוכחי: {latest_weight} ק"ג (יעד: {target} ק"ג)
+🍽️ ימים עם דיווח: {total_days_logged}/7
+🔥 ממוצע קלוריות יומי: {avg_daily_calories} קל
+
+"""
+        if total_days_logged >= 5:
+            msg += "✅ שבוע מעולה! המשך כך!\n"
+        elif total_days_logged >= 3:
+            msg += "👍 שבוע סביר — נסה לדווח יותר ימים!\n"
+        else:
+            msg += "💪 השבוע הבא נתחיל מחדש — כל יום חשוב!\n"
+
+        msg += "\nהמשך עם הסוכן: https://nutritionist-agent-ouvp.onrender.com/app"
+        return msg
+    finally:
+        nutritionist._current_user_id = None
+
+
+@app.route("/api/weekly-summary", methods=["POST"])
+def weekly_summary():
+    secret = request.headers.get("X-Cron-Secret", "")
+    if secret != os.environ.get("CRON_SECRET", "nutriai-cron-2026"):
+        return jsonify({"error": "unauthorized"}), 401
+
+    import urllib.request as ureq
+    url = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
+    token = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+
+    # Scan for all account keys
+    scan_req = ureq.Request(f"{url}/scan/0/match/account:*/count/100",
+                            headers={"Authorization": f"Bearer {token}"})
+    with ureq.urlopen(scan_req, timeout=5) as resp:
+        keys = json.loads(resp.read())["result"][1]
+
+    sent = 0
+    for key in keys:
+        raw = _redis_raw_get(key)
+        if not raw:
+            continue
+        user = json.loads(raw)
+        phone = user.get("phone", "")
+        if not phone:
+            continue
+
+        user_id = user.get("id")
+        name = user.get("name", "משתמש")
+        msg = _generate_weekly_summary(user_id, name)
+        if _send_whatsapp(phone, msg):
+            sent += 1
+
+    return jsonify({"ok": True, "sent": sent})
+
+
+@app.route("/api/shopping-list", methods=["GET"])
+def api_shopping_list():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+
+    try:
+        nutritionist._current_user_id = uid
+        cl = get_client()
+
+        meal_plan = nutritionist.load_json(nutritionist.MEAL_PLAN_FILE)
+        profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
+
+        plan_text = json.dumps(meal_plan, ensure_ascii=False) if meal_plan else "אין תפריט שבועי מוגדר"
+
+        response = cl.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": f"""בהתבסס על התפריט השבועי הזה, צור רשימת קניות מסודרת בעברית.
+
+תפריט: {plan_text}
+
+פרופיל: גיל {profile.get('age','?')}, משקל {profile.get('current_weight_kg','?')}ק"ג, יעד {profile.get('target_kcal',2100)} קל/יום
+
+פרמט את הרשימה לפי קטגוריות:
+🥩 בשר ודגים
+🥚 ביצים ומוצרי חלב
+🥦 ירקות ופירות
+🌾 דגנים וקטניות
+🫙 שימורים ויבשים
+🧴 אחר
+
+כתוב כמויות מדויקות לשבוע אחד. תשובה בעברית בלבד."""}]
+        )
+
+        shopping_text = response.content[0].text
+        return jsonify({"ok": True, "list": shopping_text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        nutritionist._current_user_id = None
+
 
 @app.route("/ping")
 def ping():

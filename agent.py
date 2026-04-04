@@ -213,6 +213,19 @@ TOOLS = [
             },
             "required": ["note", "category"]
         }
+    },
+    {
+        "name": "log_measurement",
+        "description": "מתעד מדידות גוף (היקף מותניים, חזה, ירכיים)",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "waist_cm": {"type": "number", "description": "היקף מותניים בסנטימטרים"},
+                "chest_cm": {"type": "number", "description": "היקף חזה בסנטימטרים"},
+                "hips_cm": {"type": "number", "description": "היקף ירכיים בסנטימטרים"}
+            },
+            "required": []
+        }
     }
 ]
 
@@ -565,6 +578,27 @@ def save_note(note: str, category: str) -> str:
     return f"✅ הערה נשמרה בקטגוריה '{category}'"
 
 
+def log_measurement(waist_cm: float = None, chest_cm: float = None, hips_cm: float = None) -> str:
+    progress = load_json(PROGRESS_FILE)
+    entry = {
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "time": datetime.now().strftime("%H:%M")
+    }
+    if waist_cm: entry["waist_cm"] = waist_cm
+    if chest_cm: entry["chest_cm"] = chest_cm
+    if hips_cm: entry["hips_cm"] = hips_cm
+
+    progress.setdefault("measurement_log", []).append(entry)
+    save_json(PROGRESS_FILE, progress)
+
+    parts = []
+    if waist_cm: parts.append(f"מותניים: {waist_cm}ס\"מ")
+    if chest_cm: parts.append(f"חזה: {chest_cm}ס\"מ")
+    if hips_cm: parts.append(f"ירכיים: {hips_cm}ס\"מ")
+
+    return f"✅ מדידות נרשמו: {', '.join(parts)}"
+
+
 # ── Tool dispatcher ────────────────────────────────────────────────────────
 _shared_client = None  # Set at startup
 
@@ -588,6 +622,8 @@ def execute_tool(name: str, inputs: dict) -> str:
             return analyze_food_image(**inputs, _client=_shared_client)
         elif name == "save_note":
             return save_note(**inputs)
+        elif name == "log_measurement":
+            return log_measurement(**inputs)
         else:
             return f"כלי לא מוכר: {name}"
     except Exception as e:

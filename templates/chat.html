@@ -397,6 +397,16 @@
   </div>
 
   <div class="sb-sec">
+    <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'מדידות גוף' if lang == 'he' else 'Body Measurements' }}</div>
+    <div class="stat-card" id="measurements-card" style="margin-bottom:12px;">
+      <div class="stat-lbl">📏 {{ 'מדידה אחרונה' if lang == 'he' else 'Latest Measurement' }}</div>
+      <div id="measurements-display" style="font-size:12px;color:var(--sub);margin-top:6px;line-height:1.8;">
+        {{ 'טרם נמדד' if lang == 'he' else 'Not yet measured' }}
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-sec">
     <div class="sb-sec-title">{{ 'פעולות מהירות' if lang == 'he' else 'Quick Actions' }}</div>
     <div class="qa-list">
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today\'s meal plan{% endif %}')">
@@ -413,6 +423,9 @@
       </button>
       <button class="qa-btn" onclick="document.getElementById('file-input').click()">
         <span>📸</span><span>{{ 'שלח תמונת אוכל' if lang == 'he' else 'Send Food Photo' }}</span>
+      </button>
+      <button class="qa-btn" onclick="showShoppingList()">
+        <span>🛒</span><span>{{ 'רשימת קניות' if lang == 'he' else 'Shopping List' }}</span>
       </button>
     </div>
   </div>
@@ -463,6 +476,20 @@
 </div>
 
 <input type="file" id="file-input" accept="image/*" onchange="onImg(event)">
+
+<!-- Shopping List Modal -->
+<div id="shop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#0d1a12;border:1px solid var(--em-border);border-radius:20px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;position:relative;">
+    <button onclick="document.getElementById('shop-modal').style.display='none'"
+      style="position:absolute;top:12px;left:12px;background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;">✕</button>
+    <h3 style="color:var(--em);margin-bottom:16px;font-size:16px;">🛒 {{ 'רשימת קניות שבועית' if lang == 'he' else 'Weekly Shopping List' }}</h3>
+    <div id="shop-content" style="color:var(--text);font-size:14px;line-height:1.7;white-space:pre-wrap;"></div>
+    <button onclick="copyShoppingList()"
+      style="margin-top:16px;width:100%;padding:10px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:10px;color:var(--em);cursor:pointer;font-family:'Inter',sans-serif;">
+      📋 {{ 'העתק רשימה' if lang == 'he' else 'Copy List' }}
+    </button>
+  </div>
+</div>
 
 <script>
   const LANG='{{ lang }}';
@@ -656,6 +683,9 @@
       // Calorie ring
       updateCalRing(d.today_calories||0, d.target_kcal||2100);
 
+      // Measurements
+      updateMeasurements(d.measurements||{});
+
     }catch(e){console.log('stats err',e);}
   }
 
@@ -689,6 +719,39 @@
       else{msg.textContent=d.error||'שגיאה';msg.style.color='#fb7185';}
     }catch(e){msg.textContent=e.message;msg.style.color='#fb7185';}
     msg.style.display='block';
+  }
+
+  // ── Shopping list ──
+  async function showShoppingList() {
+    document.getElementById('shop-modal').style.display='flex';
+    document.getElementById('shop-content').textContent = LANG==='he'?'מייצר רשימה...':'Generating...';
+    try {
+      const d = await (await fetch('/api/shopping-list')).json();
+      document.getElementById('shop-content').textContent = d.list || d.error;
+    } catch(e) {
+      document.getElementById('shop-content').textContent = 'שגיאה: ' + e.message;
+    }
+  }
+
+  function copyShoppingList() {
+    navigator.clipboard.writeText(document.getElementById('shop-content').textContent)
+      .then(() => alert(LANG==='he'?'הועתק!':'Copied!'));
+  }
+
+  // ── Measurements display (populated via loadStats) ──
+  function updateMeasurements(m) {
+    const el = document.getElementById('measurements-display');
+    if (!el) return;
+    if (!m || (!m.waist_cm && !m.chest_cm && !m.hips_cm)) {
+      el.textContent = LANG==='he'?'טרם נמדד':'Not yet measured';
+      return;
+    }
+    const parts = [];
+    if (m.waist_cm) parts.push(`📏 ${LANG==='he'?'מותניים':'Waist'}: ${m.waist_cm} ס"מ`);
+    if (m.chest_cm) parts.push(`📏 ${LANG==='he'?'חזה':'Chest'}: ${m.chest_cm} ס"מ`);
+    if (m.hips_cm) parts.push(`📏 ${LANG==='he'?'ירכיים':'Hips'}: ${m.hips_cm} ס"מ`);
+    if (m.date) parts.push(`🗓 ${m.date}`);
+    el.innerHTML = parts.join('<br>');
   }
 
   window.onload=()=>{
