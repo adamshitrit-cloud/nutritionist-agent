@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NutriAI — התזונאי החכם</title>
+  <title>NutriAI Longevity — Precision Metabolic AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --emerald:#10b981;--emerald-light:#34d399;--emerald-dim:rgba(16,185,129,.12);
-      --violet:#8b5cf6;--violet-light:#a78bfa;--violet-dim:rgba(139,92,246,.12);
-      --rose:#f43f5e;
-      --bg:#050a08;--glass:rgba(255,255,255,.04);--glass-border:rgba(255,255,255,.08);
-      --text:#f0faf5;--sub:#6b9e84;--muted:#3d5c4a;
+      --cyan:#00D4FF;--cyan-l:#33DDFF;--cyan-dim:rgba(0,212,255,.10);
+      --emerald:#00D4FF;--emerald-light:#33DDFF;--emerald-dim:rgba(0,212,255,.10);
+      --violet:#6B5CE7;--violet-light:#a78bfa;--violet-dim:rgba(107,92,231,.12);
+      --gold:#C9A960;--rose:#FF6B6B;
+      --bg:#070B12;--glass:rgba(255,255,255,.04);--glass-border:rgba(100,140,255,.12);
+      --text:#E8F0FE;--sub:#7A8BA8;--muted:#2A3A52;
     }
     body{
       font-family:'Inter',sans-serif;
@@ -24,9 +25,9 @@
     /* ── Animated background ── */
     .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
     .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:drift 12s ease-in-out infinite;}
-    .orb1{width:500px;height:500px;background:radial-gradient(circle,#10b981,transparent);top:-100px;right:-100px;animation-delay:0s;}
-    .orb2{width:400px;height:400px;background:radial-gradient(circle,#8b5cf6,transparent);bottom:-80px;left:-80px;animation-delay:-4s;}
-    .orb3{width:300px;height:300px;background:radial-gradient(circle,#f43f5e,transparent);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-8s;opacity:.15;}
+    .orb1{width:500px;height:500px;background:radial-gradient(circle,#00D4FF,transparent);top:-100px;right:-100px;animation-delay:0s;}
+    .orb2{width:400px;height:400px;background:radial-gradient(circle,#6B5CE7,transparent);bottom:-80px;left:-80px;animation-delay:-4s;}
+    .orb3{width:300px;height:300px;background:radial-gradient(circle,#C9A960,transparent);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-8s;opacity:.15;}
     @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
 
     /* ── Language switcher ── */
@@ -38,8 +39,8 @@
       font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap;
     }
     .lang-btn.active{
-      background:var(--emerald-dim);border-color:var(--emerald);
-      color:var(--emerald);font-weight:600;
+      background:var(--cyan-dim);border-color:rgba(0,212,255,.3);
+      color:var(--cyan);font-weight:600;
     }
 
     /* ── Main layout ── */
@@ -63,7 +64,7 @@
     .logo-wrap{
       display:inline-flex;align-items:center;justify-content:center;
       width:80px;height:80px;border-radius:24px;
-      background:linear-gradient(135deg,var(--emerald-dim),var(--violet-dim));
+      background:linear-gradient(135deg,var(--cyan-dim),var(--violet-dim));
       border:1px solid var(--glass-border);backdrop-filter:blur(12px);
       font-size:40px;margin-bottom:24px;
       animation:float 4s ease-in-out infinite;
@@ -72,11 +73,11 @@
 
     .badge{
       display:inline-flex;align-items:center;gap:6px;
-      background:var(--emerald-dim);border:1px solid rgba(16,185,129,.3);
+      background:var(--cyan-dim);border:1px solid rgba(0,212,255,.3);
       border-radius:20px;padding:5px 14px;font-size:12px;
-      color:var(--emerald);margin-bottom:20px;font-weight:500;
+      color:var(--cyan);margin-bottom:20px;font-weight:500;
     }
-    .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);animation:blink 2s infinite;}
+    .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink 2s infinite;}
     @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
     h1{
@@ -84,7 +85,7 @@
       margin-bottom:14px;letter-spacing:-1px;
     }
     h1 .grad{
-      background:linear-gradient(135deg,var(--emerald-light),var(--violet-light));
+      background:linear-gradient(135deg,var(--cyan-l),#a78bfa);
       -webkit-background-clip:text;-webkit-text-fill-color:transparent;
     }
     .tagline{font-size:clamp(15px,2.5vw,18px);color:var(--sub);max-width:500px;margin:0 auto 32px;line-height:1.6;font-weight:300;}
@@ -98,7 +99,7 @@
       padding:6px 14px;font-size:13px;color:var(--sub);
       transition:all .2s;
     }
-    .pill:hover{border-color:var(--emerald);color:var(--emerald-light);}
+    .pill:hover{border-color:var(--cyan);color:var(--cyan-l);}
 
     /* ── Auth card ── */
     .auth-card{
@@ -117,7 +118,7 @@
       border-radius:8px;transition:all .2s;font-family:'Inter',sans-serif;
       border:none;background:none;
     }
-    .tab.active{background:var(--emerald-dim);color:var(--emerald);border:1px solid rgba(16,185,129,.3);}
+    .tab.active{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(0,212,255,.3);}
 
     .form{display:none;flex-direction:column;gap:16px;}
     .form.active{display:flex;}
@@ -131,7 +132,7 @@
       color:var(--text);font-size:14px;font-family:'Inter',sans-serif;
       outline:none;transition:all .2s;
     }
-    .field input:focus{border-color:var(--emerald);box-shadow:0 0 0 3px var(--emerald-dim);}
+    .field input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px var(--cyan-dim);}
     .field input::placeholder{color:var(--muted);}
 
     /* Language selector */
@@ -141,24 +142,24 @@
       background:rgba(0,0,0,.2);color:var(--sub);cursor:pointer;
       font-size:13px;text-align:center;transition:all .2s;font-family:'Inter',sans-serif;
     }
-    .lang-opt.selected{border-color:var(--emerald);color:var(--emerald);background:var(--emerald-dim);}
+    .lang-opt.selected{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-dim);}
 
     /* Submit button */
     .submit-btn{
       width:100%;padding:13px;
-      background:linear-gradient(135deg,var(--emerald),#059669);
-      border:none;border-radius:12px;color:#fff;
+      background:linear-gradient(135deg,var(--cyan),#0099BB);
+      border:none;border-radius:12px;color:#000;
       font-size:15px;font-weight:700;cursor:pointer;
       font-family:'Inter',sans-serif;
       transition:all .2s;margin-top:4px;
-      box-shadow:0 4px 20px rgba(16,185,129,.3);
+      box-shadow:0 4px 20px rgba(0,212,255,.3);
       position:relative;overflow:hidden;
     }
     .submit-btn::after{
       content:'';position:absolute;inset:0;
       background:linear-gradient(135deg,transparent,rgba(255,255,255,.1));
     }
-    .submit-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(16,185,129,.4);}
+    .submit-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,212,255,.4);}
     .submit-btn:active{transform:translateY(0);}
 
     .err{color:#fb7185;font-size:12px;text-align:center;display:none;margin-top:4px;}
@@ -198,21 +199,21 @@
 
     <div class="badge">
       <span class="badge-dot"></span>
-      <span id="badge-txt">AI מדור הבא</span>
+      <span id="badge-txt">LONGEVITY OS · 2026</span>
     </div>
 
     <h1>
       <span id="h1-a">הסוכן התזונתי</span><br>
       <span class="grad" id="h1-b">החכם שלך</span>
     </h1>
-    <p class="tagline" id="tagline">ליווי אישי מבוסס AI — תפריטים, מעקב משקל, ניתוח תמונות אוכל. דרך הווב ודרך WhatsApp.</p>
+    <p class="tagline" id="tagline">ניווט מטבולי מבוסס AI — הסוכן האישי שלך לבריאות ואריכות ימים.</p>
 
     <div class="pills">
-      <div class="pill"><span>📊</span><span id="p1">מעקב משקל חכם</span></div>
-      <div class="pill"><span>🍽️</span><span id="p2">תפריט שבועי מותאם</span></div>
-      <div class="pill"><span>📸</span><span id="p3">ניתוח תמונות אוכל</span></div>
-      <div class="pill"><span>💬</span><span id="p4">WhatsApp + Web</span></div>
-      <div class="pill"><span>🔒</span><span id="p5">נתונים פרטיים מאובטחים</span></div>
+      <div class="pill"><span>⚡</span><span id="p1">Metabolic Tracking</span></div>
+      <div class="pill"><span>🧬</span><span id="p2">Precision Nutrition</span></div>
+      <div class="pill"><span>📸</span><span id="p3">Food Analysis AI</span></div>
+      <div class="pill"><span>💬</span><span id="p4">Always Available</span></div>
+      <div class="pill"><span>🔒</span><span id="p5">Private & Secure</span></div>
     </div>
   </div>
 
@@ -266,41 +267,41 @@
     </form>
   </div>
 
-  <div class="page-footer" id="footer-txt">NutriAI © 2026 · Powered by Claude AI</div>
+  <div class="page-footer" id="footer-txt">NutriAI Longevity © 2026 · Powered by Claude AI</div>
 </div>
 
 <script>
   let uiLang = 'he', regLang = 'he';
 
   const T = {
-    he:{badge:'AI מדור הבא',h1a:'הסוכן התזונתי',h1b:'החכם שלך',
-        tag:'ליווי אישי מבוסס AI — תפריטים, מעקב משקל, ניתוח תמונות אוכל. דרך הווב ודרך WhatsApp.',
-        p1:'מעקב משקל חכם',p2:'תפריט שבועי מותאם',p3:'ניתוח תמונות אוכל',p4:'WhatsApp + Web',p5:'נתונים פרטיים מאובטחים',
+    he:{badge:'LONGEVITY OS · 2026',h1a:'הסוכן התזונתי',h1b:'החכם שלך',
+        tag:'ניווט מטבולי מבוסס AI — הסוכן האישי שלך לבריאות ואריכות ימים.',
+        p1:'⚡ Metabolic Tracking',p2:'🧬 Precision Nutrition',p3:'📸 Food Analysis AI',p4:'💬 Always Available',p5:'🔒 Private & Secure',
         tabL:'כניסה',tabR:'הרשמה',lEmail:'אימייל',lPass:'סיסמה',
         rName:'שם מלא',rEmail:'אימייל',rPass:'סיסמה',rPhone:'מספר WhatsApp (אופציונלי)',rLang:'שפה מועדפת',
         loginBtn:'כניסה →',regBtn:'צור חשבון →',
-        footer:'NutriAI © 2026 · Powered by Claude AI'},
-    en:{badge:'Next-Gen AI',h1a:'Your Personal',h1b:'Nutrition AI',
-        tag:'AI-powered coaching — meal plans, weight tracking, food photo analysis. Web & WhatsApp.',
-        p1:'Smart Weight Tracking',p2:'Custom Weekly Meals',p3:'Food Photo Analysis',p4:'WhatsApp + Web',p5:'Private & Secure',
+        footer:'NutriAI Longevity © 2026 · Powered by Claude AI'},
+    en:{badge:'LONGEVITY OS · 2026',h1a:'Your Personal',h1b:'Longevity AI',
+        tag:'Metabolic navigation powered by AI — your personal agent for health and longevity.',
+        p1:'⚡ Metabolic Tracking',p2:'🧬 Precision Nutrition',p3:'📸 Food Analysis AI',p4:'💬 Always Available',p5:'🔒 Private & Secure',
         tabL:'Login',tabR:'Register',lEmail:'Email',lPass:'Password',
         rName:'Full Name',rEmail:'Email',rPass:'Password',rPhone:'WhatsApp Number (optional)',rLang:'Preferred Language',
         loginBtn:'Login →',regBtn:'Create Account →',
-        footer:'NutriAI © 2026 · Powered by Claude AI'},
-    ar:{badge:'AI متقدم',h1a:'مساعدك الشخصي',h1b:'للتغذية الذكية',
+        footer:'NutriAI Longevity © 2026 · Powered by Claude AI'},
+    ar:{badge:'LONGEVITY OS · 2026',h1a:'مساعدك الشخصي',h1b:'للتغذية الذكية',
         tag:'تغذية ذكية بالذكاء الاصطناعي — خطط وجبات، تتبع الوزن، تحليل صور الطعام.',
         p1:'تتبع الوزن',p2:'خطة أسبوعية',p3:'تحليل الصور',p4:'واتساب + ويب',p5:'خاص وآمن',
         tabL:'دخول',tabR:'تسجيل',lEmail:'البريد الإلكتروني',lPass:'كلمة المرور',
         rName:'الاسم الكامل',rEmail:'البريد الإلكتروني',rPass:'كلمة المرور',rPhone:'رقم واتساب (اختياري)',rLang:'اللغة المفضلة',
         loginBtn:'دخول →',regBtn:'إنشاء حساب →',
-        footer:'NutriAI © 2026 · Powered by Claude AI'},
-    ru:{badge:'AI нового поколения',h1a:'Ваш личный',h1b:'диетолог на ИИ',
+        footer:'NutriAI Longevity © 2026 · Powered by Claude AI'},
+    ru:{badge:'LONGEVITY OS · 2026',h1a:'Ваш личный',h1b:'диетолог на ИИ',
         tag:'Персональное сопровождение на основе ИИ — меню, контроль веса, анализ фото еды.',
         p1:'Умный контроль веса',p2:'Персональное меню',p3:'Анализ фото еды',p4:'WhatsApp + Web',p5:'Приватно и безопасно',
         tabL:'Войти',tabR:'Регистрация',lEmail:'Email',lPass:'Пароль',
         rName:'Полное имя',rEmail:'Email',rPass:'Пароль',rPhone:'Номер WhatsApp (необязательно)',rLang:'Язык',
         loginBtn:'Войти →',regBtn:'Создать аккаунт →',
-        footer:'NutriAI © 2026 · Powered by Claude AI'}
+        footer:'NutriAI Longevity © 2026 · Powered by Claude AI'}
   };
 
   function setLang(l){

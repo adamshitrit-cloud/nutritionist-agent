@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NutriAI 🥗</title>
+  <title>NutriAI Longevity 🥗</title>
   <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#10b981">
+  <meta name="theme-color" content="#00D4FF">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="NutriAI">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,11 +14,13 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --em:#10b981;--em-l:#34d399;--em-dim:rgba(16,185,129,.1);--em-border:rgba(16,185,129,.25);
-      --vi:#8b5cf6;--vi-l:#a78bfa;--vi-dim:rgba(139,92,246,.1);
-      --bg:#050a08;--sidebar:#080f0b;--card:rgba(255,255,255,.04);
-      --border:rgba(255,255,255,.07);--text:#f0faf5;--sub:#6b9e84;--muted:#2d4a38;
-      --user-bg:rgba(139,92,246,.15);--user-border:rgba(139,92,246,.3);
+      --em:#00D4FF;--em-l:#33DDFF;--em-dim:rgba(0,212,255,.10);--em-border:rgba(0,212,255,.25);
+      --vi:#6B5CE7;--vi-l:#a78bfa;--vi-dim:rgba(107,92,231,.1);
+      --gold:#C9A960;--gold-dim:rgba(201,169,96,.10);--gold-border:rgba(201,169,96,.25);
+      --bg:#070B12;--sidebar:#090E1A;--card:rgba(255,255,255,.04);
+      --border:rgba(100,140,255,.12);--text:#E8F0FE;--sub:#7A8BA8;--muted:#2A3A52;
+      --user-bg:rgba(107,92,231,.15);--user-border:rgba(107,92,231,.3);
+      --alert:#FF6B6B;
     }
     body{
       font-family:'Inter',sans-serif;
@@ -50,6 +52,13 @@
     }
     .sb-name{font-size:16px;font-weight:700;color:var(--em-l);}
     .sb-user{font-size:12px;color:var(--sub);font-weight:400;}
+    .sb-badge{
+      display:inline-flex;align-items:center;gap:5px;
+      background:var(--em-dim);border:1px solid var(--em-border);
+      border-radius:4px;padding:3px 8px;font-size:9px;
+      color:var(--em);letter-spacing:1.5px;font-weight:700;
+      margin-bottom:10px;
+    }
 
     /* Status pill */
     .status-pill{
@@ -62,7 +71,7 @@
 
     /* Section */
     .sb-sec{padding:16px 18px 8px;}
-    .sb-sec-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:10px;}
+    .sb-sec-title{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:10px;}
 
     /* Stat cards */
     .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
@@ -71,10 +80,8 @@
       border-radius:12px;padding:12px 14px;
     }
     .stat-card.full{grid-column:1/-1;}
-    .stat-lbl{font-size:10px;color:var(--sub);margin-bottom:4px;font-weight:500;}
-    .stat-val{font-size:22px;font-weight:800;
-      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .stat-lbl{font-size:9px;color:var(--sub);margin-bottom:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+    .stat-val{font-size:24px;font-weight:800;color:var(--em);}
     .stat-sub{font-size:10px;color:var(--sub);margin-top:2px;}
 
     /* Progress */
@@ -83,7 +90,7 @@
     .prog-bg{height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
     .prog-fill{
       height:100%;border-radius:3px;
-      background:linear-gradient(90deg,var(--em),var(--vi-l));
+      background:linear-gradient(90deg,var(--em),var(--vi));
       transition:width .6s cubic-bezier(.4,0,.2,1);
     }
 
@@ -105,7 +112,7 @@
       text-align:{{ 'right' if lang == 'he' else 'left' }};
       transition:all .15s;width:100%;font-weight:500;
     }
-    .qa-btn:hover{background:var(--em-dim);border-color:var(--em-border);color:var(--em-l);}
+    .qa-btn:hover{background:var(--em-dim);border-color:var(--em-border);color:var(--em);}
 
     /* Footer */
     .sb-footer{margin-top:auto;padding:16px 18px;border-top:1px solid var(--border);}
@@ -124,8 +131,8 @@
     /* Topbar */
     #topbar{
       padding:14px 20px;
-      background:rgba(8,15,11,.8);
-      border-bottom:1px solid var(--border);
+      background:rgba(7,11,18,.8);
+      border-bottom:1px solid var(--em-border);
       backdrop-filter:blur(12px);
       display:flex;align-items:center;gap:12px;
       position:relative;z-index:10;
@@ -133,7 +140,7 @@
     .top-avatar{
       width:36px;height:36px;border-radius:10px;
       background:linear-gradient(135deg,var(--em-dim),var(--vi-dim));
-      border:1px solid var(--border);
+      border:1px solid var(--em-border);
       display:flex;align-items:center;justify-content:center;font-size:18px;
     }
     .top-title{font-size:15px;font-weight:600;flex:1;}
@@ -158,7 +165,7 @@
       display:flex;align-items:center;justify-content:center;font-size:15px;
     }
     .msg.user .msg-avatar{background:var(--user-bg);border:1px solid var(--user-border);}
-    .msg.agent .msg-avatar{background:var(--em-dim);border:1px solid var(--em-border);}
+    .msg.agent .msg-avatar{background:rgba(0,212,255,.07);border:1px solid var(--em-border);}
 
     .msg-body{}
     .bubble{
@@ -167,10 +174,10 @@
     }
     .msg.user .bubble{
       background:var(--user-bg);border:1px solid var(--user-border);
-      border-top-{{ 'right' if lang == 'he' else 'left' }}-radius:4px;color:#d4c6ff;
+      border-top-{{ 'right' if lang == 'he' else 'left' }}-radius:4px;color:#c4b9ff;
     }
     .msg.agent .bubble{
-      background:var(--card);border:1px solid var(--border);
+      background:rgba(0,212,255,.04);border:1px solid var(--em-border);
       border-top-{{ 'left' if lang == 'he' else 'right' }}-radius:4px;
       backdrop-filter:blur(8px);
     }
@@ -185,7 +192,7 @@
     .dots{display:flex;gap:5px;align-items:center;}
     .dots span{
       width:7px;height:7px;border-radius:50%;
-      background:var(--em);animation:bounce .9s infinite;
+      background:var(--em);animation:bounce .9s infinite;opacity:.7;
     }
     .dots span:nth-child(2){animation-delay:.18s;}
     .dots span:nth-child(3){animation-delay:.36s;}
@@ -195,7 +202,7 @@
     #img-preview{
       display:none;margin:0 18px;padding:8px 14px;
       background:var(--em-dim);border:1px dashed var(--em-border);
-      border-radius:12px;font-size:13px;color:var(--em);
+      border-radius:12px;font-size:13px;color:var(--em-l);
       align-items:center;gap:10px;
     }
     #img-preview img{height:48px;border-radius:8px;object-fit:cover;}
@@ -204,7 +211,7 @@
     /* Input bar */
     #input-bar{
       padding:10px 18px 16px;
-      background:rgba(5,10,8,.9);backdrop-filter:blur(12px);
+      background:rgba(7,11,18,.9);backdrop-filter:blur(12px);
       border-top:1px solid var(--border);
     }
     #input-row{
@@ -216,6 +223,7 @@
     #input-row:focus-within{
       border-color:var(--em-border);
       box-shadow:0 0 0 3px var(--em-dim);
+      border-color:rgba(0,212,255,.35);
     }
     #msg-input{
       flex:1;background:none;border:none;outline:none;
@@ -230,16 +238,16 @@
       font-size:20px;padding:3px;color:var(--sub);
       transition:color .2s;flex-shrink:0;
     }
-    .icon-btn:hover{color:var(--em-l);}
+    .icon-btn:hover{color:var(--em);}
     #send-btn{
       width:36px;height:36px;border-radius:10px;
-      background:linear-gradient(135deg,var(--em),#059669);
+      background:linear-gradient(135deg,var(--em),#0099BB);
       border:none;cursor:pointer;flex-shrink:0;
       display:flex;align-items:center;justify-content:center;
       font-size:15px;transition:all .2s;
-      box-shadow:0 4px 12px rgba(16,185,129,.25);
+      box-shadow:0 4px 12px rgba(0,212,255,.25);
     }
-    #send-btn:hover{transform:scale(1.05);box-shadow:0 6px 16px rgba(16,185,129,.4);}
+    #send-btn:hover{transform:scale(1.05);box-shadow:0 6px 16px rgba(0,212,255,.4);}
     #send-btn:disabled{background:var(--muted);cursor:default;box-shadow:none;transform:none;}
 
     /* Streak card */
@@ -248,13 +256,10 @@
       border-radius:12px;padding:12px 14px;margin-bottom:12px;
       display:flex;align-items:center;justify-content:space-between;
     }
-    .streak-card.gold{border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.06);}
+    .streak-card.gold{border-color:var(--gold-border);background:var(--gold-dim);}
     .streak-val{font-size:22px;font-weight:800;}
-    .streak-val.gold-text{color:#fbbf24;}
-    .streak-val.normal-text{
-      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-    }
+    .streak-val.gold-text{color:var(--gold);}
+    .streak-val.normal-text{color:var(--em);}
     .streak-info{font-size:10px;color:var(--sub);margin-top:2px;}
 
     /* Calorie ring */
@@ -266,10 +271,7 @@
     .cal-ring-svg{flex-shrink:0;}
     .cal-ring-info{}
     .cal-ring-lbl{font-size:10px;color:var(--sub);font-weight:500;}
-    .cal-ring-val{font-size:20px;font-weight:800;
-      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-      line-height:1.2;margin:2px 0;}
+    .cal-ring-val{font-size:20px;font-weight:800;color:var(--em);line-height:1.2;margin:2px 0;}
     .cal-ring-sub{font-size:10px;color:var(--sub);}
 
     /* Water tracker */
@@ -359,9 +361,9 @@
       --user-bg:rgba(139,92,246,.1); --user-border:rgba(139,92,246,.2);
     }
     body.light-mode #sidebar { background:var(--sidebar); }
-    body.light-mode #main { background:#f8fffe; }
-    body.light-mode #topbar { background:rgba(232,245,237,.85); }
-    body.light-mode #input-bar { background:rgba(240,250,245,.95); }
+    body.light-mode #main { background:#f0f4ff; }
+    body.light-mode #topbar { background:rgba(232,238,254,.85); }
+    body.light-mode #input-bar { background:rgba(240,244,255,.95); }
     body.light-mode #input-row { background:rgba(255,255,255,.7); }
   </style>
 </head>
@@ -370,10 +372,11 @@
 <!-- Sidebar -->
 <div id="sidebar">
   <div class="sb-header">
+    <div class="sb-badge">LONGEVITY OS</div>
     <div class="sb-brand">
       <div class="sb-icon">🥗</div>
       <div>
-        <div class="sb-name">NutriAI</div>
+        <div class="sb-name">NutriAI Longevity</div>
         <div class="sb-user">{{ user_name }}</div>
       </div>
       <div id="premium-badge" onclick="document.getElementById('premium-modal').style.display='flex'"
@@ -381,25 +384,25 @@
     </div>
     <div class="status-pill">
       <div class="status-dot"></div>
-      {{ 'פעיל' if lang == 'he' else 'Active' }}
+      {{ '● LIVE' if lang == 'he' else '● LIVE' }}
     </div>
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'סטטיסטיקות' if lang == 'he' else 'Stats' }}</div>
+    <div class="sb-sec-title">{{ 'BIOMARKERS' if lang == 'he' else 'BIOMARKERS' }}</div>
     <div class="stat-row">
       <div class="stat-card">
-        <div class="stat-lbl">⚖️ {{ 'משקל' if lang == 'he' else 'Weight' }}</div>
+        <div class="stat-lbl">⚖️ {{ 'BODY MASS' if lang == 'he' else 'BODY MASS' }}</div>
         <div class="stat-val" id="s-w">—</div>
         <div class="stat-sub">kg</div>
       </div>
       <div class="stat-card">
-        <div class="stat-lbl">🎯 {{ 'יעד' if lang == 'he' else 'Target' }}</div>
+        <div class="stat-lbl">🎯 {{ 'TARGET' if lang == 'he' else 'TARGET' }}</div>
         <div class="stat-val" id="s-t">—</div>
         <div class="stat-sub">kg</div>
       </div>
       <div class="stat-card full">
-        <div class="stat-lbl">📉 {{ 'ירדת' if lang == 'he' else 'Lost so far' }}</div>
+        <div class="stat-lbl">📉 {{ 'ΔWEIGHT' if lang == 'he' else 'ΔWEIGHT' }}</div>
         <div class="stat-val" id="s-l">—</div>
         <div class="stat-sub" id="s-ls"></div>
       </div>
@@ -414,9 +417,9 @@
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'גרף משקל' if lang == 'he' else 'Weight Chart' }}</div>
+    <div class="sb-sec-title">{{ 'WEIGHT TRAJECTORY' if lang == 'he' else 'WEIGHT TRAJECTORY' }}</div>
     <div class="chart-card">
-      <div class="chart-title">{{ 'היסטוריית שקילות' if lang == 'he' else 'Weight History' }}</div>
+      <div class="chart-title">{{ 'WEIGHT LOG' if lang == 'he' else 'WEIGHT LOG' }}</div>
       <canvas id="wChart"></canvas>
     </div>
   </div>
@@ -426,14 +429,14 @@
     <div class="cal-ring-wrap">
       <svg class="cal-ring-svg" width="92" height="92" viewBox="0 0 92 92">
         <circle cx="46" cy="46" r="40" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
-        <circle id="cal-ring-circle" cx="46" cy="46" r="40" fill="none" stroke="#10b981" stroke-width="6"
+        <circle id="cal-ring-circle" cx="46" cy="46" r="40" fill="none" stroke="#00D4FF" stroke-width="6"
           stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"
           transform="rotate(-90 46 46)" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
-        <text x="46" y="42" text-anchor="middle" fill="#f0faf5" font-size="13" font-weight="800" font-family="Inter,sans-serif" id="cal-ring-num">0</text>
-        <text x="46" y="56" text-anchor="middle" fill="#6b9e84" font-size="8" font-family="Inter,sans-serif">kcal</text>
+        <text x="46" y="42" text-anchor="middle" fill="#E8F0FE" font-size="13" font-weight="800" font-family="Inter,sans-serif" id="cal-ring-num">0</text>
+        <text x="46" y="56" text-anchor="middle" fill="#7A8BA8" font-size="8" font-family="Inter,sans-serif">kcal</text>
       </svg>
       <div class="cal-ring-info">
-        <div class="cal-ring-lbl">{{ 'קלוריות היום' if lang == 'he' else "Today's Calories" }}</div>
+        <div class="cal-ring-lbl">{{ 'CALORIC LOAD' if lang == 'he' else 'CALORIC LOAD' }}</div>
         <div class="cal-ring-val" id="cal-today">0</div>
         <div class="cal-ring-sub">{{ 'מתוך' if lang == 'he' else 'of' }} <span id="cal-target">2100</span> יעד</div>
       </div>
@@ -442,7 +445,7 @@
     <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'רצף ימים' if lang == 'he' else 'Streak' }}</div>
     <div class="streak-card" id="streak-card">
       <div>
-        <div class="stat-lbl">🔥 {{ 'ימים ברצף' if lang == 'he' else 'Day Streak' }}</div>
+        <div class="stat-lbl">⚡ {{ 'STREAK' if lang == 'he' else 'STREAK' }}</div>
         <div class="streak-val normal-text" id="streak-val">0</div>
         <div class="streak-info" id="streak-info">{{ 'רשום ארוחה כדי להתחיל!' if lang == 'he' else 'Log a meal to start!' }}</div>
       </div>
@@ -452,7 +455,7 @@
     <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'מים' if lang == 'he' else 'Water' }}</div>
     <div class="water-wrap">
       <div class="water-header">
-        <span class="water-title">{{ 'מעקב שתיה' if lang == 'he' else 'Hydration' }}</span>
+        <span class="water-title">{{ 'HYDRATION' if lang == 'he' else 'HYDRATION' }}</span>
         <span class="water-count"><span id="water-count">0</span>/8 {{ 'כוסות' if lang == 'he' else 'glasses' }}</span>
       </div>
       <div class="water-drops" id="water-drops">
@@ -480,14 +483,14 @@
       <button onclick="setFastMode(18)" id="fast18" class="fast-mode-btn" style="flex:1;padding:5px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;">18:6</button>
     </div>
     <div id="fast-display" style="text-align:center;margin-bottom:8px;">
-      <div id="fast-elapsed" style="font-size:22px;font-weight:700;color:var(--em);letter-spacing:1px;">00:00:00</div>
+      <div id="fast-elapsed" style="font-size:22px;font-weight:700;color:#00D4FF;letter-spacing:1px;">00:00:00</div>
       <div id="fast-status" style="font-size:11px;color:var(--sub);">לא פעיל</div>
     </div>
-    <button id="fast-btn" onclick="toggleFast()" style="width:100%;padding:7px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:8px;color:var(--em);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">▶ התחל צום</button>
+    <button id="fast-btn" onclick="toggleFast()" style="width:100%;padding:7px;background:rgba(0,212,255,.10);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:#00D4FF;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">▶ התחל צום</button>
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'פעולות מהירות' if lang == 'he' else 'Quick Actions' }}</div>
+    <div class="sb-sec-title">{{ 'ACTIONS' if lang == 'he' else 'ACTIONS' }}</div>
     <div class="qa-list">
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today\'s meal plan{% endif %}')">
         <span>📅</span><span>{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</span>
@@ -522,14 +525,14 @@
       <button class="qa-btn" onclick="window.open('/gallery','_self')">
         <span>🖼️</span><span>{{ 'גלריית ארוחות' if lang == 'he' else 'Meal Gallery' }}</span>
       </button>
-      <div id="notif-msg" style="font-size:11px;color:var(--em);margin-top:4px;display:none;"></div>
+      <div id="notif-msg" style="font-size:11px;color:#00D4FF;margin-top:4px;display:none;"></div>
     </div>
   </div>
 
   <div class="sb-footer">
     <div id="referral-box" style="margin-bottom:10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;">
       <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">👥 {{ 'הזמן חבר — קבל חודש פרמיום!' if lang == 'he' else 'Refer a friend — get premium!' }}</div>
-      <div id="ref-link" style="font-size:11px;color:var(--em);word-break:break-all;margin-bottom:6px;cursor:pointer;" onclick="copyRefLink()">{{ 'טוען...' if lang == 'he' else 'Loading...' }}</div>
+      <div id="ref-link" style="font-size:11px;color:#00D4FF;word-break:break-all;margin-bottom:6px;cursor:pointer;" onclick="copyRefLink()">{{ 'טוען...' if lang == 'he' else 'Loading...' }}</div>
       <div id="ref-count" style="font-size:11px;color:var(--sub);"></div>
     </div>
     <div id="wa-link-box" style="margin-bottom:10px;">
@@ -538,7 +541,7 @@
         <input id="wa-phone-input" type="tel" placeholder="{{ '05XXXXXXXX' if lang == 'he' else '+1XXXXXXXXXX' }}"
           style="flex:1;padding:7px 10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;">
         <button onclick="linkWhatsApp()"
-          style="padding:7px 12px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:8px;color:var(--em);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
+          style="padding:7px 12px;background:rgba(0,212,255,.10);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:#00D4FF;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
           {{ 'חבר' if lang == 'he' else 'Link' }}
         </button>
       </div>
@@ -558,7 +561,7 @@
   <div id="topbar">
     <button id="menu-btn" onclick="toggleSidebar()" aria-label="תפריט">☰</button>
     <div class="top-avatar">🥗</div>
-    <div class="top-title">{{ 'התזונאי החכם' if lang == 'he' else 'Smart Nutritionist' }}</div>
+    <div class="top-title">{{ 'Longevity AI' if lang == 'he' else 'Longevity AI' }}</div>
     <span class="top-badge" id="top-w"></span>
     <button id="theme-btn" onclick="toggleTheme()" title="החלף מצב תצוגה"
       style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--sub);cursor:pointer;font-size:14px;">🌙</button>
@@ -587,13 +590,13 @@
 
 <!-- Shopping List Modal -->
 <div id="shop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:#0d1a12;border:1px solid var(--em-border);border-radius:20px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;position:relative;">
+  <div style="background:#0B1120;border:1px solid rgba(0,212,255,.25);border-radius:20px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;position:relative;">
     <button onclick="document.getElementById('shop-modal').style.display='none'"
       style="position:absolute;top:12px;left:12px;background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;">✕</button>
-    <h3 style="color:var(--em);margin-bottom:16px;font-size:16px;">🛒 {{ 'רשימת קניות שבועית' if lang == 'he' else 'Weekly Shopping List' }}</h3>
+    <h3 style="color:#00D4FF;margin-bottom:16px;font-size:16px;">🛒 {{ 'רשימת קניות שבועית' if lang == 'he' else 'Weekly Shopping List' }}</h3>
     <div id="shop-content" style="color:var(--text);font-size:14px;line-height:1.7;white-space:pre-wrap;"></div>
     <button onclick="copyShoppingList()"
-      style="margin-top:16px;width:100%;padding:10px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:10px;color:var(--em);cursor:pointer;font-family:'Inter',sans-serif;">
+      style="margin-top:16px;width:100%;padding:10px;background:rgba(0,212,255,.10);border:1px solid rgba(0,212,255,.25);border-radius:10px;color:#00D4FF;cursor:pointer;font-family:'Inter',sans-serif;">
       📋 {{ 'העתק רשימה' if lang == 'he' else 'Copy List' }}
     </button>
   </div>
@@ -689,7 +692,7 @@
 
   // ── Confetti ──
   function showConfetti(){
-    const colors=['#10b981','#8b5cf6','#f43f5e','#fbbf24','#34d399'];
+    const colors=['#00D4FF','#6B5CE7','#FF6B6B','#C9A960','#33DDFF'];
     for(let i=0;i<80;i++){
       const d=document.createElement('div');
       d.style.cssText=`position:fixed;top:-10px;left:${Math.random()*100}vw;width:8px;height:8px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>0.5?'50%':'0'};z-index:9999;pointer-events:none;animation:confettiFall ${1.5+Math.random()*2}s ease-in forwards;transform:rotate(${Math.random()*360}deg)`;
@@ -817,13 +820,13 @@
     if(wChart)wChart.destroy();
     wChart=new Chart(ctx,{
       type:'line',
-      data:{labels,datasets:[{data:vals,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.08)',
-        borderWidth:2,pointRadius:3,pointBackgroundColor:'#10b981',tension:.4,fill:true}]},
+      data:{labels,datasets:[{data:vals,borderColor:'#00D4FF',backgroundColor:'rgba(0,212,255,.08)',
+        borderWidth:2,pointRadius:3,pointBackgroundColor:'#00D4FF',tension:.4,fill:true}]},
       options:{responsive:true,
         plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} kg`}}},
         scales:{
-          x:{ticks:{color:'#3d5c4a',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},
-          y:{ticks:{color:'#3d5c4a',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}
+          x:{ticks:{color:'#7A8BA8',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},
+          y:{ticks:{color:'#7A8BA8',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}
         }
       }
     });
@@ -836,7 +839,7 @@
     try{
       const r=await fetch('/api/link-phone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone})});
       const d=await r.json();
-      if(d.ok){msg.textContent=LANG==='he'?'✅ WhatsApp חובר בהצלחה!':'✅ WhatsApp linked!';msg.style.color='var(--em)';}
+      if(d.ok){msg.textContent=LANG==='he'?'✅ WhatsApp חובר בהצלחה!':'✅ WhatsApp linked!';msg.style.color='#00D4FF';}
       else{msg.textContent=d.error||'שגיאה';msg.style.color='#fb7185';}
     }catch(e){msg.textContent=e.message;msg.style.color='#fb7185';}
     msg.style.display='block';
@@ -935,10 +938,10 @@
   function setFastMode(h) {
     fastMode = h;
     localStorage.setItem('fast_mode', h);
-    document.getElementById('fast16').style.borderColor = h===16 ? 'var(--em)' : 'var(--border)';
-    document.getElementById('fast16').style.color = h===16 ? 'var(--em)' : 'var(--sub)';
-    document.getElementById('fast18').style.borderColor = h===18 ? 'var(--em)' : 'var(--border)';
-    document.getElementById('fast18').style.color = h===18 ? 'var(--em)' : 'var(--sub)';
+    document.getElementById('fast16').style.borderColor = h===16 ? '#00D4FF' : 'var(--border)';
+    document.getElementById('fast16').style.color = h===16 ? '#00D4FF' : 'var(--sub)';
+    document.getElementById('fast18').style.borderColor = h===18 ? '#00D4FF' : 'var(--border)';
+    document.getElementById('fast18').style.color = h===18 ? '#00D4FF' : 'var(--sub)';
   }
 
   function toggleFast() {
@@ -950,7 +953,7 @@
       document.getElementById('fast-btn').textContent = '▶ התחל צום';
       document.getElementById('fast-status').textContent = 'לא פעיל';
       document.getElementById('fast-elapsed').textContent = '00:00:00';
-      document.getElementById('fast-elapsed').style.color = 'var(--em)';
+      document.getElementById('fast-elapsed').style.color = '#00D4FF';
     } else {
       // Start fast
       localStorage.setItem('fast_start', Date.now().toString());
@@ -974,12 +977,12 @@
         `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
       if (elapsed >= totalMs) {
         document.getElementById('fast-status').textContent = `✅ צום ${fastMode} שעות הושלם!`;
-        document.getElementById('fast-elapsed').style.color = '#fbbf24';
+        document.getElementById('fast-elapsed').style.color = '#C9A960';
       } else {
         const rh = Math.floor(remaining/3600000);
         const rm = Math.floor((remaining%3600000)/60000);
         document.getElementById('fast-status').textContent = `נותרו ${rh}ש ${rm}ד לסיום הצום`;
-        document.getElementById('fast-elapsed').style.color = elapsed/totalMs > 0.8 ? '#fbbf24' : 'var(--em)';
+        document.getElementById('fast-elapsed').style.color = elapsed/totalMs > 0.8 ? '#C9A960' : '#00D4FF';
       }
     }, 1000);
   }
@@ -1024,22 +1027,22 @@
 
     // Background gradient
     const bg = ctx.createLinearGradient(0, 0, 800, 400);
-    bg.addColorStop(0, '#050a08');
-    bg.addColorStop(1, '#0d1f14');
+    bg.addColorStop(0, '#070B12');
+    bg.addColorStop(1, '#0B1120');
     ctx.fillStyle = bg;
     ctx.beginPath();
     ctx.roundRect(0, 0, 800, 400, 20);
     ctx.fill();
 
-    // Emerald glow orb
+    // Cyan glow orb
     const glow = ctx.createRadialGradient(700, 50, 0, 700, 50, 200);
-    glow.addColorStop(0, 'rgba(16,185,129,0.3)');
+    glow.addColorStop(0, 'rgba(0,212,255,0.25)');
     glow.addColorStop(1, 'transparent');
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, 800, 400);
 
     // Logo text
-    ctx.fillStyle = '#10b981';
+    ctx.fillStyle = '#00D4FF';
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'right';
     ctx.fillText('NutriAI', 760, 48);
@@ -1051,7 +1054,7 @@
     const streak = document.getElementById('streak-val')?.textContent || '0';
 
     // Big headline
-    ctx.fillStyle = '#f0faf5';
+    ctx.fillStyle = '#E8F0FE';
     ctx.font = 'bold 48px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('ההתקדמות שלי השבוע', 400, 120);
@@ -1065,33 +1068,33 @@
 
     stats.forEach(s => {
       ctx.fillStyle = 'rgba(255,255,255,0.05)';
-      ctx.strokeStyle = 'rgba(16,185,129,0.3)';
+      ctx.strokeStyle = 'rgba(0,212,255,0.3)';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.roundRect(s.x - 100, 155, 200, 110, 12);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#10b981';
+      ctx.fillStyle = '#00D4FF';
       ctx.font = 'bold 32px Arial';
       ctx.textAlign = 'center';
       ctx.fillText(s.val, s.x, 205);
 
-      ctx.fillStyle = '#6b9e84';
+      ctx.fillStyle = '#7A8BA8';
       ctx.font = '16px Arial';
       ctx.fillText(s.label, s.x, 235);
     });
 
     // Streak
-    ctx.fillStyle = '#f0faf5';
+    ctx.fillStyle = '#E8F0FE';
     ctx.font = 'bold 22px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('\uD83D\uDD25 ' + streak + ' ימים ברצף של דיווח', 400, 315);
 
     // Footer
-    ctx.fillStyle = '#3d5c4a';
+    ctx.fillStyle = '#2A3A52';
     ctx.font = '14px Arial';
-    ctx.fillText('nutritionist-agent-ouvp.onrender.com', 400, 370);
+    ctx.fillText('NutriAI Longevity · nutritionist-agent-ouvp.onrender.com', 400, 370);
 
     // Trigger download
     const link = document.createElement('a');
@@ -1193,7 +1196,7 @@
 
 <!-- Premium Modal -->
 <div id="premium-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;">
-  <div style="background:#0d1a12;border:1px solid rgba(251,191,36,.4);border-radius:20px;padding:32px;max-width:380px;width:90%;text-align:center;">
+  <div style="background:#0B1120;border:1px solid rgba(201,169,96,.4);border-radius:20px;padding:32px;max-width:380px;width:90%;text-align:center;">
     <div style="font-size:52px;margin-bottom:12px;">💎</div>
     <h3 style="color:#fbbf24;margin-bottom:8px;font-size:18px;">NutriAI פרמיום</h3>
     <p style="color:var(--sub);font-size:13px;margin-bottom:20px;line-height:1.6;">הזמן 3 חברים ותקבל גישה פרמיום לצמיתות — חינם לגמרי!</p>
@@ -1214,9 +1217,9 @@
 
 <!-- Barcode Modal -->
 <div id="barcode-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;">
-  <div style="background:#0d1a12;border:1px solid var(--em-border);border-radius:20px;padding:24px;width:90%;max-width:400px;">
+  <div style="background:#0B1120;border:1px solid rgba(0,212,255,.25);border-radius:20px;padding:24px;width:90%;max-width:400px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h3 style="color:var(--em);font-size:15px;">📷 סריקת ברקוד</h3>
+      <h3 style="color:#00D4FF;font-size:15px;">📷 סריקת ברקוד</h3>
       <button onclick="closeBarcodeScanner()" style="background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;">✕</button>
     </div>
     <video id="barcode-video" style="width:100%;border-radius:10px;background:#000;max-height:220px;" autoplay playsinline muted></video>
@@ -1224,7 +1227,7 @@
     <input id="barcode-manual" type="text" placeholder="או הכנס ברקוד ידנית (EAN-13...)"
       style="width:100%;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;margin-bottom:8px;">
     <button onclick="lookupBarcode(document.getElementById('barcode-manual').value)"
-      style="width:100%;padding:9px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:8px;color:var(--em);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">חפש מוצר</button>
+      style="width:100%;padding:9px;background:rgba(0,212,255,.10);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:#00D4FF;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">חפש מוצר</button>
   </div>
 </div>
 

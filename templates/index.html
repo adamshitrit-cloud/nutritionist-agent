@@ -1,404 +1,245 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NutriAI — התזונאי החכם שלך</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --em:#10b981;--em-l:#34d399;--em-dim:rgba(16,185,129,.12);--em-border:rgba(16,185,129,.25);
-      --vi:#8b5cf6;--vi-l:#a78bfa;--vi-dim:rgba(139,92,246,.12);
-      --rose:#f43f5e;
-      --bg:#050a08;--glass:rgba(255,255,255,.04);--glass-border:rgba(255,255,255,.08);
-      --text:#f0faf5;--sub:#6b9e84;--muted:#3d5c4a;
-    }
-    html{scroll-behavior:smooth;}
-    body{
-      font-family:'Inter',sans-serif;
-      background:var(--bg);color:var(--text);
-      min-height:100vh;direction:rtl;overflow-x:hidden;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NutriAI Longevity — Precision Metabolic AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070B12;--bg2:#0B1120;--cyan:#00D4FF;--cyan-dim:rgba(0,212,255,.08);
+  --cyan-border:rgba(0,212,255,.2);--gold:#C9A960;--gold-dim:rgba(201,169,96,.08);
+  --violet:#6B5CE7;--text:#E8F0FE;--sub:#7A8BA8;--muted:#2A3A52;--border:rgba(100,140,255,.1);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);direction:rtl;overflow-x:hidden;}
 
-    /* ── Animated background ── */
-    .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
-    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:drift 12s ease-in-out infinite;}
-    .orb1{width:600px;height:600px;background:radial-gradient(circle,#10b981,transparent);top:-150px;right:-150px;animation-delay:0s;}
-    .orb2{width:500px;height:500px;background:radial-gradient(circle,#8b5cf6,transparent);bottom:-100px;left:-100px;animation-delay:-4s;}
-    .orb3{width:350px;height:350px;background:radial-gradient(circle,#f43f5e,transparent);top:45%;left:40%;transform:translate(-50%,-50%);animation-delay:-8s;opacity:.12;}
-    @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
+/* Orbs */
+.orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);animation:drift 14s ease-in-out infinite;}
+.orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(0,212,255,.18),transparent);top:-150px;right:-150px;}
+.orb2{width:500px;height:500px;background:radial-gradient(circle,rgba(107,92,231,.15),transparent);bottom:-100px;left:-100px;animation-delay:-5s;}
+.orb3{width:350px;height:350px;background:radial-gradient(circle,rgba(201,169,96,.12),transparent);top:50%;left:40%;animation-delay:-9s;}
+@keyframes drift{0%,100%{transform:translate(0,0)}33%{transform:translate(25px,-20px)}66%{transform:translate(-15px,25px)}}
 
-    /* ── Nav ── */
-    nav{
-      position:fixed;top:0;left:0;right:0;z-index:100;
-      display:flex;align-items:center;justify-content:space-between;
-      padding:16px 40px;
-      background:rgba(5,10,8,.7);
-      backdrop-filter:blur(20px);
-      border-bottom:1px solid var(--glass-border);
-    }
-    .nav-brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;color:var(--em-l);}
-    .nav-brand-icon{font-size:26px;}
-    .nav-actions{display:flex;gap:10px;align-items:center;}
-    .nav-link{
-      color:var(--sub);font-size:14px;font-weight:500;text-decoration:none;
-      padding:7px 16px;border-radius:10px;transition:all .2s;
-    }
-    .nav-link:hover{color:var(--em-l);}
-    .nav-cta{
-      background:linear-gradient(135deg,var(--em),#059669);
-      color:#fff;font-size:14px;font-weight:700;text-decoration:none;
-      padding:8px 20px;border-radius:10px;transition:all .2s;
-      box-shadow:0 4px 16px rgba(16,185,129,.3);
-    }
-    .nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(16,185,129,.45);}
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 5%;
+  display:flex;justify-content:space-between;align-items:center;height:64px;
+  background:rgba(7,11,18,.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;color:var(--text);}
+.nav-logo span{color:var(--cyan);}
+.nav-badge{background:var(--cyan-dim);border:1px solid var(--cyan-border);border-radius:4px;
+  padding:2px 8px;font-size:10px;letter-spacing:1.5px;color:var(--cyan);font-weight:700;}
+.nav-links{display:flex;gap:12px;align-items:center;}
+.nav-btn{padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;}
+.nav-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--sub);transition:all .2s;}
+.nav-btn.secondary:hover{border-color:var(--cyan-border);color:var(--cyan);}
+.nav-btn.primary{background:linear-gradient(135deg,var(--cyan),#0099BB);border:none;color:#000;font-weight:700;
+  box-shadow:0 4px 16px rgba(0,212,255,.25);transition:all .2s;}
+.nav-btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,212,255,.4);}
 
-    /* ── Section wrapper ── */
-    section{position:relative;z-index:1;}
-    .container{max-width:1100px;margin:0 auto;padding:0 24px;}
+/* Hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:100px 5% 60px;text-align:center;position:relative;z-index:1;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;
+  background:var(--cyan-dim);border:1px solid var(--cyan-border);
+  border-radius:20px;padding:6px 16px;font-size:12px;letter-spacing:.5px;
+  color:var(--cyan);font-weight:600;margin-bottom:32px;}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.hero h1{font-size:clamp(40px,7vw,80px);font-weight:900;line-height:1.05;
+  letter-spacing:-2px;margin-bottom:24px;max-width:900px;}
+.hero h1 .grad{background:linear-gradient(135deg,#33DDFF,#6B5CE7,#C9A960);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200%;}
+.hero-sub{font-size:clamp(16px,2vw,20px);color:var(--sub);max-width:620px;
+  line-height:1.7;margin-bottom:48px;font-weight:300;}
+.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:64px;}
+.btn-primary{padding:14px 32px;background:linear-gradient(135deg,var(--cyan),#0099BB);
+  border:none;border-radius:12px;color:#000;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:'Inter',sans-serif;
+  box-shadow:0 8px 24px rgba(0,212,255,.3);transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,212,255,.5);}
+.btn-secondary{padding:14px 32px;background:transparent;
+  border:1px solid var(--border);border-radius:12px;color:var(--sub);
+  font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;
+  transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px;}
+.btn-secondary:hover{border-color:var(--cyan-border);color:var(--cyan);}
 
-    /* ── Hero ── */
-    #hero{
-      min-height:100vh;display:flex;align-items:center;justify-content:center;
-      text-align:center;padding:120px 24px 80px;
-    }
-    .hero-inner{max-width:760px;}
+/* Stats bar */
+.stats-bar{display:flex;gap:0;border:1px solid var(--border);border-radius:16px;
+  background:rgba(255,255,255,.02);overflow:hidden;max-width:600px;width:100%;margin:0 auto;}
+.stat-item{flex:1;padding:20px;text-align:center;border-left:1px solid var(--border);}
+.stat-item:last-child{border-left:none;}
+.stat-num{font-size:28px;font-weight:800;color:var(--cyan);}
+.stat-label{font-size:11px;color:var(--sub);margin-top:4px;letter-spacing:.5px;}
 
-    .badge{
-      display:inline-flex;align-items:center;gap:6px;
-      background:var(--em-dim);border:1px solid var(--em-border);
-      border-radius:20px;padding:6px 16px;font-size:13px;
-      color:var(--em);margin-bottom:28px;font-weight:500;
-    }
-    .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--em);animation:blink 2s infinite;}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+/* Features */
+.features{padding:100px 5%;position:relative;z-index:1;}
+.section-label{font-size:11px;letter-spacing:2px;color:var(--cyan);font-weight:700;text-transform:uppercase;margin-bottom:16px;}
+.section-title{font-size:clamp(28px,4vw,44px);font-weight:800;margin-bottom:16px;letter-spacing:-1px;}
+.section-sub{font-size:16px;color:var(--sub);max-width:500px;line-height:1.7;margin-bottom:56px;font-weight:300;}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.feat-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:16px;
+  padding:28px;transition:all .3s;}
+.feat-card:hover{background:var(--cyan-dim);border-color:var(--cyan-border);transform:translateY(-3px);}
+.feat-icon{font-size:28px;margin-bottom:16px;}
+.feat-title{font-size:15px;font-weight:700;margin-bottom:8px;color:var(--text);}
+.feat-desc{font-size:13px;color:var(--sub);line-height:1.7;}
 
-    .hero-h1{
-      font-size:clamp(42px,7vw,82px);font-weight:900;line-height:1.05;
-      letter-spacing:-2px;margin-bottom:22px;
-    }
-    .grad{
-      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-    }
-    .hero-sub{
-      font-size:clamp(16px,2.5vw,20px);color:var(--sub);
-      max-width:560px;margin:0 auto 40px;line-height:1.65;font-weight:300;
-    }
-    .hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:56px;}
-    .btn-primary{
-      display:inline-flex;align-items:center;gap:6px;
-      background:linear-gradient(135deg,var(--em),#059669);
-      color:#fff;font-size:16px;font-weight:700;text-decoration:none;
-      padding:14px 30px;border-radius:14px;transition:all .2s;
-      box-shadow:0 6px 24px rgba(16,185,129,.35);
-    }
-    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(16,185,129,.5);}
-    .btn-secondary{
-      display:inline-flex;align-items:center;gap:6px;
-      background:var(--glass);border:1px solid var(--glass-border);
-      backdrop-filter:blur(12px);color:var(--text);
-      font-size:16px;font-weight:600;text-decoration:none;
-      padding:13px 28px;border-radius:14px;transition:all .2s;
-    }
-    .btn-secondary:hover{border-color:var(--em-border);color:var(--em-l);}
+/* How it works */
+.how{padding:100px 5%;position:relative;z-index:1;background:rgba(255,255,255,.01);}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;max-width:900px;margin:0 auto;}
+.step{text-align:center;padding:32px 24px;}
+.step-num{width:56px;height:56px;border-radius:14px;
+  background:linear-gradient(135deg,var(--cyan-dim),rgba(107,92,231,.1));
+  border:1px solid var(--cyan-border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;color:var(--cyan);margin:0 auto 20px;}
+.step-title{font-size:16px;font-weight:700;margin-bottom:10px;}
+.step-desc{font-size:13px;color:var(--sub);line-height:1.7;}
 
-    /* Hero floating cards */
-    .hero-cards{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
-    .h-card{
-      background:var(--glass);border:1px solid var(--glass-border);
-      backdrop-filter:blur(12px);border-radius:14px;
-      padding:12px 18px;display:flex;align-items:center;gap:8px;
-      font-size:13px;color:var(--sub);font-weight:500;
-      animation:floatCard 4s ease-in-out infinite;
-    }
-    .h-card:nth-child(2){animation-delay:-1.3s;}
-    .h-card:nth-child(3){animation-delay:-2.6s;}
-    @keyframes floatCard{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-    .h-card-icon{font-size:18px;}
-    .h-card-val{font-size:18px;font-weight:800;color:var(--em-l);}
+/* CTA section */
+.cta-section{padding:100px 5%;position:relative;z-index:1;text-align:center;}
+.cta-card{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(107,92,231,.08));
+  border:1px solid var(--cyan-border);border-radius:24px;
+  padding:64px 40px;max-width:700px;margin:0 auto;
+  position:relative;overflow:hidden;}
+.cta-card::before{content:'';position:absolute;top:-50%;right:-20%;
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,255,.1),transparent);pointer-events:none;}
+.cta-title{font-size:clamp(28px,4vw,44px);font-weight:800;margin-bottom:16px;letter-spacing:-1px;}
+.cta-sub{font-size:16px;color:var(--sub);margin-bottom:32px;font-weight:300;line-height:1.7;}
 
-    /* ── Features ── */
-    #features{padding:100px 0;}
-    .section-label{font-size:12px;color:var(--em);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;}
-    .section-title{font-size:clamp(28px,4vw,44px);font-weight:800;letter-spacing:-1px;margin-bottom:16px;line-height:1.15;}
-    .section-sub{font-size:16px;color:var(--sub);max-width:520px;line-height:1.6;font-weight:300;margin-bottom:56px;}
-    .features-grid{
-      display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;
-    }
-    .feat-card{
-      background:var(--glass);border:1px solid var(--glass-border);
-      backdrop-filter:blur(16px);border-radius:20px;padding:28px;
-      transition:all .25s;position:relative;overflow:hidden;
-    }
-    .feat-card::before{
-      content:'';position:absolute;inset:0;border-radius:20px;
-      background:linear-gradient(135deg,var(--em-dim),transparent);
-      opacity:0;transition:opacity .25s;
-    }
-    .feat-card:hover{border-color:var(--em-border);transform:translateY(-3px);}
-    .feat-card:hover::before{opacity:1;}
-    .feat-icon{font-size:32px;margin-bottom:16px;display:block;}
-    .feat-title{font-size:17px;font-weight:700;margin-bottom:8px;color:var(--em-l);}
-    .feat-desc{font-size:14px;color:var(--sub);line-height:1.6;}
+/* Footer */
+footer{padding:32px 5%;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+  position:relative;z-index:1;flex-wrap:wrap;gap:16px;}
+.footer-logo{font-size:15px;font-weight:700;color:var(--sub);}
+.footer-logo span{color:var(--cyan);}
+.footer-copy{font-size:12px;color:var(--muted);}
 
-    /* ── How it works ── */
-    #how{padding:100px 0;text-align:center;}
-    .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:32px;margin-top:56px;position:relative;}
-    .steps::before{
-      content:'';position:absolute;top:36px;right:20%;left:20%;
-      height:1px;background:linear-gradient(90deg,transparent,var(--em-border),transparent);
-    }
-    .step{position:relative;}
-    .step-num{
-      width:72px;height:72px;border-radius:50%;margin:0 auto 20px;
-      background:linear-gradient(135deg,var(--em-dim),var(--vi-dim));
-      border:1px solid var(--em-border);
-      display:flex;align-items:center;justify-content:center;
-      font-size:26px;font-weight:900;color:var(--em);
-      box-shadow:0 0 30px rgba(16,185,129,.2);
-    }
-    .step-title{font-size:18px;font-weight:700;margin-bottom:10px;}
-    .step-desc{font-size:14px;color:var(--sub);line-height:1.65;max-width:240px;margin:0 auto;}
-
-    /* ── Stats bar ── */
-    #stats{padding:80px 0;}
-    .stats-grid{
-      display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
-      background:var(--glass-border);border-radius:20px;overflow:hidden;
-      border:1px solid var(--glass-border);
-    }
-    .stat-box{
-      background:var(--glass);backdrop-filter:blur(12px);
-      padding:44px 28px;text-align:center;
-    }
-    .stat-num{
-      font-size:clamp(36px,5vw,56px);font-weight:900;letter-spacing:-1px;
-      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-      margin-bottom:8px;
-    }
-    .stat-txt{font-size:15px;color:var(--sub);font-weight:400;}
-
-    /* ── CTA ── */
-    #cta{padding:100px 0;text-align:center;}
-    .cta-box{
-      background:var(--glass);border:1px solid var(--glass-border);
-      backdrop-filter:blur(20px);border-radius:28px;
-      padding:64px 40px;position:relative;overflow:hidden;
-    }
-    .cta-box::before{
-      content:'';position:absolute;inset:0;
-      background:linear-gradient(135deg,var(--em-dim),var(--vi-dim));
-    }
-    .cta-box > *{position:relative;z-index:1;}
-    .cta-title{font-size:clamp(28px,4vw,48px);font-weight:900;letter-spacing:-1px;margin-bottom:16px;}
-    .cta-sub{font-size:17px;color:var(--sub);margin-bottom:36px;font-weight:300;}
-
-    /* ── Footer ── */
-    footer{
-      padding:32px 40px;
-      background:rgba(5,10,8,.8);
-      border-top:1px solid var(--glass-border);
-      display:flex;align-items:center;justify-content:space-between;
-      font-size:13px;color:var(--muted);position:relative;z-index:1;
-    }
-    .footer-brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--sub);}
-    .footer-brand-icon{font-size:18px;}
-
-    @media(max-width:640px){
-      nav{padding:14px 20px;}
-      .steps::before{display:none;}
-      .stats-grid{grid-template-columns:1fr;}
-      footer{flex-direction:column;gap:12px;text-align:center;}
-    }
-  </style>
+/* Mobile */
+@media(max-width:768px){
+  .features-grid{grid-template-columns:1fr 1fr;}
+  .steps{grid-template-columns:1fr;}
+  .nav-links .nav-btn.secondary{display:none;}
+  .stats-bar{flex-direction:column;}
+  .stat-item{border-left:none;border-top:1px solid var(--border);}
+  .stat-item:first-child{border-top:none;}
+  footer{justify-content:center;text-align:center;}
+}
+@media(max-width:480px){
+  .features-grid{grid-template-columns:1fr;}
+  .hero-ctas{flex-direction:column;align-items:center;}
+}
+</style>
 </head>
 <body>
-
-<div class="bg-orbs">
+<div class="orbs">
   <div class="orb orb1"></div>
   <div class="orb orb2"></div>
   <div class="orb orb3"></div>
 </div>
 
-<!-- Nav -->
 <nav>
-  <div class="nav-brand">
-    <span class="nav-brand-icon">🥗</span>
-    NutriAI
-  </div>
-  <div class="nav-actions">
-    <a href="/landing" class="nav-link">כניסה</a>
-    <a href="/landing#register" class="nav-cta">התחל חינם &#x2192;</a>
+  <div class="nav-logo">🥗 <span>NutriAI</span> <div class="nav-badge">LONGEVITY OS</div></div>
+  <div class="nav-links">
+    <a href="/landing" class="nav-btn secondary">כניסה</a>
+    <a href="/landing" class="nav-btn primary">התחל חינם ←</a>
   </div>
 </nav>
 
-<!-- Hero -->
-<section id="hero">
-  <div class="hero-inner">
-    <div class="badge">
-      <span class="badge-dot"></span>
-      AI מדור הבא לתזונה חכמה
+<section class="hero">
+  <div class="hero-badge"><span class="hero-dot"></span> Precision Metabolic AI · 2026</div>
+  <h1>הסוכן התזונאי שיאריך<br>את <span class="grad">איכות חייך</span></h1>
+  <p class="hero-sub">ניווט מטבולי מבוסס AI — הסוכן האישי שלך לבריאות, אריכות ימים ואופטימיזציה של הגוף. מדע הלונגיביטי בכף ידך.</p>
+  <div class="hero-ctas">
+    <a href="/landing" class="btn-primary">🚀 התחל חינם ←</a>
+    <a href="/landing" class="btn-secondary">כניסה לחשבון</a>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-num">500+</div><div class="stat-label">משתמשים פעילים</div></div>
+    <div class="stat-item"><div class="stat-num">98%</div><div class="stat-label">שביעות רצון</div></div>
+    <div class="stat-item"><div class="stat-num">2.1M+</div><div class="stat-label">ארוחות נותחו</div></div>
+  </div>
+</section>
+
+<section class="features">
+  <div style="text-align:center;max-width:700px;margin:0 auto;">
+    <div class="section-label">CAPABILITIES</div>
+    <h2 class="section-title">כל מה שגוף מחפש</h2>
+    <p class="section-sub">מבוסס על מחקר לונגיביטי עדכני — מדע שהופך לפעולה יומיומית.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">🧬</div>
+      <div class="feat-title">Precision Nutrition</div>
+      <div class="feat-desc">תפריט שבועי מותאם לפרופיל המטבולי האישי שלך — לא דיאטה גנרית.</div>
     </div>
-
-    <h1 class="hero-h1">
-      הסוכן התזונתי<br>
-      <span class="grad">החכם שלך</span>
-    </h1>
-
-    <p class="hero-sub">
-      ליווי אישי מבוסס AI &#x2014; תפריטים מותאמים אישית, מעקב משקל חכם, ניתוח תמונות אוכל וסריקת ברקוד. דרך הווב ודרך WhatsApp &#x2014; תמיד זמין.
-    </p>
-
-    <div class="hero-ctas">
-      <a href="/landing#register" class="btn-primary">התחל חינם &#x2192;</a>
-      <a href="/landing" class="btn-secondary">כניסה</a>
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">Metabolic Tracking</div>
+      <div class="feat-desc">מעקב משקל, קלוריות ומדדי גוף עם גרפי התקדמות מתקדמים.</div>
     </div>
-
-    <div class="hero-cards">
-      <div class="h-card">
-        <span class="h-card-icon">&#x1F525;</span>
-        <div>
-          <div class="h-card-val">21</div>
-          <div>ימים ברצף</div>
-        </div>
-      </div>
-      <div class="h-card">
-        <span class="h-card-icon">&#x2696;&#xFE0F;</span>
-        <div>
-          <div class="h-card-val">-4.2</div>
-          <div>ק"ג השבוע</div>
-        </div>
-      </div>
-      <div class="h-card">
-        <span class="h-card-icon">&#x1F957;</span>
-        <div>
-          <div class="h-card-val">1,840</div>
-          <div>קלוריות יעד</div>
-        </div>
-      </div>
+    <div class="feat-card">
+      <div class="feat-icon">📸</div>
+      <div class="feat-title">Food Analysis AI</div>
+      <div class="feat-desc">צלם ארוחה וקבל ניתוח תזונתי מיידי — קלוריות, חלבון, פחמימות.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💬</div>
+      <div class="feat-title">Always-On Companion</div>
+      <div class="feat-desc">דרך WhatsApp או האתר — הסוכן זמין 24/7 ויודע את ההיסטוריה שלך.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Longevity Dashboard</div>
+      <div class="feat-desc">Streak, Hydration, Fasting Timer, מדידות גוף — כל המדדים במקום אחד.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📄</div>
+      <div class="feat-title">Weekly Biomarker Report</div>
+      <div class="feat-desc">דוח שבועי PDF + סיכום אוטומטי ב-WhatsApp כל יום ראשון.</div>
     </div>
   </div>
 </section>
 
-<!-- Features -->
-<section id="features">
-  <div class="container">
-    <div class="section-label">יכולות</div>
-    <h2 class="section-title">כל מה שצריך<br><span class="grad">להצלחה תזונתית</span></h2>
-    <p class="section-sub">הסוכן שלנו משלב טכנולוגיות AI מתקדמות כדי לתת לך את הליווי הטוב ביותר &#x2014; בדיוק כמו דיאטנית אישית.</p>
-
-    <div class="features-grid">
-      <div class="feat-card">
-        <span class="feat-icon">&#x1F957;</span>
-        <div class="feat-title">תפריט שבועי אישי מבוסס AI</div>
-        <div class="feat-desc">הסוכן בונה עבורך תפריט מותאם אישית לפי העדפות, אלרגיות ויעדי התזונה שלך &#x2014; ומעדכן אותו בכל שבוע.</div>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">&#x1F4CA;</span>
-        <div class="feat-title">מעקב משקל וגרף התקדמות</div>
-        <div class="feat-desc">דווח על המשקל שלך וקבל גרף ויזואלי של ההתקדמות לאורך זמן עם ניתוח חכם של המגמות.</div>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">&#x1F4F8;</span>
-        <div class="feat-title">ניתוח תמונות אוכל וסריקת ברקוד</div>
-        <div class="feat-desc">צלם את הארוחה שלך וקבל מיד ניתוח קלורי מפורט, ערכים תזונתיים ועצות לשיפור.</div>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">&#x1F4AC;</span>
-        <div class="feat-title">WhatsApp + אתר &#x2014; תמיד זמין</div>
-        <div class="feat-desc">שוחח עם הסוכן ישירות בוואטסאפ בכל זמן ובכל מקום, או דרך אתר הווב המלא עם כל הפיצ'רים.</div>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">&#x1F525;</span>
-        <div class="feat-title">Streak ורשימת קניות אוטומטית</div>
-        <div class="feat-desc">בנה רצף ימים עקבי, קבל תגמולים על עקביות, ורשימת קניות שבועית אוטומטית לפי התפריט שלך.</div>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">&#x1F4C4;</span>
-        <div class="feat-title">דוחות שבועיים + טיימר צום</div>
-        <div class="feat-desc">דוחות מפורטים על ההתקדמות השבועית שלך וטיימר צום חכם לתמיכה בצום לסירוגין (16:8, 18:6).</div>
-      </div>
+<section class="how">
+  <div style="text-align:center;max-width:700px;margin:0 auto 56px;">
+    <div class="section-label">HOW IT WORKS</div>
+    <h2 class="section-title">שלושה שלבים לאופטימיזציה מטבולית</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">הרשמה בדקה אחת</div>
+      <div class="step-desc">Onboarding wizard מהיר — גיל, משקל, יעד, אורח חיים. הסוכן בונה פרופיל אישי מיד.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">שוחח עם הסוכן</div>
+      <div class="step-desc">ספר מה אכלת, קבל תפריט, שלח תמונת אוכל — AI שזוכר ולומד אותך לאורך זמן.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">עקוב והתקדם</div>
+      <div class="step-desc">Dashboard עם Biomarkers, דוחות שבועיים, וסיכומים ב-WhatsApp — מדע שעובד בשבילך.</div>
     </div>
   </div>
 </section>
 
-<!-- How it works -->
-<section id="how">
-  <div class="container">
-    <div class="section-label">איך זה עובד</div>
-    <h2 class="section-title">שלושה צעדים<br><span class="grad">להתחלת הדרך</span></h2>
-
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-title">נרשם תוך דקה</div>
-        <div class="step-desc">הרשמה מהירה עם פרטים בסיסיים &#x2014; שם, מייל וסיסמה. ללא כרטיס אשראי, ללא התחייבות.</div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-title">ספר לסוכן</div>
-        <div class="step-desc">הסוכן שואל אותך על יעדים, העדפות ואורח חיים &#x2014; ובונה לך תפריט אישי מדויק תוך דקות.</div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-title">עקוב ותתקדם</div>
-        <div class="step-desc">דווח ארוחות, עקוב אחר המשקל שלך, קבל תובנות ועדכונים &#x2014; וראה תוצאות אמיתיות.</div>
-      </div>
-    </div>
+<section class="cta-section">
+  <div class="cta-card">
+    <h2 class="cta-title">מוכן להתחיל את<br>המסע שלך?</h2>
+    <p class="cta-sub">הצטרף למאות משתמשים שכבר מנווטים את הבריאות שלהם עם AI.</p>
+    <a href="/landing" class="btn-primary" style="display:inline-flex;">🚀 התחל חינם — ללא כרטיס אשראי ←</a>
   </div>
 </section>
 
-<!-- Stats -->
-<section id="stats">
-  <div class="container">
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div class="stat-num">100+</div>
-        <div class="stat-txt">משתמשים פעילים</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num">50,000+</div>
-        <div class="stat-txt">ארוחות נרשמו</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num">95%</div>
-        <div class="stat-txt">שביעות רצון</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section id="cta">
-  <div class="container">
-    <div class="cta-box">
-      <div class="badge" style="margin-bottom:24px;">
-        <span class="badge-dot"></span>
-        הצטרף עוד היום
-      </div>
-      <h2 class="cta-title">מוכן להתחיל<br><span class="grad">את המסע שלך?</span></h2>
-      <p class="cta-sub">הרשם חינם עכשיו וקבל תפריט מותאם אישית תוך דקות.</p>
-      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-        <a href="/landing#register" class="btn-primary" style="font-size:17px;padding:16px 36px;">התחל חינם &#x2192;</a>
-        <a href="/landing" class="btn-secondary" style="font-size:17px;padding:15px 34px;">יש לי חשבון</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Footer -->
 <footer>
-  <div class="footer-brand">
-    <span class="footer-brand-icon">&#x1F957;</span>
-    NutriAI
-  </div>
-  <div>NutriAI &#xa9; 2026 &middot; Powered by Claude AI</div>
-  <div>nutritionist-agent-ouvp.onrender.com</div>
+  <div class="footer-logo">🥗 <span>NutriAI</span> Longevity</div>
+  <div class="footer-copy">© 2026 NutriAI Longevity · Powered by Claude AI · כל הזכויות שמורות</div>
 </footer>
-
 </body>
 </html>
