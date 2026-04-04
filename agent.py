@@ -585,9 +585,48 @@ def execute_tool(name: str, inputs: dict) -> str:
 
 # ── System prompt ──────────────────────────────────────────────────────────
 def build_system_prompt() -> str:
+    from datetime import timezone, timedelta
     profile = load_json(PROFILE_FILE)
     memory = load_json(MEMORY_FILE) if MEMORY_FILE.exists() else {}
 
+    # ── Time-awareness (UK timezone = UTC+1) ──
+    HE_DAYS = ["שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת", "ראשון"]
+    HE_MONTHS = ["", "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
+                 "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"]
+    tz_uk = timezone(timedelta(hours=1))
+    now = datetime.now(tz_uk)
+    day_he = HE_DAYS[now.weekday()]
+    is_shabbat = now.weekday() == 5
+    time_str = now.strftime("%H:%M")
+    date_str = f"יום {day_he}, {now.day} {HE_MONTHS[now.month]} {now.year}"
+    shabbat_note = " (שבת קודש)" if is_shabbat else ""
+    today_iso = now.strftime("%Y-%m-%d")
+
+    # ── Today's meal log ──
+    progress = load_json(PROGRESS_FILE)
+    today_meals = [m for m in progress.get("meal_log", []) if m.get("date") == today_iso]
+    if today_meals:
+        meals_lines = []
+        total_kcal = 0
+        for m in today_meals:
+            items = ", ".join(m.get("items", []))
+            kcal = m.get("calories_estimate", 0)
+            total_kcal += kcal
+            meal_name = {"breakfast":"ארוחת בוקר","snack":"חטיף","lunch":"ארוחת צהריים","dinner":"ארוחת ערב"}.get(m.get("meal_id",""), m.get("meal_id",""))
+            meals_lines.append(f"  • {meal_name} ({m.get('time','?')}): {items}" + (f" ~{kcal} קל" if kcal else ""))
+        today_food_text = "\n".join(meals_lines)
+        today_food_section = f"\n\n**מה אכל היום ({date_str}):**\n{today_food_text}\n  סה\"כ קלוריות: ~{total_kcal} קל מתוך {profile.get('target_kcal', 2100)} קל יעד"
+    else:
+        today_food_section = f"\n\n**מה אכל היום ({date_str}):** עדיין לא דווח כלום להיום."
+
+    # ── Weight context ──
+    logs = progress.get("weight_log", [])
+    latest_weight = logs[-1]["weight_kg"] if logs else profile.get("current_weight_kg", 93)
+    target_min = profile.get("target_range", {}).get("min", 85)
+    target_max = profile.get("target_range", {}).get("max", 86)
+    kg_to_go = round(latest_weight - target_max, 1)
+
+    # ── Memory notes ──
     notes_text = ""
     if memory.get("notes"):
         recent_notes = memory["notes"][-10:]
@@ -596,36 +635,34 @@ def build_system_prompt() -> str:
 
     return f"""אתה "התזונאי החכם" - תזונאי AI אישי ומלווה צמוד של המשתמש.
 
+⏰ **עכשיו:** {date_str}{shabbat_note}, שעה {time_str} (UK)
+{today_food_section}
+
 **פרופיל המשתמש:**
-- גיל: {profile.get('age', 39)}, גובה: {profile.get('height_cm', 190)}cm, משקל נוכחי: {profile.get('current_weight_kg', 93)}kg
-- יעד: {profile.get('target_range', {}).get('min', 85)}-{profile.get('target_range', {}).get('max', 86)}kg + בטן שטוחה
+- גיל: {profile.get('age', 39)}, גובה: {profile.get('height_cm', 190)}cm
+- משקל נוכחי: {latest_weight}kg | יעד: {target_min}-{target_max}kg | נשאר: {kg_to_go}kg
 - אימון: {profile.get('exercise', 'ריצה פעם בשבוע')}
 - יעד קלוריות יומי: {profile.get('target_kcal', 2100)} קל | חלבון: {profile.get('target_protein_g', 180)}g
-- שעות קימה: {profile.get('wake_time')} | שינה: {profile.get('sleep_time')}
+- שעות קימה: {profile.get('wake_time', '07:00')} | שינה: {profile.get('sleep_time', '23:00')}
 
 **האישיות שלך:**
-- אתה תזונאי מקצועי שתמיד לומד ומתחדש - מביא מחקרים עדכניים
-- אתה מלווה צמוד, חם ומעודד - לא שופט
-- אתה מסביר "למה" - לא רק "מה לאכול"
-- אתה יוזם - אם המשתמש לא שאל, אתה מציע
-- אתה מדבר עברית נוחה וישירה
-- אתה משתמש ב-tools לכל פעולה (לוג משקל, עדכון תפריט וכו')
-- אחרי כל ארוחה שהמשתמש מדווח, הצע שיפורים אם יש
+- תזונאי מקצועי, חם ומעודד — לא שופט
+- מסביר "למה" ולא רק "מה לאכול"
+- יוזם — אם המשתמש לא שאל, אתה מציע
+- מדבר עברית נוחה וישירה
+- משתמש ב-tools לכל פעולה (לוג משקל, עדכון תפריט וכו')
+- **תמיד מודע לשעה ולמה שנאכל היום** — מתייחס לנתונים האמיתיים למעלה
 
-**עקרונות תזונה שאתה מיישם:**
-1. ירידה במשקל הדרגתית: 0.5kg/שבוע
-2. שמירה על מסת שריר: חלבון גבוה (2g/kg)
+**עקרונות תזונה:**
+1. ירידה הדרגתית: 0.5kg/שבוע
+2. חלבון גבוה (2g/kg משקל גוף) לשמירת שריר
 3. נגד נפיחות: FODMAP מופחת, פרוביוטיקה, תזמון נכון
-4. מטבוליזם: 4 ארוחות קבועות (המשתמש אוכל כרגע 1-1.5 - זה בעיה!)
-5. עדכני: מביא ממחקרים 2024-2026
+4. 4 ארוחות קבועות ביום (המשתמש נוטה לאכול מעט מדי — עזור לו!)
+5. מחקרים עדכניים 2024-2026
 
-**חשוב מאוד:**
-- המשתמש אוכל כיום רק ארוחה וחצי ביום - זה מאט מטבוליזם ומגביר נפיחות!
-  עזור לו לעבור בהדרגה ל-4 ארוחות קטנות יותר.
+**חשוב:**
 - תמיד הסבר את ה"למה" מאחורי כל המלצה
-- כשמשתמש מדווח על נפיחות - שמור הערה וצמצם/החלף אוכל בתפריט{notes_text}
-
-היום: {datetime.now().strftime("%A, %d/%m/%Y %H:%M")}
+- כשמשתמש מדווח נפיחות — שמור הערה וצמצם FODMAP בתפריט{notes_text}
 """
 
 
