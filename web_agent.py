@@ -132,6 +132,52 @@ def login_user(email: str, password: str) -> dict:
         return {"error": "סיסמה שגויה"}
     return {"ok": True, "user_id": user["id"], "name": user["name"], "lang": user.get("lang", "he")}
 
+# ── History helpers ──────────────────────────────────────────────────────────
+
+def _clean_history(history: list) -> list:
+    """Remove orphaned tool_result blocks that have no matching tool_use."""
+    # Collect all tool_use ids
+    tool_use_ids = set()
+    for msg in history:
+        content = msg.get("content", [])
+        if isinstance(content, list):
+            for block in content:
+                if isinstance(block, dict) and block.get("type") == "tool_use":
+                    tool_use_ids.add(block.get("id"))
+                elif hasattr(block, "type") and block.type == "tool_use":
+                    tool_use_ids.add(block.id)
+
+    # Remove messages that are pure orphaned tool_results
+    cleaned = []
+    for msg in history:
+        content = msg.get("content", [])
+        if isinstance(content, list) and content and all(
+            (isinstance(b, dict) and b.get("type") == "tool_result") for b in content
+        ):
+            # Only keep if all tool_use_ids are present
+            if all(b.get("tool_use_id") in tool_use_ids for b in content):
+                cleaned.append(msg)
+        else:
+            cleaned.append(msg)
+    return cleaned
+
+def _safe_truncate(history: list, max_len: int) -> list:
+    """Truncate history to max_len messages, never splitting tool_use/tool_result pairs."""
+    if len(history) <= max_len:
+        return history
+    history = history[-max_len:]
+    # If first message is a user message with only tool_results, drop it (orphaned)
+    while history:
+        first = history[0]
+        content = first.get("content", [])
+        if isinstance(content, list) and content and all(
+            isinstance(b, dict) and b.get("type") == "tool_result" for b in content
+        ):
+            history = history[1:]
+        else:
+            break
+    return _clean_history(history)
+
 # ── Per-user conversation history ────────────────────────────────────────────
 
 def _history_key(user_id: str) -> str:
@@ -390,9 +436,7 @@ def chat():
         if logs:
             weight_update = logs[-1]["weight_kg"]
 
-        if len(conversation_history) > 40:
-            conversation_history = conversation_history[-40:]
-
+        conversation_history = _safe_truncate(conversation_history, 40)
         save_history(uid, conversation_history)
         return jsonify({"response": final_text, "weight": weight_update})
 
@@ -465,8 +509,7 @@ def process_whatsapp_image(user_id: str, media_url: str, caption: str) -> str:
         )
         reply = response.content[0].text
         history.append({"role": "assistant", "content": [{"type": "text", "text": reply}]})
-        if len(history) > 40:
-            history = history[-40:]
+        history = _safe_truncate(history, 40)
         save_history(user_id, history)
         return reply
     except Exception as e:
@@ -510,8 +553,7 @@ def process_for_whatsapp(user_id: str, user_text: str) -> str:
             if response.stop_reason == "end_turn":
                 break
 
-        if len(history) > 40:
-            history = history[-40:]
+        history = _safe_truncate(history, 40)
         save_history(user_id, history)
 
         reply = "".join(text_parts) if text_parts else "✅ בוצע!"
