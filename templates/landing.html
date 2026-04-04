@@ -30,12 +30,12 @@
     @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
 
     /* ── Language switcher ── */
-    .lang-bar{position:fixed;top:20px;left:20px;display:flex;gap:6px;z-index:100;}
+    .lang-bar{position:fixed;top:16px;left:16px;display:flex;gap:5px;z-index:100;flex-wrap:wrap;max-width:calc(100vw - 32px);}
     .lang-btn{
       background:var(--glass);border:1px solid var(--glass-border);
       backdrop-filter:blur(12px);color:var(--sub);
-      padding:6px 14px;border-radius:20px;font-size:12px;
-      font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;
+      padding:5px 10px;border-radius:20px;font-size:11px;
+      font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap;
     }
     .lang-btn.active{
       background:var(--emerald-dim);border-color:var(--emerald);
@@ -44,6 +44,19 @@
 
     /* ── Main layout ── */
     .page{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;min-height:100vh;}
+
+    /* ── Mobile ── */
+    @media(max-width:480px){
+      .lang-bar{top:10px;left:10px;gap:4px;}
+      .lang-btn{padding:4px 8px;font-size:10px;}
+      .page{padding:80px 16px 32px;}
+      .auth-card{padding:22px 16px;}
+      h1{font-size:clamp(26px,8vw,42px);}
+      .pills{gap:6px;}
+      .pill{font-size:12px;padding:5px 10px;}
+      .hero{margin-bottom:28px;}
+      .logo-wrap{width:64px;height:64px;font-size:32px;}
+    }
 
     /* ── Hero ── */
     .hero{text-align:center;margin-bottom:48px;}

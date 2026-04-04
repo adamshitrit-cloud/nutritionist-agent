@@ -292,11 +292,64 @@
     /* Confetti */
     @keyframes confettiFall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
-    /* Mobile */
-    @media(max-width:640px){
-      #sidebar{display:none;}
-      .msg{max-width:90%;}
+    /* ── Mobile hamburger button ── */
+    #menu-btn{
+      display:none;background:var(--card);border:1px solid var(--border);
+      border-radius:8px;padding:6px 10px;color:var(--sub);cursor:pointer;
+      font-size:18px;flex-shrink:0;
     }
+    /* Sidebar overlay on mobile */
+    #sidebar-overlay{
+      display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+      z-index:99;backdrop-filter:blur(4px);
+    }
+
+    /* ── Mobile ── */
+    @media(max-width:768px){
+      /* Show hamburger, hide weight badge in topbar */
+      #menu-btn{display:flex;align-items:center;justify-content:center;}
+      #top-w{display:none;}
+
+      /* Sidebar becomes a slide-over drawer */
+      #sidebar{
+        position:fixed;top:0;right:0;height:100vh;
+        z-index:100;transform:translateX(100%);
+        transition:transform .3s cubic-bezier(.4,0,.2,1);
+        box-shadow:-8px 0 32px rgba(0,0,0,.5);
+        width:280px;min-width:280px;
+      }
+      #sidebar.open{transform:translateX(0);}
+      body.ltr #sidebar{right:auto;left:0;transform:translateX(-100%);}
+      body.ltr #sidebar.open{transform:translateX(0);}
+
+      /* Show overlay when sidebar open */
+      #sidebar-overlay.open{display:block;}
+
+      /* Chat takes full width */
+      #main{width:100%;min-width:0;}
+
+      /* Larger tap targets */
+      .msg{max-width:92%;}
+      .bubble{font-size:15px;padding:12px 14px;}
+      .qa-btn{padding:11px 14px;font-size:14px;}
+      #msg-input{font-size:16px;} /* prevents iOS zoom on focus */
+      #input-bar{padding:8px 12px 20px;}
+
+      /* Topbar adjustments */
+      #topbar{padding:10px 14px;gap:8px;}
+      .top-title{font-size:14px;}
+
+      /* Stat cards bigger touch area */
+      .stat-card{padding:14px;}
+      .stat-val{font-size:24px;}
+    }
+
+    /* Very small screens */
+    @media(max-width:380px){
+      #sidebar{width:260px;min-width:260px;}
+      .bubble{font-size:14px;}
+    }
+
     #file-input{display:none;}
 
     /* ── Light mode overrides ── */
@@ -497,9 +550,13 @@
   </div>
 </div>
 
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
 <!-- Main -->
 <div id="main">
   <div id="topbar">
+    <button id="menu-btn" onclick="toggleSidebar()" aria-label="תפריט">☰</button>
     <div class="top-avatar">🥗</div>
     <div class="top-title">{{ 'התזונאי החכם' if lang == 'he' else 'Smart Nutritionist' }}</div>
     <span class="top-badge" id="top-w"></span>
@@ -933,6 +990,20 @@
     document.getElementById('fast-btn').textContent = '⏹ עצור צום';
     startFastTimer();
   }
+
+  // ── Mobile sidebar toggle ──
+  function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('open');
+  }
+  function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+  // Close sidebar when clicking a quick-action button on mobile
+  document.querySelectorAll('.qa-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{ if(window.innerWidth<=768) closeSidebar(); });
+  });
 
   // ── Dark/Light mode ──
   function toggleTheme() {
