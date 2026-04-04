@@ -1118,37 +1118,67 @@
     });
   }
 
-  // ── Barcode Scanner ──
-  let barcodeStream=null,barcodeInterval=null;
+  // ── Barcode Scanner (ZXing — works on all browsers) ──
+  let barcodeStream=null, zxingReader=null;
+
+  async function loadZXing(){
+    if(window.ZXing) return;
+    return new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js';
+      s.onload=res; s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+
   async function openBarcodeScanner(){
     document.getElementById('barcode-modal').style.display='flex';
+    const status=document.getElementById('barcode-status');
+    status.textContent='טוען...';
     try{
-      barcodeStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-      document.getElementById('barcode-video').srcObject=barcodeStream;
-      if('BarcodeDetector' in window){
-        const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','qr_code']});
-        barcodeInterval=setInterval(async()=>{
-          try{
-            const codes=await det.detect(document.getElementById('barcode-video'));
-            if(codes.length>0){clearInterval(barcodeInterval);lookupBarcode(codes[0].rawValue);}
-          }catch(e){}
-        },500);
-      } else {
-        document.getElementById('barcode-status').textContent='הכנס ברקוד ידנית (הדפדפן לא תומך בסריקה אוטומטית)';
-      }
+      await loadZXing();
+      const hints=new Map();
+      const formats=[
+        ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
+        ZXing.BarcodeFormat.UPC_A,  ZXing.BarcodeFormat.UPC_E,
+        ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.QR_CODE,
+        ZXing.BarcodeFormat.DATA_MATRIX
+      ];
+      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+      zxingReader=new ZXing.BrowserMultiFormatReader(hints);
+
+      const video=document.getElementById('barcode-video');
+      status.textContent='מכוון את המצלמה לברקוד...';
+
+      // Get back camera
+      const devices=await ZXing.BrowserCodeReader.listVideoInputDevices();
+      const backCam=devices.find(d=>d.label.toLowerCase().includes('back')||d.label.toLowerCase().includes('rear'))||devices[devices.length-1];
+      const deviceId=backCam?.deviceId;
+
+      await zxingReader.decodeFromVideoDevice(deviceId, video, (result, err)=>{
+        if(result){
+          lookupBarcode(result.getText());
+        }
+      });
+      status.textContent='מכוון את המצלמה לברקוד...';
     }catch(e){
-      document.getElementById('barcode-status').textContent='לא ניתן לגשת למצלמה — הכנס ידנית';
+      status.textContent='לא ניתן לגשת למצלמה — הכנס ברקוד ידנית';
+      console.error(e);
     }
   }
+
   function closeBarcodeScanner(){
-    clearInterval(barcodeInterval);
-    if(barcodeStream)barcodeStream.getTracks().forEach(t=>t.stop());
-    barcodeStream=null;
+    if(zxingReader){ try{ zxingReader.reset(); }catch(e){} zxingReader=null; }
+    if(barcodeStream){ barcodeStream.getTracks().forEach(t=>t.stop()); barcodeStream=null; }
+    const video=document.getElementById('barcode-video');
+    if(video){ video.srcObject=null; }
     document.getElementById('barcode-modal').style.display='none';
   }
+
   function lookupBarcode(code){
     if(!code||code.trim().length<4)return;
     closeBarcodeScanner();
+    document.getElementById('barcode-status').textContent='מכוון את המצלמה לברקוד...';
     qs('סרקתי ברקוד: '+code.trim()+' — מה המוצר הזה? כמה קלוריות יש ב-100 גרם? מה הערכים התזונתיים?');
   }
 
