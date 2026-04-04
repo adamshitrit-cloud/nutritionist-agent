@@ -268,6 +268,9 @@ def get_user_stats(user_id: str) -> dict:
         measurements = progress.get("measurement_log", [])
         latest_measurements = measurements[-1] if measurements else {}
 
+        referral_count = int(_redis_raw_get(f"referral_count:{user_id}") or 0)
+        is_premium = referral_count >= 3
+
         return {
             "current_weight": current_w,
             "start_weight": start_w,
@@ -279,7 +282,9 @@ def get_user_stats(user_id: str) -> dict:
             "streak": streak,
             "today_calories": today_calories,
             "target_kcal": profile.get("target_kcal", 2100),
-            "measurements": latest_measurements
+            "measurements": latest_measurements,
+            "is_premium": is_premium,
+            "referral_count": referral_count
         }
     except Exception as e:
         return {}
@@ -314,7 +319,7 @@ def require_login():
 def index():
     if current_user_id():
         return redirect(url_for("app_page"))
-    return redirect(url_for("landing"))
+    return render_template("index.html")
 
 @app.route("/landing")
 def landing():
@@ -343,6 +348,16 @@ def register():
         session["user_id"] = result["user_id"]
         session["name"]    = result["name"]
         session["lang"]    = result["lang"]
+        # Track referral
+        ref_code = data.get("ref_code", "")
+        if ref_code:
+            try:
+                referrer_uid = _redis_raw_get(f"code_to_uid:{ref_code}")
+                if referrer_uid:
+                    count = int(_redis_raw_get(f"referral_count:{referrer_uid}") or 0)
+                    _redis_raw_set(f"referral_count:{referrer_uid}", str(count + 1))
+            except Exception:
+                pass
     return jsonify(result)
 
 @app.route("/login", methods=["POST"])
@@ -891,6 +906,42 @@ def report():
         )
     finally:
         nutritionist._current_user_id = None
+
+
+@app.route("/gallery")
+def gallery():
+    uid = current_user_id()
+    if not uid:
+        return redirect(url_for("landing"))
+    nutritionist._current_user_id = uid
+    try:
+        progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+        meals = sorted(progress.get("meal_log", []), key=lambda m: (m.get("date",""), m.get("time","")), reverse=True)
+        return render_template("gallery.html", meals=meals, name=session.get("name",""))
+    finally:
+        nutritionist._current_user_id = None
+
+
+def _get_or_create_referral_code(uid: str) -> str:
+    key = f"referral_code:{uid}"
+    code = _redis_raw_get(key)
+    if not code:
+        import random, string
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        _redis_raw_set(key, code)
+        _redis_raw_set(f"code_to_uid:{code}", uid)
+    return code
+
+
+@app.route("/api/referral", methods=["GET"])
+def api_referral():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    code = _get_or_create_referral_code(uid)
+    referrals = int(_redis_raw_get(f"referral_count:{uid}") or 0)
+    link = f"https://nutritionist-agent-ouvp.onrender.com/landing?ref={code}"
+    return jsonify({"code": code, "link": link, "referrals": referrals})
 
 
 @app.route("/ping")

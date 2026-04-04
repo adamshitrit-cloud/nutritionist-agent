@@ -175,6 +175,8 @@
 <div class="lang-bar">
   <button class="lang-btn active" id="btn-he" onclick="setLang('he')">🇮🇱 עברית</button>
   <button class="lang-btn" id="btn-en" onclick="setLang('en')">🇺🇸 English</button>
+  <button class="lang-btn" id="btn-ar" onclick="setLang('ar')">🇸🇦 عربي</button>
+  <button class="lang-btn" id="btn-ru" onclick="setLang('ru')">🇷🇺 Русский</button>
 </div>
 
 <div class="page">
@@ -271,6 +273,20 @@
         tabL:'Login',tabR:'Register',lEmail:'Email',lPass:'Password',
         rName:'Full Name',rEmail:'Email',rPass:'Password',rPhone:'WhatsApp Number (optional)',rLang:'Preferred Language',
         loginBtn:'Login →',regBtn:'Create Account →',
+        footer:'NutriAI © 2026 · Powered by Claude AI'},
+    ar:{badge:'AI متقدم',h1a:'مساعدك الشخصي',h1b:'للتغذية الذكية',
+        tag:'تغذية ذكية بالذكاء الاصطناعي — خطط وجبات، تتبع الوزن، تحليل صور الطعام.',
+        p1:'تتبع الوزن',p2:'خطة أسبوعية',p3:'تحليل الصور',p4:'واتساب + ويب',p5:'خاص وآمن',
+        tabL:'دخول',tabR:'تسجيل',lEmail:'البريد الإلكتروني',lPass:'كلمة المرور',
+        rName:'الاسم الكامل',rEmail:'البريد الإلكتروني',rPass:'كلمة المرور',rPhone:'رقم واتساب (اختياري)',rLang:'اللغة المفضلة',
+        loginBtn:'دخول →',regBtn:'إنشاء حساب →',
+        footer:'NutriAI © 2026 · Powered by Claude AI'},
+    ru:{badge:'AI нового поколения',h1a:'Ваш личный',h1b:'диетолог на ИИ',
+        tag:'Персональное сопровождение на основе ИИ — меню, контроль веса, анализ фото еды.',
+        p1:'Умный контроль веса',p2:'Персональное меню',p3:'Анализ фото еды',p4:'WhatsApp + Web',p5:'Приватно и безопасно',
+        tabL:'Войти',tabR:'Регистрация',lEmail:'Email',lPass:'Пароль',
+        rName:'Полное имя',rEmail:'Email',rPass:'Пароль',rPhone:'Номер WhatsApp (необязательно)',rLang:'Язык',
+        loginBtn:'Войти →',regBtn:'Создать аккаунт →',
         footer:'NutriAI © 2026 · Powered by Claude AI'}
   };
 
@@ -278,10 +294,12 @@
     uiLang=l;
     const t=T[l];
     document.getElementById('html-root').lang=l;
-    document.getElementById('html-root').dir=l==='he'?'rtl':'ltr';
-    document.body.classList.toggle('ltr',l==='en');
+    document.getElementById('html-root').dir=(l==='ar'||l==='he')?'rtl':'ltr';
+    document.body.classList.toggle('ltr',l!=='he'&&l!=='ar');
     document.getElementById('btn-he').classList.toggle('active',l==='he');
     document.getElementById('btn-en').classList.toggle('active',l==='en');
+    document.getElementById('btn-ar').classList.toggle('active',l==='ar');
+    document.getElementById('btn-ru').classList.toggle('active',l==='ru');
     document.getElementById('badge-txt').textContent=t.badge;
     document.getElementById('h1-a').textContent=t.h1a;
     document.getElementById('h1-b').textContent=t.h1b;
@@ -329,6 +347,9 @@
     }catch(ex){err.textContent=ex.message;err.style.display='block';}
     btn.textContent=T[uiLang].loginBtn;
   }
+
+  // Auto-switch to register tab if URL hash is #register
+  if(window.location.hash==='#register'){switchTab('reg');}
 
   async function doReg(e){
     e.preventDefault();

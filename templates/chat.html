@@ -298,6 +298,18 @@
       .msg{max-width:90%;}
     }
     #file-input{display:none;}
+
+    /* ── Light mode overrides ── */
+    body.light-mode {
+      --bg:#f0faf5; --sidebar:#e8f5ed; --card:rgba(0,0,0,.04);
+      --border:rgba(0,0,0,.08); --text:#1a2e23; --sub:#3d7a56; --muted:#a0c4b0;
+      --user-bg:rgba(139,92,246,.1); --user-border:rgba(139,92,246,.2);
+    }
+    body.light-mode #sidebar { background:var(--sidebar); }
+    body.light-mode #main { background:#f8fffe; }
+    body.light-mode #topbar { background:rgba(232,245,237,.85); }
+    body.light-mode #input-bar { background:rgba(240,250,245,.95); }
+    body.light-mode #input-row { background:rgba(255,255,255,.7); }
   </style>
 </head>
 <body>
@@ -311,6 +323,7 @@
         <div class="sb-name">NutriAI</div>
         <div class="sb-user">{{ user_name }}</div>
       </div>
+      <div id="premium-badge" style="margin-right:auto;cursor:pointer;" onclick="document.getElementById('premium-modal').style.display='flex'"></div>
     </div>
     <div class="status-pill">
       <div class="status-dot"></div>
@@ -446,11 +459,25 @@
       <button class="qa-btn" onclick="requestNotifications()">
         <span>🔔</span><span>{{ 'התראות' if lang == 'he' else 'Notifications' }}</span>
       </button>
+      <button class="qa-btn" onclick="generateShareCard()">
+        <span>🎯</span><span>{{ 'שתף התקדמות' if lang == 'he' else 'Share Progress' }}</span>
+      </button>
+      <button class="qa-btn" onclick="openBarcodeScanner()">
+        <span>📷</span><span>{{ 'סריקת ברקוד' if lang == 'he' else 'Barcode Scan' }}</span>
+      </button>
+      <button class="qa-btn" onclick="window.open('/gallery','_self')">
+        <span>🖼️</span><span>{{ 'גלריית ארוחות' if lang == 'he' else 'Meal Gallery' }}</span>
+      </button>
       <div id="notif-msg" style="font-size:11px;color:var(--em);margin-top:4px;display:none;"></div>
     </div>
   </div>
 
   <div class="sb-footer">
+    <div id="referral-box" style="margin-bottom:10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;">
+      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">👥 {{ 'הזמן חבר — קבל חודש פרמיום!' if lang == 'he' else 'Refer a friend — get premium!' }}</div>
+      <div id="ref-link" style="font-size:11px;color:var(--em);word-break:break-all;margin-bottom:6px;cursor:pointer;" onclick="copyRefLink()">{{ 'טוען...' if lang == 'he' else 'Loading...' }}</div>
+      <div id="ref-count" style="font-size:11px;color:var(--sub);"></div>
+    </div>
     <div id="wa-link-box" style="margin-bottom:10px;">
       <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">📱 {{ 'חבר WhatsApp לחשבון' if lang == 'he' else 'Link WhatsApp' }}</div>
       <div style="display:flex;gap:6px;">
@@ -475,6 +502,8 @@
     <div class="top-avatar">🥗</div>
     <div class="top-title">{{ 'התזונאי החכם' if lang == 'he' else 'Smart Nutritionist' }}</div>
     <span class="top-badge" id="top-w"></span>
+    <button id="theme-btn" onclick="toggleTheme()" title="החלף מצב תצוגה"
+      style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--sub);cursor:pointer;font-size:14px;">🌙</button>
   </div>
 
   <div id="chat"></div>
@@ -496,6 +525,7 @@
 </div>
 
 <input type="file" id="file-input" accept="image/*" onchange="onImg(event)">
+<canvas id="share-canvas" width="800" height="400" style="display:none;"></canvas>
 
 <!-- Shopping List Modal -->
 <div id="shop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
@@ -888,6 +918,101 @@
   if (localStorage.getItem('fast_start')) {
     document.getElementById('fast-btn').textContent = '⏹ עצור צום';
     startFastTimer();
+  }
+
+  // ── Dark/Light mode ──
+  function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-mode');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isLight ? '☀️' : '🌙';
+  }
+  // Init theme on load
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('theme-btn').textContent = '☀️';
+  }
+
+  // ── Shareable progress card ──
+  function generateShareCard() {
+    const canvas = document.getElementById('share-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Background gradient
+    const bg = ctx.createLinearGradient(0, 0, 800, 400);
+    bg.addColorStop(0, '#050a08');
+    bg.addColorStop(1, '#0d1f14');
+    ctx.fillStyle = bg;
+    ctx.beginPath();
+    ctx.roundRect(0, 0, 800, 400, 20);
+    ctx.fill();
+
+    // Emerald glow orb
+    const glow = ctx.createRadialGradient(700, 50, 0, 700, 50, 200);
+    glow.addColorStop(0, 'rgba(16,185,129,0.3)');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, 800, 400);
+
+    // Logo text
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText('NutriAI', 760, 48);
+
+    // Grab stat values
+    const weight = document.getElementById('s-w')?.textContent || '—';
+    const target = document.getElementById('s-t')?.textContent || '—';
+    const lost = document.getElementById('s-l')?.textContent || '—';
+    const streak = document.getElementById('streak-val')?.textContent || '0';
+
+    // Big headline
+    ctx.fillStyle = '#f0faf5';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('ההתקדמות שלי השבוע', 400, 120);
+
+    // Stats cards
+    const stats = [
+      {label: 'משקל נוכחי', val: weight + ' ק"ג', x: 160},
+      {label: 'יעד', val: target + ' ק"ג', x: 400},
+      {label: 'ירדתי', val: lost, x: 640}
+    ];
+
+    stats.forEach(s => {
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      ctx.strokeStyle = 'rgba(16,185,129,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(s.x - 100, 155, 200, 110, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 32px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(s.val, s.x, 205);
+
+      ctx.fillStyle = '#6b9e84';
+      ctx.font = '16px Arial';
+      ctx.fillText(s.label, s.x, 235);
+    });
+
+    // Streak
+    ctx.fillStyle = '#f0faf5';
+    ctx.font = 'bold 22px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('\uD83D\uDD25 ' + streak + ' ימים ברצף של דיווח', 400, 315);
+
+    // Footer
+    ctx.fillStyle = '#3d5c4a';
+    ctx.font = '14px Arial';
+    ctx.fillText('nutritionist-agent-ouvp.onrender.com', 400, 370);
+
+    // Trigger download
+    const link = document.createElement('a');
+    link.download = 'nutriai-progress.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   }
 
   window.onload=()=>{

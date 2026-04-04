@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>גלריית ארוחות — NutriAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --em:#10b981;--em-l:#34d399;--em-dim:rgba(16,185,129,.1);--em-border:rgba(16,185,129,.25);
+      --vi:#8b5cf6;--vi-l:#a78bfa;--vi-dim:rgba(139,92,246,.1);
+      --bg:#050a08;--card:rgba(255,255,255,.04);--border:rgba(255,255,255,.07);
+      --text:#f0faf5;--sub:#6b9e84;--muted:#2d4a38;
+    }
+    body{
+      font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
+      min-height:100vh;direction:rtl;overflow-x:hidden;
+    }
+    .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.2;animation:drift 12s ease-in-out infinite;}
+    .orb1{width:500px;height:500px;background:radial-gradient(circle,#10b981,transparent);top:-100px;right:-100px;}
+    .orb2{width:400px;height:400px;background:radial-gradient(circle,#8b5cf6,transparent);bottom:-80px;left:-80px;animation-delay:-4s;}
+    @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-15px) scale(1.03)}}
+
+    header{
+      position:sticky;top:0;z-index:10;
+      background:rgba(5,10,8,.85);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+      padding:16px 24px;display:flex;align-items:center;gap:14px;
+    }
+    .back-btn{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:8px;padding:7px 14px;color:var(--sub);
+      font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;
+      text-decoration:none;transition:all .2s;
+    }
+    .back-btn:hover{background:var(--em-dim);border-color:var(--em-border);color:var(--em-l);}
+    header h1{font-size:18px;font-weight:700;flex:1;}
+    .meal-count{font-size:13px;color:var(--sub);}
+
+    .container{position:relative;z-index:1;padding:24px;max-width:1200px;margin:0 auto;}
+
+    /* Filter bar */
+    .filter-bar{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+    .filter-btn{
+      padding:7px 16px;border-radius:20px;font-size:13px;
+      background:var(--card);border:1px solid var(--border);
+      color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;
+      transition:all .2s;
+    }
+    .filter-btn.active{background:var(--em-dim);border-color:var(--em-border);color:var(--em-l);font-weight:600;}
+    .filter-btn:hover{background:var(--em-dim);border-color:var(--em-border);color:var(--em-l);}
+
+    /* Grid */
+    .meal-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:16px;
+    }
+    @media(max-width:900px){.meal-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:560px){.meal-grid{grid-template-columns:1fr;}}
+
+    /* Meal card */
+    .meal-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:16px;padding:18px;
+      transition:all .2s;animation:fadeIn .3s ease;
+    }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .meal-card:hover{border-color:var(--em-border);background:rgba(16,185,129,.05);transform:translateY(-2px);}
+    .meal-card.hidden{display:none;}
+
+    .meal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+    .meal-icon{font-size:32px;line-height:1;}
+    .cal-badge{
+      background:var(--em-dim);border:1px solid var(--em-border);
+      border-radius:20px;padding:3px 10px;
+      font-size:12px;color:var(--em-l);font-weight:600;
+    }
+    .meal-type{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
+    .meal-date{font-size:11px;color:var(--sub);}
+    .meal-items{
+      margin-top:10px;font-size:12px;color:var(--sub);
+      line-height:1.7;border-top:1px solid var(--border);padding-top:10px;
+    }
+    .meal-item::before{content:'• ';color:var(--em);}
+
+    /* Empty state */
+    .empty-state{
+      text-align:center;padding:80px 20px;
+    }
+    .empty-icon{font-size:64px;margin-bottom:16px;}
+    .empty-title{font-size:20px;font-weight:700;margin-bottom:8px;}
+    .empty-sub{font-size:14px;color:var(--sub);}
+  </style>
+</head>
+<body>
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+</div>
+
+<header>
+  <a href="/app" class="back-btn">← חזרה</a>
+  <h1>🖼️ גלריית ארוחות</h1>
+  <span class="meal-count">{{ meals|length }} ארוחות</span>
+</header>
+
+<div class="container">
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterMeals('all')">הכל</button>
+    <button class="filter-btn" onclick="filterMeals('breakfast')">🍳 בוקר</button>
+    <button class="filter-btn" onclick="filterMeals('lunch')">🥗 צהריים</button>
+    <button class="filter-btn" onclick="filterMeals('dinner')">🍽️ ערב</button>
+    <button class="filter-btn" onclick="filterMeals('snack')">🍎 חטיף</button>
+  </div>
+
+  {% if meals %}
+  <div class="meal-grid" id="meal-grid">
+    {% for meal in meals %}
+    {% set mtype = meal.get('meal_type', meal.get('type', 'other')) %}
+    {% set icon_map = {'breakfast': '🍳', 'lunch': '🥗', 'dinner': '🍽️', 'snack': '🍎'} %}
+    {% set label_map = {'breakfast': 'ארוחת בוקר', 'lunch': 'ארוחת צהריים', 'dinner': 'ארוחת ערב', 'snack': 'חטיף'} %}
+    <div class="meal-card" data-type="{{ mtype }}">
+      <div class="meal-top">
+        <div class="meal-icon">{{ icon_map.get(mtype, '🍽️') }}</div>
+        {% if meal.get('calories_estimate') %}
+        <div class="cal-badge">{{ meal.calories_estimate }} קל</div>
+        {% endif %}
+      </div>
+      <div class="meal-type">{{ label_map.get(mtype, 'ארוחה') }}</div>
+      <div class="meal-date">
+        📅 {{ meal.get('date', '') }}
+        {% if meal.get('time') %} · ⏰ {{ meal.get('time', '') }}{% endif %}
+      </div>
+      {% if meal.get('items') %}
+      <div class="meal-items">
+        {% for item in meal.items %}
+        <div class="meal-item">{{ item }}</div>
+        {% endfor %}
+      </div>
+      {% elif meal.get('description') %}
+      <div class="meal-items">
+        <div class="meal-item">{{ meal.description }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🍽️</div>
+    <div class="empty-title">עדיין אין ארוחות מתועדות</div>
+    <div class="empty-sub">דווח על ארוחות בצ'אט כדי לראות אותן כאן</div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function filterMeals(type) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.meal-card').forEach(card => {
+      if (type === 'all' || card.dataset.type === type) {
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+  }
+</script>
+</body>
+</html>
