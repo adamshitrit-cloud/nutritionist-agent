@@ -316,8 +316,9 @@ def log_weight(weight_kg: float, note: str = "") -> str:
 
 def log_meal(meal_id: str, items: list, calories_estimate: float = 0, felt_bloated: bool = False) -> str:
     progress = load_json(PROGRESS_FILE)
+    today = datetime.now().strftime("%Y-%m-%d")
     entry = {
-        "date": datetime.now().strftime("%Y-%m-%d"),
+        "date": today,
         "time": datetime.now().strftime("%H:%M"),
         "meal_id": meal_id,
         "items": items,
@@ -325,7 +326,17 @@ def log_meal(meal_id: str, items: list, calories_estimate: float = 0, felt_bloat
         "felt_bloated": felt_bloated,
         "notified": False
     }
-    progress.setdefault("meal_log", []).append(entry)
+    meal_log = progress.setdefault("meal_log", [])
+    # Dedup: if same meal_id already logged today, update it instead of adding
+    existing_idx = next(
+        (i for i, m in enumerate(meal_log)
+         if m.get("date") == today and m.get("meal_id") == meal_id),
+        None
+    )
+    if existing_idx is not None:
+        meal_log[existing_idx] = entry
+    else:
+        meal_log.append(entry)
     save_json(PROGRESS_FILE, progress)
 
     response = f"✅ {meal_id} נרשם!\n"
