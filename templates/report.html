@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>דוח שבועי — NutriAI</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fffe;color:#1a2e23;direction:rtl;padding:32px;}
+  .header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #10b981;padding-bottom:20px;margin-bottom:28px;}
+  .logo{font-size:28px;font-weight:800;color:#10b981;}
+  .meta{text-align:left;color:#6b9e84;font-size:13px;}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .card{background:#fff;border:1px solid #e0f5ed;border-radius:12px;padding:20px;text-align:center;box-shadow:0 2px 8px rgba(16,185,129,.08);}
+  .card-val{font-size:32px;font-weight:800;color:#10b981;}
+  .card-lbl{font-size:12px;color:#6b9e84;margin-top:4px;}
+  .section-title{font-size:18px;font-weight:700;color:#1a2e23;margin-bottom:14px;padding-right:8px;border-right:4px solid #10b981;}
+  .meals-table{width:100%;border-collapse:collapse;margin-bottom:28px;}
+  .meals-table th{background:#10b981;color:#fff;padding:10px 12px;text-align:right;font-size:13px;}
+  .meals-table td{padding:10px 12px;border-bottom:1px solid #e0f5ed;font-size:13px;}
+  .meals-table tr:nth-child(even) td{background:#f0faf5;}
+  .print-btn{background:#10b981;color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:15px;cursor:pointer;margin-bottom:24px;font-family:inherit;}
+  .svg-chart{width:100%;height:160px;background:#fff;border:1px solid #e0f5ed;border-radius:12px;margin-bottom:28px;}
+  @media print{.print-btn{display:none!important;}body{padding:16px;}@page{margin:1cm;}}
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">🖨️ הדפס / שמור PDF</button>
+
+<div class="header">
+  <div>
+    <div class="logo">🥗 NutriAI</div>
+    <div style="color:#6b9e84;font-size:13px;margin-top:4px;">דוח שבועי אישי</div>
+  </div>
+  <div class="meta">
+    <div>{{ name }}</div>
+    <div>{{ report_date }}</div>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card"><div class="card-val">{{ latest_weight }}</div><div class="card-lbl">משקל נוכחי (ק"ג)</div></div>
+  <div class="card"><div class="card-val">{{ avg_cal }}</div><div class="card-lbl">ממוצע קלוריות יומי</div></div>
+  <div class="card"><div class="card-val">{{ days_logged }}/7</div><div class="card-lbl">ימי דיווח</div></div>
+  <div class="card"><div class="card-val" style="color:{% if start_weight > latest_weight %}#10b981{% else %}#f43f5e{% endif %}">
+    {{ "%.1f"|format(start_weight - latest_weight|float) if start_weight != latest_weight else "0" }}
+  </div><div class="card-lbl">ק"ג ירידה השבוע</div></div>
+</div>
+
+{% if weight_log|length > 1 %}
+<!-- SVG Weight Chart -->
+<div class="section-title">📈 גרף משקל</div>
+{% set weights = weight_log | map(attribute='weight_kg') | list %}
+{% set min_w = weights | min %}
+{% set max_w = weights | max %}
+{% set range_w = (max_w - min_w) if max_w != min_w else 1 %}
+{% set n = weights | length %}
+<svg class="svg-chart" viewBox="0 0 600 160" preserveAspectRatio="none">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981" stop-opacity=".3"/><stop offset="100%" stop-color="#10b981" stop-opacity="0"/></linearGradient></defs>
+  {% set pts = [] %}
+  {% for i in range(n) %}
+    {% set x = (i / (n-1) * 560 + 20)|int %}
+    {% set y = (140 - ((weights[i] - min_w) / range_w * 120))|int %}
+    {% if pts.append(x|string + ',' + y|string) %}{% endif %}
+  {% endfor %}
+  <polyline points="{{ pts|join(' ') }}" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round"/>
+  {% for i in range(n) %}
+    {% set x = (i / (n-1) * 560 + 20)|int %}
+    {% set y = (140 - ((weights[i] - min_w) / range_w * 120))|int %}
+    <circle cx="{{ x }}" cy="{{ y }}" r="4" fill="#10b981"/>
+    <text x="{{ x }}" y="{{ y - 8 }}" text-anchor="middle" font-size="10" fill="#6b9e84">{{ weights[i] }}</text>
+  {% endfor %}
+</svg>
+{% endif %}
+
+<div class="section-title">🍽️ יומן ארוחות</div>
+<table class="meals-table">
+  <thead><tr><th>תאריך</th><th>ארוחה</th><th>פריטים</th><th>קלוריות</th></tr></thead>
+  <tbody>
+  {% for day, meals in meals_by_day.items() %}
+    {% for m in meals %}
+    <tr>
+      <td>{{ day }}</td>
+      <td>{{ {'breakfast':'בוקר','snack':'חטיף','lunch':'צהריים','dinner':'ערב'}.get(m.meal_id, m.meal_id) }}</td>
+      <td>{{ m.items | join(', ') }}</td>
+      <td>{{ m.calories_estimate or '—' }}</td>
+    </tr>
+    {% endfor %}
+  {% endfor %}
+  </tbody>
+</table>
+
+<div style="text-align:center;color:#6b9e84;font-size:12px;margin-top:32px;">
+  דוח זה הופק על ידי NutriAI · nutritionist-agent-ouvp.onrender.com
+</div>
+</body>
+</html>

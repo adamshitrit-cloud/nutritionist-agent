@@ -848,6 +848,51 @@ def api_shopping_list():
         nutritionist._current_user_id = None
 
 
+@app.route("/report")
+def report():
+    uid = current_user_id()
+    if not uid:
+        return redirect(url_for("landing"))
+
+    from datetime import date, timedelta
+    nutritionist._current_user_id = uid
+    try:
+        progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+        profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
+
+        seven_days_ago = str(date.today() - timedelta(days=7))
+        recent_meals = [m for m in progress.get("meal_log", []) if m.get("date","") >= seven_days_ago]
+        weight_log = progress.get("weight_log", [])[-10:]
+
+        # Group meals by date
+        from collections import defaultdict
+        meals_by_day = defaultdict(list)
+        for m in recent_meals:
+            meals_by_day[m["date"]].append(m)
+
+        total_cal = sum(m.get("calories_estimate",0) for m in recent_meals)
+        days_logged = len(meals_by_day)
+        avg_cal = total_cal // days_logged if days_logged else 0
+
+        latest_weight = weight_log[-1]["weight_kg"] if weight_log else profile.get("current_weight_kg","?")
+        start_weight = weight_log[0]["weight_kg"] if len(weight_log) > 1 else latest_weight
+
+        return render_template("report.html",
+            profile=profile,
+            meals_by_day=dict(sorted(meals_by_day.items())),
+            weight_log=weight_log,
+            total_cal=total_cal,
+            avg_cal=avg_cal,
+            days_logged=days_logged,
+            latest_weight=latest_weight,
+            start_weight=start_weight,
+            name=session.get("name",""),
+            report_date=str(date.today())
+        )
+    finally:
+        nutritionist._current_user_id = None
+
+
 @app.route("/ping")
 def ping():
     return "ok", 200

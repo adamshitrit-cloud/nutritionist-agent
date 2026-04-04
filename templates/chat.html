@@ -406,6 +406,19 @@
     </div>
   </div>
 
+  <div class="sb-section" style="padding:14px 18px;border-top:1px solid var(--border);">
+    <div style="font-size:11px;color:var(--sub);margin-bottom:8px;font-weight:600;letter-spacing:.5px;">⏱️ טיימר צום</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button onclick="setFastMode(16)" id="fast16" class="fast-mode-btn" style="flex:1;padding:5px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;">16:8</button>
+      <button onclick="setFastMode(18)" id="fast18" class="fast-mode-btn" style="flex:1;padding:5px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;">18:6</button>
+    </div>
+    <div id="fast-display" style="text-align:center;margin-bottom:8px;">
+      <div id="fast-elapsed" style="font-size:22px;font-weight:700;color:var(--em);letter-spacing:1px;">00:00:00</div>
+      <div id="fast-status" style="font-size:11px;color:var(--sub);">לא פעיל</div>
+    </div>
+    <button id="fast-btn" onclick="toggleFast()" style="width:100%;padding:7px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:8px;color:var(--em);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">▶ התחל צום</button>
+  </div>
+
   <div class="sb-sec">
     <div class="sb-sec-title">{{ 'פעולות מהירות' if lang == 'he' else 'Quick Actions' }}</div>
     <div class="qa-list">
@@ -427,6 +440,13 @@
       <button class="qa-btn" onclick="showShoppingList()">
         <span>🛒</span><span>{{ 'רשימת קניות' if lang == 'he' else 'Shopping List' }}</span>
       </button>
+      <button class="qa-btn" onclick="window.open('/report','_blank')">
+        <span>📄</span><span>{{ 'דוח שבועי' if lang == 'he' else 'Weekly Report' }}</span>
+      </button>
+      <button class="qa-btn" onclick="requestNotifications()">
+        <span>🔔</span><span>{{ 'התראות' if lang == 'he' else 'Notifications' }}</span>
+      </button>
+      <div id="notif-msg" style="font-size:11px;color:var(--em);margin-top:4px;display:none;"></div>
     </div>
   </div>
 
@@ -752,6 +772,122 @@
     if (m.hips_cm) parts.push(`📏 ${LANG==='he'?'ירכיים':'Hips'}: ${m.hips_cm} ס"מ`);
     if (m.date) parts.push(`🗓 ${m.date}`);
     el.innerHTML = parts.join('<br>');
+  }
+
+  // ── Push Notifications ──
+  async function requestNotifications() {
+    if (!('Notification' in window)) {
+      showNotifMsg('❌ הדפדפן שלך לא תומך בהתראות');
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      scheduleReminders();
+      showNotifMsg('✅ התראות פעילות!');
+    } else {
+      showNotifMsg('❌ ההרשאה נדחתה');
+    }
+  }
+
+  function scheduleReminders() {
+    const reminders = [
+      {hour: 8,  min: 0,  msg: '🍳 בוקר טוב! זמן לארוחת בוקר'},
+      {hour: 13, min: 0,  msg: '🥗 זמן ארוחת צהריים!'},
+      {hour: 16, min: 0,  msg: '💧 שתית מים היום?'},
+      {hour: 19, min: 30, msg: '🌙 ערב! אל תשכח לדווח על מה שאכלת'}
+    ];
+    localStorage.setItem('notif_enabled', '1');
+    checkAndFireReminders(reminders);
+  }
+
+  function checkAndFireReminders(reminders) {
+    if (localStorage.getItem('notif_enabled') !== '1') return;
+    const now = new Date();
+    reminders.forEach(r => {
+      const target = new Date();
+      target.setHours(r.hour, r.min, 0, 0);
+      if (target < now) target.setDate(target.getDate() + 1);
+      const delay = target - now;
+      setTimeout(() => {
+        if (Notification.permission === 'granted') {
+          new Notification('🥗 NutriAI', {body: r.msg, dir: 'rtl'});
+        }
+        setTimeout(() => checkAndFireReminders(reminders), 60000);
+      }, delay);
+    });
+  }
+
+  function showNotifMsg(msg) {
+    const el = document.getElementById('notif-msg');
+    if (el) { el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 3000); }
+  }
+
+  // Auto-schedule if previously enabled
+  if (localStorage.getItem('notif_enabled') === '1' && Notification.permission === 'granted') {
+    scheduleReminders();
+  }
+
+  // ── Fasting Timer ──
+  let fastMode = parseInt(localStorage.getItem('fast_mode') || '16');
+  let fastInterval = null;
+
+  function setFastMode(h) {
+    fastMode = h;
+    localStorage.setItem('fast_mode', h);
+    document.getElementById('fast16').style.borderColor = h===16 ? 'var(--em)' : 'var(--border)';
+    document.getElementById('fast16').style.color = h===16 ? 'var(--em)' : 'var(--sub)';
+    document.getElementById('fast18').style.borderColor = h===18 ? 'var(--em)' : 'var(--border)';
+    document.getElementById('fast18').style.color = h===18 ? 'var(--em)' : 'var(--sub)';
+  }
+
+  function toggleFast() {
+    const start = localStorage.getItem('fast_start');
+    if (start) {
+      // Stop fast
+      localStorage.removeItem('fast_start');
+      clearInterval(fastInterval);
+      document.getElementById('fast-btn').textContent = '▶ התחל צום';
+      document.getElementById('fast-status').textContent = 'לא פעיל';
+      document.getElementById('fast-elapsed').textContent = '00:00:00';
+      document.getElementById('fast-elapsed').style.color = 'var(--em)';
+    } else {
+      // Start fast
+      localStorage.setItem('fast_start', Date.now().toString());
+      document.getElementById('fast-btn').textContent = '⏹ עצור צום';
+      startFastTimer();
+    }
+  }
+
+  function startFastTimer() {
+    clearInterval(fastInterval);
+    fastInterval = setInterval(() => {
+      const start = parseInt(localStorage.getItem('fast_start') || '0');
+      if (!start) return clearInterval(fastInterval);
+      const elapsed = Date.now() - start;
+      const totalMs = fastMode * 3600000;
+      const remaining = totalMs - elapsed;
+      const h = Math.floor(elapsed/3600000);
+      const m = Math.floor((elapsed%3600000)/60000);
+      const s = Math.floor((elapsed%60000)/1000);
+      document.getElementById('fast-elapsed').textContent =
+        `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      if (elapsed >= totalMs) {
+        document.getElementById('fast-status').textContent = `✅ צום ${fastMode} שעות הושלם!`;
+        document.getElementById('fast-elapsed').style.color = '#fbbf24';
+      } else {
+        const rh = Math.floor(remaining/3600000);
+        const rm = Math.floor((remaining%3600000)/60000);
+        document.getElementById('fast-status').textContent = `נותרו ${rh}ש ${rm}ד לסיום הצום`;
+        document.getElementById('fast-elapsed').style.color = elapsed/totalMs > 0.8 ? '#fbbf24' : 'var(--em)';
+      }
+    }, 1000);
+  }
+
+  // Init fasting timer on load
+  setFastMode(fastMode);
+  if (localStorage.getItem('fast_start')) {
+    document.getElementById('fast-btn').textContent = '⏹ עצור צום';
+    startFastTimer();
   }
 
   window.onload=()=>{
