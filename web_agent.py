@@ -79,7 +79,30 @@ def _save_user(user: dict):
     except Exception as e:
         print(f"[Auth] save_user error: {e}")
 
-def register_user(name: str, email: str, password: str, lang: str = "he") -> dict:
+def _phone_digits(phone: str) -> str:
+    """Strip all non-digits from a phone number. '05X-XXX' → '05XXXX', 'whatsapp:+972...' → '972...'"""
+    return re.sub(r'\D', '', phone)
+
+def _link_phone_to_user(phone: str, user_id: str):
+    """Store phone→user_id mapping in Redis so WhatsApp messages find the right account."""
+    digits = _phone_digits(phone)
+    if digits:
+        try:
+            _redis_raw_set(f"phone:{digits}", user_id)
+        except Exception as e:
+            print(f"[Auth] link_phone error: {e}")
+
+def _get_user_id_by_phone(phone: str) -> str | None:
+    """Look up user_id from phone number digits. Returns None if not found."""
+    digits = _phone_digits(phone)
+    if not digits:
+        return None
+    try:
+        return _redis_raw_get(f"phone:{digits}")
+    except Exception:
+        return None
+
+def register_user(name: str, email: str, password: str, lang: str = "he", phone: str = "") -> dict:
     """Returns {'ok': True, 'user_id': ...} or {'error': '...'}"""
     email = email.lower().strip()
     if _get_user_by_email(email):
@@ -92,9 +115,12 @@ def register_user(name: str, email: str, password: str, lang: str = "he") -> dic
         "password_hash": _hash_password(password, salt),
         "salt": salt,
         "lang": lang,
+        "phone": _phone_digits(phone),
         "created_at": datetime.now().isoformat()
     }
     _save_user(user)
+    if phone:
+        _link_phone_to_user(phone, user["id"])
     return {"ok": True, "user_id": user["id"], "name": user["name"], "lang": lang}
 
 def login_user(email: str, password: str) -> dict:
@@ -242,7 +268,8 @@ def register():
         name=data.get("name", ""),
         email=data.get("email", ""),
         password=data.get("password", ""),
-        lang=data.get("lang", "he")
+        lang=data.get("lang", "he"),
+        phone=data.get("phone", "")
     )
     if result.get("ok"):
         session["user_id"] = result["user_id"]
@@ -385,8 +412,14 @@ def reset():
 # ── WhatsApp ─────────────────────────────────────────────────────────────────
 
 def _phone_to_user_id(from_number: str) -> str:
-    """Convert 'whatsapp:+972501234567' → '972501234567'."""
-    return re.sub(r'\D', '', from_number)
+    """Convert 'whatsapp:+972501234567' → UUID if linked, else digits fallback."""
+    digits = _phone_digits(from_number)
+    # Try to find a registered web account linked to this phone
+    linked_uid = _get_user_id_by_phone(digits)
+    if linked_uid:
+        return linked_uid
+    # Fallback: use phone digits as standalone WhatsApp user_id
+    return digits
 
 def process_whatsapp_image(user_id: str, media_url: str, caption: str) -> str:
     import urllib.request, urllib.error

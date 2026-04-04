@@ -236,6 +236,10 @@
         <input type="password" id="reg-pass" required minlength="6" autocomplete="new-password" placeholder="לפחות 6 תווים">
       </div>
       <div class="field">
+        <label id="r-phone">מספר WhatsApp (אופציונלי)</label>
+        <input type="tel" id="reg-phone" placeholder="05X-XXXXXXX" autocomplete="tel">
+      </div>
+      <div class="field">
         <label id="r-lang">שפה מועדפת</label>
         <div class="lang-sel">
           <button type="button" class="lang-opt selected" id="opt-he" onclick="pickLang('he')">🇮🇱 עברית</button>
@@ -258,14 +262,14 @@
         tag:'ליווי אישי מבוסס AI — תפריטים, מעקב משקל, ניתוח תמונות אוכל. דרך הווב ודרך WhatsApp.',
         p1:'מעקב משקל חכם',p2:'תפריט שבועי מותאם',p3:'ניתוח תמונות אוכל',p4:'WhatsApp + Web',p5:'נתונים פרטיים מאובטחים',
         tabL:'כניסה',tabR:'הרשמה',lEmail:'אימייל',lPass:'סיסמה',
-        rName:'שם מלא',rEmail:'אימייל',rPass:'סיסמה',rLang:'שפה מועדפת',
+        rName:'שם מלא',rEmail:'אימייל',rPass:'סיסמה',rPhone:'מספר WhatsApp (אופציונלי)',rLang:'שפה מועדפת',
         loginBtn:'כניסה →',regBtn:'צור חשבון →',
         footer:'NutriAI © 2026 · Powered by Claude AI'},
     en:{badge:'Next-Gen AI',h1a:'Your Personal',h1b:'Nutrition AI',
         tag:'AI-powered coaching — meal plans, weight tracking, food photo analysis. Web & WhatsApp.',
         p1:'Smart Weight Tracking',p2:'Custom Weekly Meals',p3:'Food Photo Analysis',p4:'WhatsApp + Web',p5:'Private & Secure',
         tabL:'Login',tabR:'Register',lEmail:'Email',lPass:'Password',
-        rName:'Full Name',rEmail:'Email',rPass:'Password',rLang:'Preferred Language',
+        rName:'Full Name',rEmail:'Email',rPass:'Password',rPhone:'WhatsApp Number (optional)',rLang:'Preferred Language',
         loginBtn:'Login →',regBtn:'Create Account →',
         footer:'NutriAI © 2026 · Powered by Claude AI'}
   };
@@ -290,6 +294,7 @@
     document.getElementById('r-name').textContent=t.rName;
     document.getElementById('r-email').textContent=t.rEmail;
     document.getElementById('r-pass').textContent=t.rPass;
+    document.getElementById('r-phone').textContent=t.rPhone;
     document.getElementById('r-lang').textContent=t.rLang;
     document.getElementById('login-btn').textContent=t.loginBtn;
     document.getElementById('reg-btn').textContent=t.regBtn;
@@ -335,7 +340,9 @@
       const r=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name:document.getElementById('reg-name').value,
           email:document.getElementById('reg-email').value,
-          password:document.getElementById('reg-pass').value,lang:regLang})});
+          password:document.getElementById('reg-pass').value,
+          phone:document.getElementById('reg-phone').value,
+          lang:regLang})});
       const d=await r.json();
       if(d.ok){window.location.href='/app';}
       else{err.textContent=d.error;err.style.display='block';}
