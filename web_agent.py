@@ -402,6 +402,18 @@ def chat():
     finally:
         nutritionist._current_user_id = None
 
+@app.route("/api/link-phone", methods=["POST"])
+def api_link_phone():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    data = request.get_json()
+    phone = data.get("phone", "").strip()
+    if not phone:
+        return jsonify({"error": "מספר טלפון חסר"})
+    _link_phone_to_user(phone, uid)
+    return jsonify({"ok": True})
+
 @app.route("/reset", methods=["POST"])
 def reset():
     uid = current_user_id()

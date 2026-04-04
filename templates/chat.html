@@ -322,6 +322,18 @@
   </div>
 
   <div class="sb-footer">
+    <div id="wa-link-box" style="margin-bottom:10px;">
+      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">📱 {{ 'חבר WhatsApp לחשבון' if lang == 'he' else 'Link WhatsApp' }}</div>
+      <div style="display:flex;gap:6px;">
+        <input id="wa-phone-input" type="tel" placeholder="{{ '05XXXXXXXX' if lang == 'he' else '+1XXXXXXXXXX' }}"
+          style="flex:1;padding:7px 10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;">
+        <button onclick="linkWhatsApp()"
+          style="padding:7px 12px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:8px;color:var(--em);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
+          {{ 'חבר' if lang == 'he' else 'Link' }}
+        </button>
+      </div>
+      <div id="wa-link-msg" style="font-size:11px;margin-top:5px;display:none;"></div>
+    </div>
     <a href="/logout" style="text-decoration:none;">
       <button class="logout-btn">🚪 {{ 'התנתקות' if lang == 'he' else 'Logout' }}</button>
     </a>
@@ -480,6 +492,19 @@
         }
       }
     });
+  }
+
+  async function linkWhatsApp(){
+    const phone=document.getElementById('wa-phone-input').value.trim();
+    const msg=document.getElementById('wa-link-msg');
+    if(!phone){msg.textContent=LANG==='he'?'הכנס מספר טלפון':'Enter phone number';msg.style.color='#fb7185';msg.style.display='block';return;}
+    try{
+      const r=await fetch('/api/link-phone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone})});
+      const d=await r.json();
+      if(d.ok){msg.textContent=LANG==='he'?'✅ WhatsApp חובר בהצלחה!':'✅ WhatsApp linked!';msg.style.color='var(--em)';}
+      else{msg.textContent=d.error||'שגיאה';msg.style.color='#fb7185';}
+    }catch(e){msg.textContent=e.message;msg.style.color='#fb7185';}
+    msg.style.display='block';
   }
 
   window.onload=()=>{
