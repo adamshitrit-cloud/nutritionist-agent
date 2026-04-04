@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriAI — הגדרה ראשונית</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#10b981">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --em:#10b981;--em-l:#34d399;--em-dim:rgba(16,185,129,.12);--em-border:rgba(16,185,129,.3);
+      --vi:#8b5cf6;--vi-l:#a78bfa;--vi-dim:rgba(139,92,246,.12);
+      --bg:#050a08;--glass:rgba(255,255,255,.04);--glass-border:rgba(255,255,255,.08);
+      --text:#f0faf5;--sub:#6b9e84;--muted:#3d5c4a;
+    }
+    body{
+      font-family:'Inter',sans-serif;
+      background:var(--bg);color:var(--text);
+      min-height:100vh;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      direction:rtl;overflow-x:hidden;padding:20px;
+    }
+    .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.3;animation:drift 12s ease-in-out infinite;}
+    .orb1{width:500px;height:500px;background:radial-gradient(circle,#10b981,transparent);top:-100px;right:-100px;}
+    .orb2{width:400px;height:400px;background:radial-gradient(circle,#8b5cf6,transparent);bottom:-80px;left:-80px;animation-delay:-4s;}
+    @keyframes drift{0%,100%{transform:translate(0,0)}33%{transform:translate(30px,-20px)}66%{transform:translate(-20px,30px)}}
+
+    .wizard{
+      position:relative;z-index:1;
+      width:100%;max-width:480px;
+    }
+
+    /* Progress bar */
+    .progress-wrap{margin-bottom:32px;}
+    .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:10px;font-weight:500;}
+    .progress-track{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+    .progress-fill{
+      height:100%;border-radius:3px;
+      background:linear-gradient(90deg,var(--em),var(--vi-l));
+      transition:width .5s cubic-bezier(.4,0,.2,1);
+    }
+    .step-dots{display:flex;gap:6px;justify-content:center;margin-top:10px;}
+    .step-dot{
+      width:8px;height:8px;border-radius:50%;
+      background:rgba(255,255,255,.1);transition:all .3s;
+    }
+    .step-dot.active{background:var(--em);width:24px;border-radius:4px;}
+    .step-dot.done{background:rgba(16,185,129,.4);}
+
+    /* Card */
+    .card{
+      background:var(--glass);border:1px solid var(--glass-border);
+      backdrop-filter:blur(24px);border-radius:24px;padding:32px;
+      box-shadow:0 32px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .card-icon{font-size:40px;margin-bottom:16px;}
+    .card-title{font-size:22px;font-weight:800;margin-bottom:6px;
+      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .card-sub{font-size:14px;color:var(--sub);margin-bottom:28px;line-height:1.5;}
+
+    /* Steps */
+    .step{display:none;}
+    .step.active{display:block;}
+
+    /* Fields */
+    .field{margin-bottom:16px;}
+    .field label{display:block;font-size:12px;color:var(--sub);margin-bottom:6px;font-weight:500;letter-spacing:.3px;}
+    .field input,.field select{
+      width:100%;padding:12px 16px;
+      background:rgba(0,0,0,.3);
+      border:1px solid var(--glass-border);border-radius:12px;
+      color:var(--text);font-size:14px;font-family:'Inter',sans-serif;
+      outline:none;transition:all .2s;
+    }
+    .field input:focus,.field select:focus{border-color:var(--em);box-shadow:0 0 0 3px var(--em-dim);}
+    .field input::placeholder{color:var(--muted);}
+    .field select option{background:#0d1f16;color:var(--text);}
+
+    /* Slider */
+    .slider-wrap{display:flex;align-items:center;gap:12px;}
+    .slider-wrap input[type=range]{flex:1;accent-color:var(--em);}
+    .slider-val{font-size:16px;font-weight:700;color:var(--em-l);min-width:40px;text-align:center;}
+
+    /* Row of 2 */
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+    /* Restriction chips */
+    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+    .chip{
+      padding:6px 12px;border:1px solid var(--glass-border);border-radius:20px;
+      font-size:12px;color:var(--sub);cursor:pointer;transition:all .2s;
+      background:rgba(0,0,0,.2);font-family:'Inter',sans-serif;
+    }
+    .chip.selected{border-color:var(--em);color:var(--em);background:var(--em-dim);}
+
+    /* Exercise selector */
+    .exercise-opts{display:flex;flex-direction:column;gap:6px;}
+    .exercise-opt{
+      padding:10px 14px;border:1px solid var(--glass-border);border-radius:10px;
+      font-size:13px;color:var(--sub);cursor:pointer;transition:all .2s;
+      background:rgba(0,0,0,.2);font-family:'Inter',sans-serif;text-align:right;
+    }
+    .exercise-opt.selected{border-color:var(--em);color:var(--em);background:var(--em-dim);}
+
+    /* Buttons */
+    .btn-row{display:flex;gap:10px;margin-top:28px;}
+    .btn-primary{
+      flex:1;padding:13px;
+      background:linear-gradient(135deg,var(--em),#059669);
+      border:none;border-radius:12px;color:#fff;
+      font-size:15px;font-weight:700;cursor:pointer;
+      font-family:'Inter',sans-serif;transition:all .2s;
+      box-shadow:0 4px 20px rgba(16,185,129,.3);
+    }
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(16,185,129,.4);}
+    .btn-secondary{
+      padding:13px 20px;
+      background:rgba(255,255,255,.04);border:1px solid var(--glass-border);
+      border-radius:12px;color:var(--sub);
+      font-size:15px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;
+    }
+    .btn-secondary:hover{border-color:var(--em-border);color:var(--em-l);}
+
+    /* Done screen */
+    .done-wrap{text-align:center;padding:12px 0;}
+    .done-icon{font-size:72px;animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
+    @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+    .done-title{font-size:28px;font-weight:800;margin:20px 0 8px;
+      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .done-sub{font-size:15px;color:var(--sub);line-height:1.6;margin-bottom:28px;}
+    .done-btn{
+      display:inline-block;padding:14px 40px;
+      background:linear-gradient(135deg,var(--em),#059669);
+      border:none;border-radius:14px;color:#fff;
+      font-size:16px;font-weight:700;cursor:pointer;
+      font-family:'Inter',sans-serif;transition:all .2s;
+      box-shadow:0 4px 24px rgba(16,185,129,.4);
+    }
+    .done-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(16,185,129,.5);}
+
+    .err{color:#fb7185;font-size:12px;margin-top:12px;display:none;}
+  </style>
+</head>
+<body>
+
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+</div>
+
+<div class="wizard">
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="step-label">שלב 1 מתוך 4</span>
+      <span id="step-pct">25%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="prog-fill" style="width:25%"></div>
+    </div>
+    <div class="step-dots">
+      <div class="step-dot active" id="dot-0"></div>
+      <div class="step-dot" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- Step 1: Basic Info -->
+    <div class="step active" id="step-0">
+      <div class="card-icon">👤</div>
+      <div class="card-title">מידע בסיסי</div>
+      <div class="card-sub">ספר לנו קצת על עצמך כדי שנוכל להתאים את התוכנית האישית שלך</div>
+      <div class="field-row">
+        <div class="field">
+          <label>גיל</label>
+          <input type="number" id="age" min="10" max="100" placeholder="30" value="30">
+        </div>
+        <div class="field">
+          <label>גובה (ס"מ)</label>
+          <input type="number" id="height_cm" min="100" max="250" placeholder="170" value="170">
+        </div>
+      </div>
+      <div class="field">
+        <label>משקל נוכחי (ק"ג)</label>
+        <input type="number" id="current_weight" min="30" max="300" step="0.1" placeholder="75" value="75">
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="nextStep()">הבא ←</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Goal -->
+    <div class="step" id="step-1">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">היעד שלך</div>
+      <div class="card-sub">לאן אתה רוצה להגיע? נבנה תוכנית ריאלית ובריאה עבורך</div>
+      <div class="field">
+        <label>משקל יעד (ק"ג)</label>
+        <div class="slider-wrap">
+          <input type="range" id="target-slider" min="40" max="150" step="0.5" value="70" oninput="updateTargetSlider(this.value)">
+          <span class="slider-val" id="target-slider-val">70</span>
+        </div>
+        <input type="number" id="target_weight" min="40" max="150" step="0.5" placeholder="70" value="70" oninput="syncSlider(this.value)" style="margin-top:10px;">
+      </div>
+      <div class="field">
+        <label>מסגרת זמן</label>
+        <select id="timeline">
+          <option value="3">3 חודשים</option>
+          <option value="6" selected>6 חודשים</option>
+          <option value="12">שנה</option>
+          <option value="0">ללא לחץ זמן</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="prevStep()">→ חזור</button>
+        <button class="btn-primary" onclick="nextStep()">הבא ←</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Lifestyle -->
+    <div class="step" id="step-2">
+      <div class="card-icon">🏃</div>
+      <div class="card-title">אורח חיים</div>
+      <div class="card-sub">כדי לחשב את הצרכים הקלוריים המדויקים שלך</div>
+      <div class="field">
+        <label>תדירות פעילות גופנית</label>
+        <div class="exercise-opts" id="exercise-opts">
+          <button type="button" class="exercise-opt" data-val="כמעט ללא פעילות" onclick="pickExercise(this)">🛋️ כמעט ללא פעילות</button>
+          <button type="button" class="exercise-opt selected" data-val="ריצה פעם בשבוע" onclick="pickExercise(this)">🚶 1-2 פעמים בשבוע</button>
+          <button type="button" class="exercise-opt" data-val="אימון 3 פעמים בשבוע" onclick="pickExercise(this)">🏋️ 3-4 פעמים בשבוע</button>
+          <button type="button" class="exercise-opt" data-val="אימון יומי" onclick="pickExercise(this)">⚡ כל יום</button>
+        </div>
+      </div>
+      <div class="field-row" style="margin-top:16px;">
+        <div class="field">
+          <label>שעת קימה</label>
+          <input type="time" id="wake_time" value="07:00">
+        </div>
+        <div class="field">
+          <label>שעת שינה</label>
+          <input type="time" id="sleep_time" value="23:00">
+        </div>
+      </div>
+      <div class="field">
+        <label>הגבלות תזונה (אופציונלי)</label>
+        <div class="chips" id="restriction-chips">
+          <button type="button" class="chip" onclick="toggleChip(this,'צמחוני')">🌱 צמחוני</button>
+          <button type="button" class="chip" onclick="toggleChip(this,'טבעוני')">🌿 טבעוני</button>
+          <button type="button" class="chip" onclick="toggleChip(this,'ללא גלוטן')">🌾 ללא גלוטן</button>
+          <button type="button" class="chip" onclick="toggleChip(this,'ללא לקטוז')">🥛 ללא לקטוז</button>
+          <button type="button" class="chip" onclick="toggleChip(this,'כשר')">✡️ כשר</button>
+          <button type="button" class="chip" onclick="toggleChip(this,'ללא בוטנים')">🥜 ללא בוטנים</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="prevStep()">→ חזור</button>
+        <button class="btn-primary" onclick="nextStep()">הבא ←</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Done -->
+    <div class="step" id="step-3">
+      <div class="done-wrap">
+        <div class="done-icon" id="done-icon">🎉</div>
+        <div class="done-title">הכל מוכן!</div>
+        <div class="done-sub">הפרופיל שלך נוצר בהצלחה.<br>הסוכן האישי שלך מחכה לך עם תוכנית מותאמת אישית.</div>
+        <div class="err" id="setup-err"></div>
+        <button class="done-btn" id="start-btn" onclick="finishSetup()">התחל עם הסוכן 🥗</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentStep = 0;
+  let exerciseVal = 'ריצה פעם בשבוע';
+  let restrictions = [];
+
+  const stepTitles = ['שלב 1 מתוך 4','שלב 2 מתוך 4','שלב 3 מתוך 4','סיום!'];
+  const stepPcts = ['25%','50%','75%','100%'];
+  const progWidths = ['25%','50%','75%','100%'];
+
+  function updateProgress(step){
+    document.getElementById('step-label').textContent = stepTitles[step];
+    document.getElementById('step-pct').textContent = stepPcts[step];
+    document.getElementById('prog-fill').style.width = progWidths[step];
+    for(let i=0;i<4;i++){
+      const dot = document.getElementById('dot-'+i);
+      dot.classList.remove('active','done');
+      if(i<step) dot.classList.add('done');
+      else if(i===step) dot.classList.add('active');
+    }
+  }
+
+  function nextStep(){
+    if(currentStep<3){
+      document.getElementById('step-'+currentStep).classList.remove('active');
+      currentStep++;
+      document.getElementById('step-'+currentStep).classList.add('active');
+      updateProgress(currentStep);
+      if(currentStep===3){
+        // animate done icon
+        const icon = document.getElementById('done-icon');
+        icon.textContent='🎉';
+        showConfettiSmall();
+      }
+    }
+  }
+
+  function prevStep(){
+    if(currentStep>0){
+      document.getElementById('step-'+currentStep).classList.remove('active');
+      currentStep--;
+      document.getElementById('step-'+currentStep).classList.add('active');
+      updateProgress(currentStep);
+    }
+  }
+
+  function updateTargetSlider(val){
+    document.getElementById('target-slider-val').textContent = val;
+    document.getElementById('target_weight').value = val;
+  }
+
+  function syncSlider(val){
+    document.getElementById('target-slider').value = val;
+    document.getElementById('target-slider-val').textContent = val;
+  }
+
+  function pickExercise(el){
+    document.querySelectorAll('.exercise-opt').forEach(e=>e.classList.remove('selected'));
+    el.classList.add('selected');
+    exerciseVal = el.dataset.val;
+  }
+
+  function toggleChip(el, val){
+    el.classList.toggle('selected');
+    if(el.classList.contains('selected')){
+      if(!restrictions.includes(val)) restrictions.push(val);
+    } else {
+      restrictions = restrictions.filter(r=>r!==val);
+    }
+  }
+
+  async function finishSetup(){
+    const btn = document.getElementById('start-btn');
+    const err = document.getElementById('setup-err');
+    btn.textContent = 'שומר...';
+    btn.disabled = true;
+    err.style.display='none';
+
+    const payload = {
+      age: parseInt(document.getElementById('age').value)||30,
+      height_cm: parseInt(document.getElementById('height_cm').value)||170,
+      current_weight_kg: parseFloat(document.getElementById('current_weight').value)||75,
+      target_weight: parseFloat(document.getElementById('target_weight').value)||70,
+      timeline: document.getElementById('timeline').value,
+      exercise: exerciseVal,
+      wake_time: document.getElementById('wake_time').value||'07:00',
+      sleep_time: document.getElementById('sleep_time').value||'23:00',
+      restrictions: restrictions
+    };
+
+    try{
+      const r = await fetch('/api/setup-profile',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const d = await r.json();
+      if(d.ok){
+        window.location.href='/app';
+      } else {
+        err.textContent = d.error||'שגיאה בשמירה';
+        err.style.display='block';
+        btn.textContent = 'התחל עם הסוכן 🥗';
+        btn.disabled = false;
+      }
+    }catch(e){
+      err.textContent = e.message;
+      err.style.display='block';
+      btn.textContent = 'התחל עם הסוכן 🥗';
+      btn.disabled = false;
+    }
+  }
+
+  function showConfettiSmall(){
+    const colors=['#10b981','#8b5cf6','#f43f5e','#fbbf24','#34d399'];
+    for(let i=0;i<50;i++){
+      const d=document.createElement('div');
+      d.style.cssText=`position:fixed;top:-10px;left:${Math.random()*100}vw;width:8px;height:8px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>0.5?'50%':'0'};z-index:9999;pointer-events:none;animation:confettiFall ${1.5+Math.random()*2}s ease-in forwards;transform:rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(d);
+      setTimeout(()=>d.remove(),4000);
+    }
+  }
+
+  // init slider display
+  document.getElementById('target-slider').addEventListener('input',function(){
+    updateTargetSlider(this.value);
+  });
+</script>
+<style>
+  @keyframes confettiFall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
+</style>
+</body>
+</html>

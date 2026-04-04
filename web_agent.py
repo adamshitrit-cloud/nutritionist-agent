@@ -250,6 +250,21 @@ def get_user_stats(user_id: str) -> dict:
         start_w   = profile.get("current_weight_kg", None)
         target_min = profile.get("target_range", {}).get("min", None)
         target_max = profile.get("target_range", {}).get("max", None)
+
+        # Calculate streak (consecutive days with at least 1 meal logged)
+        from datetime import date, timedelta
+        meal_dates = set(m.get("date", "") for m in progress.get("meal_log", []))
+        streak = 0
+        check_date = date.today()
+        while str(check_date) in meal_dates:
+            streak += 1
+            check_date -= timedelta(days=1)
+
+        # Calculate today's calories
+        today_iso = str(date.today())
+        today_meals = [m for m in progress.get("meal_log", []) if m.get("date") == today_iso]
+        today_calories = sum(m.get("calories_estimate", 0) for m in today_meals)
+
         return {
             "current_weight": current_w,
             "start_weight": start_w,
@@ -257,7 +272,10 @@ def get_user_stats(user_id: str) -> dict:
             "target_max": target_max,
             "lost": round(start_w - current_w, 1) if (start_w and current_w) else None,
             "weight_log": logs[-20:],  # last 20 entries
-            "name": profile.get("name", "")
+            "name": profile.get("name", ""),
+            "streak": streak,
+            "today_calories": today_calories,
+            "target_kcal": profile.get("target_kcal", 2100)
         }
     except Exception as e:
         return {}
@@ -445,6 +463,79 @@ def chat():
         return jsonify({"error": str(e)}), 500
     finally:
         nutritionist._current_user_id = None
+
+@app.route('/static/sw.js')
+def sw():
+    from flask import send_from_directory
+    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+
+@app.route("/api/water", methods=["GET", "POST"])
+def api_water():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+
+    from datetime import date
+    today = str(date.today())
+    water_key = f"{uid}:water:{today}"
+
+    if request.method == "POST":
+        data = request.get_json()
+        action = data.get("action", "add")  # "add" or "reset"
+        current = int(_redis_raw_get(water_key) or 0)
+        if action == "reset":
+            new_val = 0
+        else:
+            new_val = current + 1
+        _redis_raw_set(water_key, str(new_val))
+        return jsonify({"glasses": new_val})
+    else:
+        glasses = int(_redis_raw_get(water_key) or 0)
+        return jsonify({"glasses": glasses})
+
+@app.route("/onboarding")
+def onboarding():
+    if not current_user_id():
+        return redirect(url_for("landing"))
+    return render_template("onboarding.html")
+
+@app.route("/api/setup-profile", methods=["POST"])
+def api_setup_profile():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    data = request.get_json()
+
+    profile = {
+        "name": session.get("name", ""),
+        "age": int(data.get("age", 30)),
+        "height_cm": int(data.get("height_cm", 170)),
+        "current_weight_kg": float(data.get("current_weight_kg", 75)),
+        "target_range": {
+            "min": float(data.get("target_weight", 70)) - 0.5,
+            "max": float(data.get("target_weight", 70))
+        },
+        "exercise": data.get("exercise", "ריצה פעם בשבוע"),
+        "wake_time": data.get("wake_time", "07:00"),
+        "sleep_time": data.get("sleep_time", "23:00"),
+        "target_kcal": 2100,
+        "target_protein_g": int(float(data.get("current_weight_kg", 75)) * 2),
+        "restrictions": data.get("restrictions", [])
+    }
+
+    try:
+        nutritionist._current_user_id = uid
+        nutritionist._redis_set(nutritionist.PROFILE_FILE, profile)
+        # Also log initial weight
+        progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+        if not progress.get("weight_log"):
+            from datetime import date
+            progress["weight_log"] = [{"date": str(date.today()), "weight_kg": profile["current_weight_kg"], "note": "משקל התחלתי"}]
+            nutritionist._redis_set(nutritionist.PROGRESS_FILE, progress)
+    finally:
+        nutritionist._current_user_id = None
+
+    return jsonify({"ok": True})
 
 @app.route("/api/link-phone", methods=["POST"])
 def api_link_phone():

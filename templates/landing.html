@@ -344,7 +344,7 @@
           phone:document.getElementById('reg-phone').value,
           lang:regLang})});
       const d=await r.json();
-      if(d.ok){window.location.href='/app';}
+      if(d.ok){window.location.href='/onboarding';}
       else{err.textContent=d.error;err.style.display='block';}
     }catch(ex){err.textContent=ex.message;err.style.display='block';}
     btn.textContent=T[uiLang].regBtn;

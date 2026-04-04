@@ -1,0 +1,14 @@
+{
+  "name": "NutriAI — התזונאי החכם",
+  "short_name": "NutriAI",
+  "description": "סוכן תזונה AI אישי",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#050a08",
+  "theme_color": "#10b981",
+  "lang": "he",
+  "icons": [
+    {"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}

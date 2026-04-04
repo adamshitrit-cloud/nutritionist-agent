@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NutriAI 🥗</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#10b981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="NutriAI">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -238,6 +242,56 @@
     #send-btn:hover{transform:scale(1.05);box-shadow:0 6px 16px rgba(16,185,129,.4);}
     #send-btn:disabled{background:var(--muted);cursor:default;box-shadow:none;transform:none;}
 
+    /* Streak card */
+    .streak-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:12px 14px;margin-bottom:12px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .streak-card.gold{border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.06);}
+    .streak-val{font-size:22px;font-weight:800;}
+    .streak-val.gold-text{color:#fbbf24;}
+    .streak-val.normal-text{
+      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    .streak-info{font-size:10px;color:var(--sub);margin-top:2px;}
+
+    /* Calorie ring */
+    .cal-ring-wrap{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px;margin-bottom:12px;
+      display:flex;align-items:center;gap:14px;
+    }
+    .cal-ring-svg{flex-shrink:0;}
+    .cal-ring-info{}
+    .cal-ring-lbl{font-size:10px;color:var(--sub);font-weight:500;}
+    .cal-ring-val{font-size:20px;font-weight:800;
+      background:linear-gradient(135deg,var(--em-l),var(--vi-l));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      line-height:1.2;margin:2px 0;}
+    .cal-ring-sub{font-size:10px;color:var(--sub);}
+
+    /* Water tracker */
+    .water-wrap{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:12px 14px;margin-bottom:12px;
+    }
+    .water-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .water-title{font-size:10px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.8px;}
+    .water-count{font-size:11px;color:var(--sub);}
+    .water-drops{display:flex;gap:4px;flex-wrap:wrap;}
+    .water-drop{
+      font-size:18px;cursor:pointer;
+      transition:all .2s;opacity:.2;
+      filter:grayscale(1);
+    }
+    .water-drop.filled{opacity:1;filter:none;}
+    .water-drop:hover{transform:scale(1.2);}
+
+    /* Confetti */
+    @keyframes confettiFall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
     /* Mobile */
     @media(max-width:640px){
       #sidebar{display:none;}
@@ -297,6 +351,48 @@
     <div class="chart-card">
       <div class="chart-title">{{ 'היסטוריית שקילות' if lang == 'he' else 'Weight History' }}</div>
       <canvas id="wChart"></canvas>
+    </div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-sec-title">{{ 'קלוריות' if lang == 'he' else 'Calories' }}</div>
+    <div class="cal-ring-wrap">
+      <svg class="cal-ring-svg" width="92" height="92" viewBox="0 0 92 92">
+        <circle cx="46" cy="46" r="40" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
+        <circle id="cal-ring-circle" cx="46" cy="46" r="40" fill="none" stroke="#10b981" stroke-width="6"
+          stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"
+          transform="rotate(-90 46 46)" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
+        <text x="46" y="42" text-anchor="middle" fill="#f0faf5" font-size="13" font-weight="800" font-family="Inter,sans-serif" id="cal-ring-num">0</text>
+        <text x="46" y="56" text-anchor="middle" fill="#6b9e84" font-size="8" font-family="Inter,sans-serif">kcal</text>
+      </svg>
+      <div class="cal-ring-info">
+        <div class="cal-ring-lbl">{{ 'קלוריות היום' if lang == 'he' else "Today's Calories" }}</div>
+        <div class="cal-ring-val" id="cal-today">0</div>
+        <div class="cal-ring-sub">{{ 'מתוך' if lang == 'he' else 'of' }} <span id="cal-target">2100</span> יעד</div>
+      </div>
+    </div>
+
+    <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'רצף ימים' if lang == 'he' else 'Streak' }}</div>
+    <div class="streak-card" id="streak-card">
+      <div>
+        <div class="stat-lbl">🔥 {{ 'ימים ברצף' if lang == 'he' else 'Day Streak' }}</div>
+        <div class="streak-val normal-text" id="streak-val">0</div>
+        <div class="streak-info" id="streak-info">{{ 'רשום ארוחה כדי להתחיל!' if lang == 'he' else 'Log a meal to start!' }}</div>
+      </div>
+      <div style="font-size:32px;" id="streak-emoji">🔥</div>
+    </div>
+
+    <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'מים' if lang == 'he' else 'Water' }}</div>
+    <div class="water-wrap">
+      <div class="water-header">
+        <span class="water-title">{{ 'מעקב שתיה' if lang == 'he' else 'Hydration' }}</span>
+        <span class="water-count"><span id="water-count">0</span>/8 {{ 'כוסות' if lang == 'he' else 'glasses' }}</span>
+      </div>
+      <div class="water-drops" id="water-drops">
+        {% for i in range(8) %}
+        <span class="water-drop" id="drop-{{ i }}" onclick="addWater()" ondblclick="resetWater()" title="{{ 'לחץ להוסיף, לחיצה כפולה לאיפוס' if lang == 'he' else 'Click to add, double-click to reset' }}">💧</span>
+        {% endfor %}
+      </div>
     </div>
   </div>
 
@@ -456,6 +552,62 @@
     loadStats();
   }
 
+  // ── Confetti ──
+  function showConfetti(){
+    const colors=['#10b981','#8b5cf6','#f43f5e','#fbbf24','#34d399'];
+    for(let i=0;i<80;i++){
+      const d=document.createElement('div');
+      d.style.cssText=`position:fixed;top:-10px;left:${Math.random()*100}vw;width:8px;height:8px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>0.5?'50%':'0'};z-index:9999;pointer-events:none;animation:confettiFall ${1.5+Math.random()*2}s ease-in forwards;transform:rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(d);
+      setTimeout(()=>d.remove(),4000);
+    }
+  }
+
+  // ── Water tracker ──
+  let waterGlasses=0;
+  async function loadWater(){
+    try{
+      const d=await(await fetch('/api/water')).json();
+      setWater(d.glasses||0);
+    }catch(e){console.log('water err',e);}
+  }
+  function setWater(n){
+    waterGlasses=Math.min(n,8);
+    document.getElementById('water-count').textContent=waterGlasses;
+    for(let i=0;i<8;i++){
+      const drop=document.getElementById('drop-'+i);
+      if(drop){drop.classList.toggle('filled',i<waterGlasses);}
+    }
+  }
+  async function addWater(){
+    if(waterGlasses>=8)return;
+    try{
+      const d=await(await fetch('/api/water',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add'})})).json();
+      setWater(d.glasses);
+    }catch(e){console.log('water add err',e);}
+  }
+  async function resetWater(){
+    try{
+      const d=await(await fetch('/api/water',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset'})})).json();
+      setWater(d.glasses);
+    }catch(e){console.log('water reset err',e);}
+  }
+
+  // ── Calorie ring ──
+  function updateCalRing(cal,target){
+    const pct=Math.max(0,Math.min(1,cal/(target||2100)));
+    const circumference=251.3;
+    const offset=circumference-(pct*circumference);
+    const circle=document.getElementById('cal-ring-circle');
+    if(circle)circle.style.strokeDashoffset=offset;
+    const numEl=document.getElementById('cal-ring-num');
+    if(numEl)numEl.textContent=cal;
+    const todayEl=document.getElementById('cal-today');
+    if(todayEl)todayEl.textContent=cal;
+    const targetEl=document.getElementById('cal-target');
+    if(targetEl)targetEl.textContent=target||2100;
+  }
+
   async function loadStats(){
     try{
       const d=await(await fetch('/api/stats')).json();
@@ -472,6 +624,38 @@
         document.getElementById('prog-pct').textContent=pct+'%';
       }
       if(logs.length>=2)drawChart(logs);
+
+      // Streak
+      const streak=d.streak||0;
+      const streakEl=document.getElementById('streak-val');
+      const streakCard=document.getElementById('streak-card');
+      const streakEmoji=document.getElementById('streak-emoji');
+      const streakInfo=document.getElementById('streak-info');
+      if(streakEl)streakEl.textContent=streak;
+      if(streak>=7){
+        if(streakCard){streakCard.classList.add('gold');}
+        if(streakEl){streakEl.classList.remove('normal-text');streakEl.classList.add('gold-text');}
+        if(streakEmoji)streakEmoji.textContent='🏆';
+        if(streakInfo)streakInfo.textContent=LANG==='he'?`${streak} ימים מדהים!`:`${streak} amazing days!`;
+        // Confetti milestone (first time only)
+        const milestones=[7,14,21];
+        for(const m of milestones){
+          if(streak===m&&!localStorage.getItem('confetti_'+m)){
+            localStorage.setItem('confetti_'+m,'1');
+            showConfetti();
+            break;
+          }
+        }
+      } else {
+        if(streakCard)streakCard.classList.remove('gold');
+        if(streakEl){streakEl.classList.add('normal-text');streakEl.classList.remove('gold-text');}
+        if(streakEmoji)streakEmoji.textContent='🔥';
+        if(streakInfo)streakInfo.textContent=streak>0?(LANG==='he'?`${streak} ימים ברצף`:`${streak} day streak`):(LANG==='he'?'רשום ארוחה כדי להתחיל!':'Log a meal to start!');
+      }
+
+      // Calorie ring
+      updateCalRing(d.today_calories||0, d.target_kcal||2100);
+
     }catch(e){console.log('stats err',e);}
   }
 
@@ -508,7 +692,9 @@
   }
 
   window.onload=()=>{
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');
     loadStats();
+    loadWater();
     qs(LANG==='he'?'שלום! תראה לי את תפריט היום ותסביר מה חשוב.':'Hello! Show me today\'s meal plan and what I should know.');
   };
 </script>
