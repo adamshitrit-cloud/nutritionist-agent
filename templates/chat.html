@@ -21,7 +21,18 @@
       --border:rgba(139,92,246,.15);--text:#F0ECFF;--sub:#8A7AAA;--muted:#2E2050;
       --user-bg:rgba(139,92,246,.15);--user-border:rgba(139,92,246,.3);
       --alert:#FF6B6B;
+      --t-fast:150ms cubic-bezier(0.4,0,0.2,1);
+      --t-base:220ms cubic-bezier(0.4,0,0.2,1);
+      --t-bounce:280ms cubic-bezier(0.34,1.56,0.64,1);
+      --shadow-sm:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+      --shadow-md:0 4px 16px rgba(0,0,0,.4),0 2px 4px rgba(0,0,0,.2);
+      --shadow-lg:0 8px 32px rgba(0,0,0,.5),0 4px 8px rgba(0,0,0,.3);
+      --radius-sm:6px;--radius-md:10px;--radius-lg:16px;
     }
+    .icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:16px;height:16px;}
+    .icon svg{width:100%;height:100%;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    .icon-18{width:18px;height:18px;}
+    .icon-20{width:20px;height:20px;}
     body{
       font-family:'Inter',sans-serif;
       background:var(--bg);color:var(--text);
@@ -33,7 +44,7 @@
     #sidebar{
       width:268px;min-width:268px;
       background:var(--sidebar);
-      border-{{ 'left' if lang == 'he' else 'right' }}:1px solid var(--border);
+      box-shadow:var(--shadow-md);
       display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
     }
     #sidebar::-webkit-scrollbar{width:4px;}
@@ -50,7 +61,7 @@
       border:1px solid var(--border);
       display:flex;align-items:center;justify-content:center;font-size:20px;
     }
-    .sb-name{font-size:16px;font-weight:700;color:var(--em-l);}
+    .sb-name{font-size:15px;font-weight:600;color:var(--text);letter-spacing:-0.01em;}
     .sb-user{font-size:12px;color:var(--sub);font-weight:400;}
     .sb-badge{
       display:inline-flex;align-items:center;gap:5px;
@@ -63,22 +74,26 @@
     /* Status pill */
     .status-pill{
       display:inline-flex;align-items:center;gap:5px;
-      background:var(--em-dim);border:1px solid var(--em-border);
-      border-radius:20px;padding:4px 10px;font-size:11px;color:var(--em);font-weight:500;
+      background:rgba(139,92,246,.08);
+      border-radius:20px;padding:3px 9px;font-size:10px;color:var(--em);font-weight:500;
+      letter-spacing:0.03em;
     }
-    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--em);animation:blink 2s infinite;}
+    .status-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;animation:blink 2.5s infinite;}
     @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
     /* Section */
     .sb-sec{padding:16px 18px 8px;}
-    .sb-sec-title{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:10px;}
+    .sb-sec-title{font-size:9.5px;color:var(--sub);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:10px;opacity:.7;}
 
     /* Stat cards */
     .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
     .stat-card{
-      background:var(--card);border:1px solid var(--border);
-      border-radius:12px;padding:12px 14px;
+      background:var(--card);
+      border-radius:var(--radius-md);padding:12px 14px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04), var(--shadow-sm);
+      transition:transform var(--t-fast),box-shadow var(--t-fast);
     }
+    .stat-card:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06), var(--shadow-md);}
     .stat-card.full{grid-column:1/-1;}
     .stat-lbl{font-size:9px;color:var(--sub);margin-bottom:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
     .stat-val{font-size:24px;font-weight:800;color:var(--em);}
@@ -90,8 +105,9 @@
     .prog-bg{height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
     .prog-fill{
       height:100%;border-radius:3px;
-      background:linear-gradient(90deg,var(--em),var(--vi));
-      transition:width .6s cubic-bezier(.4,0,.2,1);
+      background:linear-gradient(90deg,var(--vi),var(--em));
+      transition:width .8s cubic-bezier(.4,0,.2,1);
+      box-shadow:0 0 6px rgba(139,92,246,.4);
     }
 
     /* Chart */
@@ -105,37 +121,43 @@
     /* Quick actions */
     .qa-list{display:flex;flex-direction:column;gap:5px;}
     .qa-btn{
-      display:flex;align-items:center;gap:8px;
-      background:var(--card);border:1px solid var(--border);
-      color:var(--sub);border-radius:10px;padding:9px 12px;
+      display:flex;align-items:center;gap:10px;
+      background:transparent;border:none;
+      color:var(--sub);border-radius:var(--radius-sm);padding:8px 10px;
       font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;
       text-align:{{ 'right' if lang == 'he' else 'left' }};
-      transition:all .15s;width:100%;font-weight:500;
+      transition:background var(--t-fast),color var(--t-fast);width:100%;font-weight:500;
+      letter-spacing:0.01em;
     }
-    .qa-btn:hover{background:var(--em-dim);border-color:var(--em-border);color:var(--em);}
+    .qa-btn:hover{background:var(--em-dim);color:var(--em);}
+    .qa-btn:active{transform:scale(0.98);transition:transform var(--t-bounce);}
+    .qa-btn .icon{transition:transform var(--t-fast);}
+    .qa-btn:hover .icon{transform:scale(1.1);}
 
     /* Footer */
     .sb-footer{margin-top:auto;padding:16px 18px;border-top:1px solid var(--border);}
     .logout-btn{
+      display:flex;align-items:center;justify-content:center;gap:8px;
       width:100%;padding:9px;
-      background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.15);
-      border-radius:10px;color:rgba(244,63,94,.7);
+      background:transparent;border:none;
+      border-radius:var(--radius-sm);color:rgba(244,63,94,.5);
       font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;
-      transition:all .2s;font-weight:500;
+      transition:background var(--t-fast),color var(--t-fast);font-weight:500;
     }
-    .logout-btn:hover{background:rgba(244,63,94,.12);color:#f43f5e;}
+    .logout-btn:hover{background:rgba(244,63,94,.08);color:#f43f5e;}
 
     /* ── Main ── */
     #main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
 
     /* Topbar */
     #topbar{
-      padding:14px 20px;
-      background:rgba(7,11,18,.8);
-      border-bottom:1px solid var(--em-border);
-      backdrop-filter:blur(12px);
+      padding:12px 20px;
+      background:rgba(16,12,36,.75);
+      border-bottom:1px solid rgba(255,255,255,.06);
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
       display:flex;align-items:center;gap:12px;
       position:relative;z-index:10;
+      box-shadow:0 1px 0 rgba(139,92,246,.12);
     }
     .top-avatar{
       width:36px;height:36px;border-radius:10px;
@@ -169,23 +191,25 @@
 
     .msg-body{}
     .bubble{
-      padding:12px 16px;border-radius:16px;
-      line-height:1.65;font-size:14px;white-space:pre-wrap;word-break:break-word;
+      padding:11px 15px;border-radius:var(--radius-lg);
+      line-height:1.68;font-size:13.5px;white-space:pre-wrap;word-break:break-word;
+      letter-spacing:0.01em;
     }
     .msg.user .bubble{
-      background:var(--user-bg);border:1px solid var(--user-border);
-      border-top-{{ 'right' if lang == 'he' else 'left' }}-radius:4px;color:#c4b9ff;
+      background:var(--user-bg);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+      border-top-{{ 'right' if lang == 'he' else 'left' }}-radius:4px;color:#d4cafe;
     }
     .msg.agent .bubble{
-      background:rgba(0,212,255,.04);border:1px solid var(--em-border);
+      background:rgba(139,92,246,.04);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04),var(--shadow-sm);
       border-top-{{ 'left' if lang == 'he' else 'right' }}-radius:4px;
-      backdrop-filter:blur(8px);
     }
     .bubble strong{color:var(--em-l);}
     .bubble .hd{color:var(--em-l);font-weight:700;font-size:13px;border-bottom:1px solid var(--border);padding-bottom:3px;margin:8px 0 5px;}
     .bubble hr{border:none;border-top:1px solid var(--border);margin:8px 0;}
     .bubble li{margin:2px 0;padding-{{ 'right' if lang == 'he' else 'left' }}:4px;}
-    .msg-time{font-size:10px;color:var(--muted);margin-top:4px;padding:0 4px;}
+    .msg-time{font-size:10px;color:var(--muted);margin-top:5px;padding:0 2px;letter-spacing:0.02em;}
 
     /* Typing */
     .typing .bubble{padding:14px 18px;}
@@ -217,13 +241,13 @@
     #input-row{
       display:flex;gap:8px;align-items:flex-end;
       background:rgba(255,255,255,.04);
-      border:1px solid var(--border);border-radius:16px;
-      padding:8px 10px;transition:border-color .2s,box-shadow .2s;
+      border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);
+      padding:8px 10px;transition:border-color var(--t-base),box-shadow var(--t-base);
+      box-shadow:var(--shadow-sm);
     }
     #input-row:focus-within{
-      border-color:var(--em-border);
-      box-shadow:0 0 0 3px var(--em-dim);
-      border-color:rgba(139,92,246,.35);
+      border-color:rgba(139,92,246,.4);
+      box-shadow:0 0 0 3px rgba(139,92,246,.08),var(--shadow-md);
     }
     #msg-input{
       flex:1;background:none;border:none;outline:none;
@@ -240,15 +264,17 @@
     }
     .icon-btn:hover{color:var(--em);}
     #send-btn{
-      width:36px;height:36px;border-radius:10px;
-      background:linear-gradient(135deg,var(--em),#6B5CE7);
+      width:34px;height:34px;border-radius:var(--radius-sm);
+      background:linear-gradient(135deg,var(--em),var(--vi));
       border:none;cursor:pointer;flex-shrink:0;
       display:flex;align-items:center;justify-content:center;
-      font-size:15px;transition:all .2s;
-      box-shadow:0 4px 12px rgba(139,92,246,.25);
+      transition:transform var(--t-bounce),box-shadow var(--t-fast),opacity var(--t-fast);
+      box-shadow:0 2px 8px rgba(139,92,246,.3);
+      color:white;
     }
-    #send-btn:hover{transform:scale(1.05);box-shadow:0 6px 16px rgba(139,92,246,.4);}
-    #send-btn:disabled{background:var(--muted);cursor:default;box-shadow:none;transform:none;}
+    #send-btn:hover{transform:scale(1.06);box-shadow:0 4px 16px rgba(139,92,246,.5);}
+    #send-btn:active{transform:scale(0.94);}
+    #send-btn:disabled{opacity:.35;cursor:default;box-shadow:none;transform:none;}
 
     /* Streak card */
     .streak-card{
@@ -284,12 +310,33 @@
     .water-count{font-size:11px;color:var(--sub);}
     .water-drops{display:flex;gap:4px;flex-wrap:wrap;}
     .water-drop{
-      font-size:18px;cursor:pointer;
-      transition:all .2s;opacity:.2;
-      filter:grayscale(1);
+      width:20px;height:20px;cursor:pointer;
+      transition:transform var(--t-bounce),opacity var(--t-fast);
+      opacity:.2;
     }
-    .water-drop.filled{opacity:1;filter:none;}
-    .water-drop:hover{transform:scale(1.2);}
+    .water-drop svg{width:100%;height:100%;fill:none;stroke:var(--sub);stroke-width:1.5;}
+    .water-drop.filled{opacity:1;}
+    .water-drop.filled svg{stroke:var(--em);fill:rgba(139,92,246,.15);}
+    .water-drop:hover{transform:scale(1.25);}
+
+    /* Toggle switch */
+    .toggle-switch{position:relative;display:inline-block;width:32px;height:18px;cursor:pointer;}
+    .toggle-switch input{opacity:0;width:0;height:0;}
+    .toggle-track{position:absolute;inset:0;background:var(--muted);border-radius:9px;transition:background var(--t-base);}
+    .toggle-track::before{content:'';position:absolute;width:14px;height:14px;left:2px;bottom:2px;background:white;border-radius:50%;transition:transform var(--t-base);}
+    .toggle-switch input:checked + .toggle-track{background:var(--gold);}
+    .toggle-switch input:checked + .toggle-track::before{transform:translateX(14px);}
+
+    /* Vitamin rows */
+    .vit-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:var(--radius-sm);cursor:pointer;transition:background var(--t-fast);}
+    .vit-row:hover{background:rgba(255,255,255,.04);}
+    .vit-row.done{opacity:.5;}
+    .vit-check{width:16px;height:16px;border-radius:4px;border:1.5px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;transition:background var(--t-fast),border-color var(--t-fast);flex-shrink:0;}
+    .vit-row.done .vit-check{background:var(--gold);border-color:var(--gold);}
+    .vit-row.done .vit-icon{display:block!important;color:white;}
+    .vit-info{flex:1;}
+    .vit-name{font-size:11px;color:var(--text);font-weight:500;}
+    .vit-dose{font-size:9.5px;color:var(--sub);}
 
     /* Confetti */
     @keyframes confettiFall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
@@ -374,7 +421,7 @@
   <div class="sb-header">
     <div class="sb-badge">LONGEVITY OS</div>
     <div class="sb-brand">
-      <div class="sb-icon">🥗</div>
+      <div class="sb-icon" style="color:var(--em)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M12 22V12"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M12 12C12 12 7 9 7 4a5 5 0 0 1 10 0c0 5-5 8-5 8z"/></svg></div>
       <div>
         <div class="sb-name">NutriAI Longevity</div>
         <div class="sb-user">{{ user_name }}</div>
@@ -392,17 +439,17 @@
     <div class="sb-sec-title">{{ 'נתוני בריאות' if lang == 'he' else 'BIOMARKERS' }}</div>
     <div class="stat-row">
       <div class="stat-card">
-        <div class="stat-lbl">⚖️ {{ 'משקל גוף' if lang == 'he' else 'BODY MASS' }}</div>
+        <div class="stat-lbl">{{ 'משקל גוף' if lang == 'he' else 'BODY MASS' }}</div>
         <div class="stat-val" id="s-w">—</div>
         <div class="stat-sub">kg</div>
       </div>
       <div class="stat-card">
-        <div class="stat-lbl">🎯 {{ 'יעד' if lang == 'he' else 'TARGET' }}</div>
+        <div class="stat-lbl">{{ 'יעד' if lang == 'he' else 'TARGET' }}</div>
         <div class="stat-val" id="s-t">—</div>
         <div class="stat-sub">kg</div>
       </div>
       <div class="stat-card full">
-        <div class="stat-lbl">📉 {{ 'שינוי משקל' if lang == 'he' else 'ΔWEIGHT' }}</div>
+        <div class="stat-lbl">{{ 'שינוי משקל' if lang == 'he' else 'ΔWEIGHT' }}</div>
         <div class="stat-val" id="s-l">—</div>
         <div class="stat-sub" id="s-ls"></div>
       </div>
@@ -445,7 +492,7 @@
     <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'רצף ימים' if lang == 'he' else 'Streak' }}</div>
     <div class="streak-card" id="streak-card">
       <div>
-        <div class="stat-lbl">⚡ {{ 'רצף ימים' if lang == 'he' else 'STREAK' }}</div>
+        <div class="stat-lbl">{{ 'רצף ימים' if lang == 'he' else 'STREAK' }}</div>
         <div class="streak-val normal-text" id="streak-val">0</div>
         <div class="streak-info" id="streak-info">{{ 'רשום ארוחה כדי להתחיל!' if lang == 'he' else 'Log a meal to start!' }}</div>
       </div>
@@ -460,7 +507,7 @@
       </div>
       <div class="water-drops" id="water-drops">
         {% for i in range(8) %}
-        <span class="water-drop" id="drop-{{ i }}" onclick="addWater()" ondblclick="resetWater()" title="{{ 'לחץ להוסיף, לחיצה כפולה לאיפוס' if lang == 'he' else 'Click to add, double-click to reset' }}">💧</span>
+        <span class="water-drop" id="drop-{{ i }}" onclick="addWater()" ondblclick="resetWater()" title="{{ 'לחץ להוסיף, לחיצה כפולה לאיפוס' if lang == 'he' else 'Click to add, double-click to reset' }}"><svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" stroke-width="1.5"/></svg></span>
         {% endfor %}
       </div>
     </div>
@@ -469,10 +516,75 @@
   <div class="sb-sec">
     <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'מדידות גוף' if lang == 'he' else 'Body Measurements' }}</div>
     <div class="stat-card" id="measurements-card" style="margin-bottom:12px;">
-      <div class="stat-lbl">📏 {{ 'מדידה אחרונה' if lang == 'he' else 'Latest Measurement' }}</div>
+      <div class="stat-lbl">{{ 'מדידה אחרונה' if lang == 'he' else 'Latest Measurement' }}</div>
       <div id="measurements-display" style="font-size:12px;color:var(--sub);margin-top:6px;line-height:1.8;">
         {{ 'טרם נמדד' if lang == 'he' else 'Not yet measured' }}
       </div>
+    </div>
+  </div>
+
+  <!-- ── Pregnancy Tracker ── -->
+  <div class="sb-sec" id="pregnancy-section" style="border-top:1px solid rgba(255,255,255,.05);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="sb-sec-title" style="margin-bottom:0;color:var(--gold);">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:4px;opacity:.9;"><ellipse cx="12" cy="13" rx="6" ry="8"/><path d="M12 5V2"/><path d="M9 2h6"/></svg>
+        {{ 'מעקב הריון' if lang == 'he' else 'Pregnancy' }}
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="preg-toggle-check" onchange="togglePregnancyMode()">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div id="preg-panel" style="display:none;">
+      <!-- Week input -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;">
+        <input type="number" id="preg-week-input" min="1" max="42" placeholder="{{ 'שבוע (1-42)' if lang == 'he' else 'Week (1-42)' }}"
+          style="flex:1;padding:7px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;text-align:center;">
+        <button onclick="savePregnancyWeek()" style="padding:7px 12px;background:rgba(232,121,160,.12);border:1px solid rgba(232,121,160,.2);border-radius:var(--radius-sm);color:var(--gold);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;transition:background var(--t-fast);">
+          {{ 'שמור' if lang == 'he' else 'Save' }}</button>
+      </div>
+      <div id="preg-trimester-badge" style="display:none;text-align:center;margin-bottom:10px;padding:5px 10px;background:rgba(232,121,160,.08);border-radius:var(--radius-sm);font-size:11px;color:var(--gold);font-weight:500;"></div>
+
+      <!-- Vitamins tracker -->
+      <div class="sb-sec-title" style="margin-bottom:6px;">{{ 'ויטמינים יומיים' if lang == 'he' else 'Daily Vitamins' }}</div>
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;" id="vitamin-list">
+        <div class="vit-row" onclick="toggleVitamin(this,'folic')">
+          <div class="vit-check" id="vit-folic">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="vit-info">
+            <div class="vit-name">{{ 'חומצה פולית' if lang == 'he' else 'Folic Acid' }}</div>
+            <div class="vit-dose">400–800 mcg</div>
+          </div>
+        </div>
+        <div class="vit-row" onclick="toggleVitamin(this,'iron')">
+          <div class="vit-check" id="vit-iron"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="vit-info"><div class="vit-name">{{ 'ברזל' if lang == 'he' else 'Iron' }}</div><div class="vit-dose">27 mg</div></div>
+        </div>
+        <div class="vit-row" onclick="toggleVitamin(this,'calcium')">
+          <div class="vit-check" id="vit-calcium"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="vit-info"><div class="vit-name">{{ 'סידן' if lang == 'he' else 'Calcium' }}</div><div class="vit-dose">1000 mg</div></div>
+        </div>
+        <div class="vit-row" onclick="toggleVitamin(this,'dha')">
+          <div class="vit-check" id="vit-dha"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="vit-info"><div class="vit-name">DHA / {{ 'אומגה 3' if lang == 'he' else 'Omega-3' }}</div><div class="vit-dose">200 mg</div></div>
+        </div>
+        <div class="vit-row" onclick="toggleVitamin(this,'vitd')">
+          <div class="vit-check" id="vit-vitd"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="vit-info"><div class="vit-name">{{ 'ויטמין D' if lang == 'he' else 'Vitamin D' }}</div><div class="vit-dose">600 IU</div></div>
+        </div>
+      </div>
+
+      <!-- Blood tests reminder -->
+      <div class="sb-sec-title" style="margin-bottom:6px;">{{ 'בדיקות דם' if lang == 'he' else 'Blood Tests' }}</div>
+      <div id="blood-tests" style="font-size:11px;color:var(--sub);line-height:1.7;margin-bottom:10px;"></div>
+
+      <!-- Forbidden foods quick check -->
+      <button onclick="qs('{{ 'האם ' if lang == 'he' else 'Can I eat ' }}' + prompt('{{ 'מה אכלת?' if lang == 'he' else 'What food?' }}') + '{{ ' בטוח לאכול בהריון?' if lang == 'he' else ' during pregnancy?' }}')"
+        style="width:100%;padding:7px;background:rgba(255,99,99,.06);border:1px solid rgba(255,99,99,.12);border-radius:var(--radius-sm);color:rgba(255,120,120,.8);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:background var(--t-fast);">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ 'בדוק: האם מותר לאכול?' if lang == 'he' else 'Check: Is this food safe?' }}
+      </button>
     </div>
   </div>
 
@@ -482,34 +594,22 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
       <button id="diet-balanced" onclick="setDietMode('balanced')"
         style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--em-dim);color:var(--em);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
-        ⚖️ {{ 'מאוזן' if lang == 'he' else 'Balanced' }}</button>
+        {{ 'מאוזן' if lang == 'he' else 'Balanced' }}</button>
       <button id="diet-keto" onclick="setDietMode('keto')"
         style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
-        🔥 {{ 'קטוגני' if lang == 'he' else 'Keto' }}</button>
+        {{ 'קטוגני' if lang == 'he' else 'Keto' }}</button>
       <button id="diet-mediterranean" onclick="setDietMode('mediterranean')"
         style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
-        🫒 {{ 'ים-תיכוני' if lang == 'he' else 'Mediterranean' }}</button>
+        {{ 'ים-תיכוני' if lang == 'he' else 'Mediterranean' }}</button>
       <button id="diet-intermittent" onclick="setDietMode('intermittent')"
         style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
-        ⏱️ {{ 'צום+חלבון' if lang == 'he' else 'IF+Protein' }}</button>
-    </div>
-    <!-- Pregnancy mode toggle -->
-    <button id="preg-toggle" onclick="togglePregnancyMode()"
-      style="width:100%;padding:7px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--sub);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;margin-bottom:4px;">
-      🤰 {{ 'מצב הריון' if lang == 'he' else 'Pregnancy Mode' }}
-    </button>
-    <div id="preg-week-row" style="display:none;margin-top:6px;">
-      <input type="number" id="preg-week-input" min="1" max="42" placeholder="{{ 'שבוע הריון (1-42)' if lang == 'he' else 'Pregnancy week (1-42)' }}"
-        style="width:100%;padding:6px 10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;text-align:center;">
-      <button onclick="savePregnancyWeek()"
-        style="width:100%;margin-top:4px;padding:6px;background:rgba(232,121,160,.10);border:1px solid rgba(232,121,160,.3);border-radius:8px;color:var(--gold);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">
-        {{ 'שמור שבוע' if lang == 'he' else 'Save Week' }}</button>
+        {{ 'צום+חלבון' if lang == 'he' else 'IF+Protein' }}</button>
     </div>
     <div id="diet-status" style="font-size:10px;color:var(--sub);margin-top:4px;text-align:center;"></div>
   </div>
 
   <div class="sb-section" style="padding:14px 18px;border-top:1px solid var(--border);">
-    <div style="font-size:11px;color:var(--sub);margin-bottom:8px;font-weight:600;letter-spacing:.5px;">⏱️ טיימר צום</div>
+    <div style="font-size:11px;color:var(--sub);margin-bottom:8px;font-weight:600;letter-spacing:.5px;">{{ 'טיימר צום' if lang == 'he' else 'Fasting Timer' }}</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;">
       <button onclick="setFastMode(16)" id="fast16" class="fast-mode-btn" style="flex:1;padding:5px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;">16:8</button>
       <button onclick="setFastMode(18)" id="fast18" class="fast-mode-btn" style="flex:1;padding:5px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;">18:6</button>
@@ -525,37 +625,37 @@
     <div class="sb-sec-title">{{ 'פעולות מהירות' if lang == 'he' else 'ACTIONS' }}</div>
     <div class="qa-list">
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today\'s meal plan{% endif %}')">
-        <span>📅</span><span>{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span>{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</span>
       </button>
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את התפריט השבועי{% else %}Show me the weekly plan{% endif %}')">
-        <span>📆</span><span>{{ 'תפריט שבועי' if lang == 'he' else 'Weekly Plan' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg></span><span>{{ 'תפריט שבועי' if lang == 'he' else 'Weekly Plan' }}</span>
       </button>
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי סיכום התקדמות{% else %}Show my progress summary{% endif %}')">
-        <span>📊</span><span>{{ 'התקדמות' if lang == 'he' else 'Progress' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>{{ 'התקדמות' if lang == 'he' else 'Progress' }}</span>
       </button>
       <button class="qa-btn" onclick="promptWeight()">
-        <span>⚖️</span><span>{{ 'עדכן משקל' if lang == 'he' else 'Log Weight' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><path d="M6.5 8a5.5 5.5 0 1 0 11 0"/><line x1="12" y1="8" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg></span><span>{{ 'עדכן משקל' if lang == 'he' else 'Log Weight' }}</span>
       </button>
       <button class="qa-btn" onclick="document.getElementById('file-input').click()">
-        <span>📸</span><span>{{ 'שלח תמונת אוכל' if lang == 'he' else 'Send Food Photo' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span>{{ 'שלח תמונת אוכל' if lang == 'he' else 'Send Food Photo' }}</span>
       </button>
       <button class="qa-btn" onclick="showShoppingList()">
-        <span>🛒</span><span>{{ 'רשימת קניות' if lang == 'he' else 'Shopping List' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span>{{ 'רשימת קניות' if lang == 'he' else 'Shopping List' }}</span>
       </button>
       <button class="qa-btn" onclick="window.open('/report','_blank')">
-        <span>📄</span><span>{{ 'דוח שבועי' if lang == 'he' else 'Weekly Report' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>{{ 'דוח שבועי' if lang == 'he' else 'Weekly Report' }}</span>
       </button>
       <button class="qa-btn" onclick="requestNotifications()">
-        <span>🔔</span><span>{{ 'התראות' if lang == 'he' else 'Notifications' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span>{{ 'התראות' if lang == 'he' else 'Notifications' }}</span>
       </button>
       <button class="qa-btn" onclick="generateShareCard()">
-        <span>🎯</span><span>{{ 'שתף התקדמות' if lang == 'he' else 'Share Progress' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span><span>{{ 'שתף התקדמות' if lang == 'he' else 'Share Progress' }}</span>
       </button>
       <button class="qa-btn" onclick="openBarcodeScanner()">
-        <span>📷</span><span>{{ 'סריקת ברקוד' if lang == 'he' else 'Barcode Scan' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg></span><span>{{ 'סריקת ברקוד' if lang == 'he' else 'Barcode Scan' }}</span>
       </button>
       <button class="qa-btn" onclick="window.open('/gallery','_self')">
-        <span>🖼️</span><span>{{ 'גלריית ארוחות' if lang == 'he' else 'Meal Gallery' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span><span>{{ 'גלריית ארוחות' if lang == 'he' else 'Meal Gallery' }}</span>
       </button>
       <div id="notif-msg" style="font-size:11px;color:#8B5CF6;margin-top:4px;display:none;"></div>
     </div>
@@ -563,15 +663,15 @@
 
   <div class="sb-footer">
     <div id="referral-box" style="margin-bottom:10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;">
-      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">👥 {{ 'הזמן חבר — קבל חודש פרמיום!' if lang == 'he' else 'Refer a friend — get premium!' }}</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">{{ 'הזמן חבר — קבל חודש פרמיום!' if lang == 'he' else 'Refer a friend — get premium!' }}</div>
       <div id="ref-link" style="font-size:11px;color:#8B5CF6;word-break:break-all;margin-bottom:6px;cursor:pointer;" onclick="copyRefLink()">{{ 'טוען...' if lang == 'he' else 'Loading...' }}</div>
       <div id="ref-count" style="font-size:11px;color:var(--sub);"></div>
     </div>
     <div id="wa-link-box" style="margin-bottom:10px;">
-      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">📱 {{ 'חבר WhatsApp לחשבון' if lang == 'he' else 'Link WhatsApp' }}</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;display:flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg> {{ 'חבר WhatsApp לחשבון' if lang == 'he' else 'Link WhatsApp' }}</div>
       <div style="display:flex;gap:6px;">
         <input id="wa-phone-input" type="tel" placeholder="{{ '05XXXXXXXX' if lang == 'he' else '+1XXXXXXXXXX' }}"
-          style="flex:1;padding:7px 10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;">
+          style="flex:1;padding:7px 10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;">
         <button onclick="linkWhatsApp()"
           style="padding:7px 12px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
           {{ 'חבר' if lang == 'he' else 'Link' }}
@@ -580,7 +680,7 @@
       <div id="wa-link-msg" style="font-size:11px;margin-top:5px;display:none;"></div>
     </div>
     <a href="/logout" style="text-decoration:none;">
-      <button class="logout-btn">🚪 {{ 'התנתקות' if lang == 'he' else 'Logout' }}</button>
+      <button class="logout-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> {{ 'התנתקות' if lang == 'he' else 'Sign out' }}</button>
     </a>
   </div>
 </div>
@@ -591,12 +691,11 @@
 <!-- Main -->
 <div id="main">
   <div id="topbar">
-    <button id="menu-btn" onclick="toggleSidebar()" aria-label="תפריט">☰</button>
-    <div class="top-avatar">🥗</div>
+    <button id="menu-btn" onclick="toggleSidebar()" aria-label="תפריט"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
+    <div class="top-avatar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" color="var(--em)"><path d="M12 22V12"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M12 12C12 12 7 9 7 4a5 5 0 0 1 10 0c0 5-5 8-5 8z"/></svg></div>
     <div class="top-title">{{ 'AI תזונה חכמה' if lang == 'he' else 'Longevity AI' }}</div>
     <span class="top-badge" id="top-w"></span>
-    <button id="theme-btn" onclick="toggleTheme()" title="החלף מצב תצוגה"
-      style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--sub);cursor:pointer;font-size:14px;">🌙</button>
+    <button id="theme-btn" onclick="toggleTheme()" title="החלף מצב תצוגה" style="background:transparent;border:none;border-radius:var(--radius-sm);padding:6px 8px;color:var(--sub);cursor:pointer;transition:color var(--t-fast),background var(--t-fast);display:flex;align-items:center;" onmouseenter="this.style.background='var(--card)'" onmouseleave="this.style.background='transparent'"><svg id="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
   </div>
 
   <div id="chat"></div>
@@ -604,15 +703,15 @@
   <div id="img-preview">
     <img id="img-thumb" src="" alt="">
     <span id="img-nm"></span>
-    <span class="rm" onclick="clearImg()">✕</span>
+    <button class="rm" onclick="clearImg()" style="background:none;border:none;cursor:pointer;color:var(--alert);display:flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
 
   <div id="input-bar">
     <div id="input-row">
-      <button class="icon-btn" onclick="document.getElementById('file-input').click()">📷</button>
+      <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="{{ 'שלח תמונה' if lang == 'he' else 'Send image' }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
       <textarea id="msg-input" rows="1"
         placeholder="{{ 'שאל אותי כל דבר, דווח על ארוחה, שלח תמונה...' if lang == 'he' else 'Ask anything, log a meal, send a photo...' }}"></textarea>
-      <button id="send-btn" onclick="send()">➤</button>
+      <button id="send-btn" onclick="send()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
     </div>
   </div>
 </div>
@@ -622,14 +721,14 @@
 
 <!-- Shopping List Modal -->
 <div id="shop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:#0B1120;border:1px solid rgba(0,212,255,.25);border-radius:20px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;position:relative;">
+  <div style="background:var(--sidebar);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;position:relative;">
     <button onclick="document.getElementById('shop-modal').style.display='none'"
-      style="position:absolute;top:12px;left:12px;background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;">✕</button>
-    <h3 style="color:#8B5CF6;margin-bottom:16px;font-size:16px;">🛒 {{ 'רשימת קניות שבועית' if lang == 'he' else 'Weekly Shopping List' }}</h3>
+      style="position:absolute;top:12px;left:12px;background:none;border:none;color:var(--sub);cursor:pointer;display:flex;align-items:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <h3 style="color:#8B5CF6;margin-bottom:16px;font-size:16px;">{{ 'רשימת קניות שבועית' if lang == 'he' else 'Weekly Shopping List' }}</h3>
     <div id="shop-content" style="color:var(--text);font-size:14px;line-height:1.7;white-space:pre-wrap;"></div>
     <button onclick="copyShoppingList()"
-      style="margin-top:16px;width:100%;padding:10px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:10px;color:#8B5CF6;cursor:pointer;font-family:'Inter',sans-serif;">
-      📋 {{ 'העתק רשימה' if lang == 'he' else 'Copy List' }}
+      style="margin-top:16px;width:100%;padding:10px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.2);border-radius:10px;color:#8B5CF6;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> {{ 'העתק רשימה' if lang == 'he' else 'Copy List' }}
     </button>
   </div>
 </div>
@@ -724,7 +823,7 @@
 
   // ── Confetti ──
   function showConfetti(){
-    const colors=['#00D4FF','#6B5CE7','#FF6B6B','#C9A960','#33DDFF'];
+    const colors=['#8B5CF6','#6B5CE7','#E879A0','#A78BFA','#F0ECFF'];
     for(let i=0;i<80;i++){
       const d=document.createElement('div');
       d.style.cssText=`position:fixed;top:-10px;left:${Math.random()*100}vw;width:8px;height:8px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>0.5?'50%':'0'};z-index:9999;pointer-events:none;animation:confettiFall ${1.5+Math.random()*2}s ease-in forwards;transform:rotate(${Math.random()*360}deg)`;
@@ -843,8 +942,18 @@
       }
 
       // Restore diet mode
-      if(d.diet_mode) { currentDietMode = d.diet_mode; updateDietButtons(d.diet_mode); const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'}; document.getElementById('diet-status').textContent = d.diet_mode !== 'balanced' ? 'מצב פעיל: '+(labels[d.diet_mode]||d.diet_mode) : ''; }
-      if(d.pregnancy_mode) { pregnancyModeActive = true; const btn=document.getElementById('preg-toggle'); if(btn){btn.style.background='rgba(232,121,160,.10)';btn.style.borderColor='rgba(232,121,160,.3)';btn.style.color='var(--gold)';} const row=document.getElementById('preg-week-row'); if(row) row.style.display='block'; const inp=document.getElementById('preg-week-input'); if(inp&&d.pregnancy_week) inp.value=d.pregnancy_week; const tri=d.pregnancy_week<=13?1:(d.pregnancy_week<=26?2:3); const ds=document.getElementById('diet-status'); if(ds) ds.textContent=`🤰 שבוע ${d.pregnancy_week} | טרימסטר ${tri}`; }
+      if(d.diet_mode) { currentDietMode = d.diet_mode; updateDietButtons(d.diet_mode); const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'}; const ds = document.getElementById('diet-status'); if(ds) ds.textContent = d.diet_mode !== 'balanced' ? 'מצב פעיל: '+(labels[d.diet_mode]||d.diet_mode) : ''; }
+      if(d.pregnancy_mode && d.pregnancy_week > 0) {
+        const check = document.getElementById('preg-toggle-check');
+        if(check) { check.checked = true; }
+        const panel = document.getElementById('preg-panel');
+        if(panel) panel.style.display = 'block';
+        const inp = document.getElementById('preg-week-input');
+        if(inp) inp.value = d.pregnancy_week;
+        pregnancyModeActive = true;
+        savePregnancyWeek(); // This populates blood tests etc
+        loadVitaminState();
+      }
 
     }catch(e){console.log('stats err',e);}
   }
@@ -856,8 +965,8 @@
     if(wChart)wChart.destroy();
     wChart=new Chart(ctx,{
       type:'line',
-      data:{labels,datasets:[{data:vals,borderColor:'#00D4FF',backgroundColor:'rgba(0,212,255,.08)',
-        borderWidth:2,pointRadius:3,pointBackgroundColor:'#00D4FF',tension:.4,fill:true}]},
+      data:{labels,datasets:[{data:vals,borderColor:'#8B5CF6',backgroundColor:'rgba(139,92,246,.08)',
+        borderWidth:2,pointRadius:3,pointBackgroundColor:'#8B5CF6',tension:.4,fill:true}]},
       options:{responsive:true,
         plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} kg`}}},
         scales:{
@@ -1048,12 +1157,15 @@
   function toggleTheme() {
     const isLight = document.body.classList.toggle('light-mode');
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    document.getElementById('theme-btn').textContent = isLight ? '☀️' : '🌙';
+    const icon = document.getElementById('theme-icon');
+    if(isLight) icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    else icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
   }
   // Init theme on load
   if (localStorage.getItem('theme') === 'light') {
     document.body.classList.add('light-mode');
-    document.getElementById('theme-btn').textContent = '☀️';
+    const icon = document.getElementById('theme-icon');
+    if(icon) icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
   }
 
   // ── Shareable progress card ──
@@ -1243,7 +1355,7 @@ function setDietMode(mode) {
       currentDietMode = mode;
       updateDietButtons(mode);
       const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'};
-      document.getElementById('diet-status').textContent = 'מצב פעיל: ' + (labels[mode]||mode);
+      const ds = document.getElementById('diet-status'); if(ds) ds.textContent = mode !== 'balanced' ? 'מצב פעיל: '+(labels[mode]||mode) : '';
     }
   }).catch(()=>{});
 }
@@ -1265,45 +1377,74 @@ function updateDietButtons(mode) {
 }
 
 function togglePregnancyMode() {
-  pregnancyModeActive = !pregnancyModeActive;
-  const row = document.getElementById('preg-week-row');
-  const btn = document.getElementById('preg-toggle');
-  if(pregnancyModeActive) {
-    row.style.display = 'block';
-    btn.style.background = 'rgba(232,121,160,.10)';
-    btn.style.borderColor = 'rgba(232,121,160,.3)';
-    btn.style.color = 'var(--gold)';
-  } else {
-    row.style.display = 'none';
-    btn.style.background = 'var(--card)';
-    btn.style.borderColor = 'var(--border)';
-    btn.style.color = 'var(--sub)';
-    // Disable pregnancy mode
+  const check = document.getElementById('preg-toggle-check');
+  pregnancyModeActive = check.checked;
+  const panel = document.getElementById('preg-panel');
+  panel.style.display = pregnancyModeActive ? 'block' : 'none';
+  if(!pregnancyModeActive) {
     fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:false,week:0})});
-    document.getElementById('diet-status').textContent = '';
   }
+  // Load vitamin state from localStorage
+  if(pregnancyModeActive) loadVitaminState();
 }
 
 function savePregnancyWeek() {
   const week = parseInt(document.getElementById('preg-week-input').value) || 0;
-  if(week < 1 || week > 42) {
-    document.getElementById('diet-status').textContent = 'הכנס שבוע תקין (1-42)';
-    return;
-  }
-  fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:true,week})})
-    .then(r=>r.json()).then(d=>{
-      if(d.ok) {
-        const trimester = week<=13?1:(week<=26?2:3);
-        document.getElementById('diet-status').textContent = `🤰 שבוע ${week} | טרימסטר ${trimester}`;
-      }
-    });
+  if(week < 1 || week > 42) return;
+  const trimester = week<=13?1:(week<=26?2:3);
+  const badge = document.getElementById('preg-trimester-badge');
+  const trimesterNames = {1: LANG==='he'?'טרימסטר ראשון (שבועות 1-13)':'Trimester 1 (weeks 1–13)', 2: LANG==='he'?'טרימסטר שני (שבועות 14-26)':'Trimester 2 (weeks 14–26)', 3: LANG==='he'?'טרימסטר שלישי (שבועות 27-42)':'Trimester 3 (weeks 27–42)'};
+  badge.textContent = `שבוע ${week} · ${trimesterNames[trimester]}`;
+  badge.style.display = 'block';
+  // Update blood tests section
+  updateBloodTests(week, trimester);
+  fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:true,week})});
+}
+
+function updateBloodTests(week, trimester) {
+  const el = document.getElementById('blood-tests');
+  if(!el) return;
+  const tests = {
+    1: ['CBC — ספירת דם מלאה','TSH — תפקוד בלוטת התריס','Rubella immunity — חיסוניות לאדמת','Blood type + Rh factor','Fasting glucose — סוכר בצום','NIPT / סקר ראשון (שבוע 11-14)'],
+    2: ['AFP — אלפא פטופרוטאין (שבוע 15-20)','Anatomy scan — סקר מורפולוגי (שבוע 20-22)','Glucose tolerance test — סוכרת הריון (שבוע 24-28)','Hemoglobin — המוגלובין','Ferritin — מאגרי ברזל'],
+    3: ['GBS — סטרפטוקוקוס קבוצה B (שבוע 35-37)','Biophysical profile — פרופיל ביופיזי','NST — מוניטור עוברי (משבוע 36)','Platelet count — טסיות דם','Coagulation panel — קרישת דם']
+  };
+  const list = tests[trimester] || [];
+  el.innerHTML = list.map(t => `<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="12" cy="12" r="1"/></svg>${t}</div>`).join('');
+}
+
+// Vitamin tracking
+function toggleVitamin(row, key) {
+  row.classList.toggle('done');
+  const icon = row.querySelector('.vit-icon');
+  const state = row.classList.contains('done');
+  if(icon) icon.style.display = state ? 'block' : 'none';
+  // Save to localStorage (resets daily)
+  const today = new Date().toDateString();
+  const saved = JSON.parse(localStorage.getItem('vit_state') || '{}');
+  if(saved.date !== today) { localStorage.setItem('vit_state', JSON.stringify({date:today})); }
+  const cur = JSON.parse(localStorage.getItem('vit_state') || '{}');
+  cur[key] = state; cur.date = today;
+  localStorage.setItem('vit_state', JSON.stringify(cur));
+}
+
+function loadVitaminState() {
+  const today = new Date().toDateString();
+  const saved = JSON.parse(localStorage.getItem('vit_state') || '{}');
+  if(saved.date !== today) return; // New day, reset
+  ['folic','iron','calcium','dha','vitd'].forEach(k => {
+    if(saved[k]) {
+      const rows = document.querySelectorAll('.vit-row');
+      rows.forEach(r => { if(r.getAttribute('onclick')?.includes(`'${k}'`)) { r.classList.add('done'); const ic=r.querySelector('.vit-icon'); if(ic) ic.style.display='block'; } });
+    }
+  });
 }
 </script>
 
 <!-- Premium Modal -->
 <div id="premium-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;">
-  <div style="background:#0B1120;border:1px solid rgba(201,169,96,.4);border-radius:20px;padding:32px;max-width:380px;width:90%;text-align:center;">
-    <div style="font-size:52px;margin-bottom:12px;">💎</div>
+  <div style="background:var(--sidebar);border:1px solid rgba(201,169,96,.4);border-radius:20px;padding:32px;max-width:380px;width:90%;text-align:center;">
+    <div style="margin-bottom:12px;display:flex;justify-content:center;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#fbbf24" stroke-width="1.5"><polygon points="12 2 2 7 12 22 22 7 12 2"/><polyline points="2 7 12 12 22 7"/><line x1="12" y1="12" x2="12" y2="22"/></svg></div>
     <h3 style="color:#fbbf24;margin-bottom:8px;font-size:18px;">NutriAI פרמיום</h3>
     <p style="color:var(--sub);font-size:13px;margin-bottom:20px;line-height:1.6;">הזמן 3 חברים ותקבל גישה פרמיום לצמיתות — חינם לגמרי!</p>
     <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:16px;margin-bottom:20px;">
@@ -1313,8 +1454,8 @@ function savePregnancyWeek() {
       </div>
     </div>
     <button onclick="copyRefLink();document.getElementById('premium-modal').style.display='none'"
-      style="width:100%;padding:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:10px;color:#000;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;margin-bottom:8px;">
-      📋 העתק קישור הזמנה
+      style="width:100%;padding:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:10px;color:#000;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> העתק קישור הזמנה
     </button>
     <button onclick="document.getElementById('premium-modal').style.display='none'"
       style="width:100%;padding:8px;background:none;border:none;color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;">סגור</button>
@@ -1323,15 +1464,15 @@ function savePregnancyWeek() {
 
 <!-- Barcode Modal -->
 <div id="barcode-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;">
-  <div style="background:#0B1120;border:1px solid rgba(139,92,246,.25);border-radius:20px;padding:24px;width:90%;max-width:400px;">
+  <div style="background:var(--sidebar);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:24px;width:90%;max-width:400px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h3 style="color:#8B5CF6;font-size:15px;">📷 סריקת ברקוד</h3>
-      <button onclick="closeBarcodeScanner()" style="background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;">✕</button>
+      <h3 style="color:#8B5CF6;font-size:15px;">{{ 'סריקת ברקוד' if lang == 'he' else 'Barcode Scanner' }}</h3>
+      <button onclick="closeBarcodeScanner()" style="background:none;border:none;color:var(--sub);cursor:pointer;display:flex;align-items:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <video id="barcode-video" style="width:100%;border-radius:10px;background:#000;max-height:220px;" autoplay playsinline muted></video>
     <div id="barcode-status" style="text-align:center;color:var(--sub);font-size:12px;margin:10px 0;">מכוון את המצלמה לברקוד...</div>
     <input id="barcode-manual" type="text" placeholder="או הכנס ברקוד ידנית (EAN-13...)"
-      style="width:100%;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;margin-bottom:8px;">
+      style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;margin-bottom:8px;">
     <button onclick="lookupBarcode(document.getElementById('barcode-manual').value)"
       style="width:100%;padding:9px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">חפש מוצר</button>
   </div>
