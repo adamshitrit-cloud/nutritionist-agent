@@ -760,7 +760,7 @@ def build_system_prompt() -> str:
 - אוכלים שלא אוהב: {profile.get('disliked_foods', '') or 'לא צוין'}
 - רמת בישול: {profile.get('cooking_level', '') or 'לא צוין'}
 - מספר ארוחות ביום: {profile.get('meal_frequency', '3')}
-- לוח זמנים ליעד: {profile.get('timeline', '') or 'לא צוין'} חודשים
+- לוח זמנים ליעד: {(str(profile.get('timeline', '')) + ' חודשים') if profile.get('timeline') else 'לא צוין'}
 - מצב בריאות: {', '.join(profile.get('health_conditions', [])) or 'תקין'}
 - יעד קלוריות יומי: {profile.get('target_kcal', 2100)} קל | חלבון: {profile.get('target_protein_g', '') or 'לא חושב'}g
 - שעות קימה: {profile.get('wake_time', '') or 'לא צוין'} | שינה: {profile.get('sleep_time', '') or 'לא צוין'}

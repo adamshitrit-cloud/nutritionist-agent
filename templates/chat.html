@@ -1607,10 +1607,15 @@ async function openProfileEdit() {
   document.getElementById('profile-edit-modal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
   try {
-    const p = await (await fetch('/api/profile')).json();
+    const [p, stats] = await Promise.all([
+      fetch('/api/profile').then(r=>r.json()),
+      fetch('/api/stats').then(r=>r.json())
+    ]);
     if(p.age) document.getElementById('pe-age').value = p.age;
     if(p.height_cm) document.getElementById('pe-height').value = p.height_cm;
-    if(p.current_weight_kg) document.getElementById('pe-weight').value = p.current_weight_kg;
+    // Prefer latest weight_log value (from stats) over profile field to avoid stale desync
+    const latestW = stats.current_weight || p.current_weight_kg;
+    if(latestW) document.getElementById('pe-weight').value = latestW;
     if(p.target_range) document.getElementById('pe-target').value = p.target_range.max || p.target_range.min || '';
     if(p.fav_foods) document.getElementById('pe-fav').value = p.fav_foods;
     if(p.disliked_foods) document.getElementById('pe-dis').value = p.disliked_foods;
