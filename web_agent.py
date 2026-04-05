@@ -547,14 +547,14 @@ def api_calorie_burn():
                     "duration_min": duration_min
                 }
                 burn_log.append(entry)
-                nutritionist._redis_set(nutritionist.PROGRESS_FILE, progress)
+                nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
                 today_burn = sum(e["calories"] for e in burn_log if e.get("date") == today)
                 return jsonify({"ok": True, "today_burn": today_burn})
             elif action == "delete":
                 idx = data.get("index", -1)
                 if 0 <= idx < len(burn_log):
                     burn_log.pop(idx)
-                    nutritionist._redis_set(nutritionist.PROGRESS_FILE, progress)
+                    nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
                 return jsonify({"ok": True})
 
         # GET — return burn data
@@ -618,13 +618,13 @@ def api_setup_profile():
 
     try:
         nutritionist._current_user_id = uid
-        nutritionist._redis_set(nutritionist.PROFILE_FILE, profile)
+        nutritionist.save_json(nutritionist.PROFILE_FILE, profile)
         # Also log initial weight
         progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
         if not progress.get("weight_log"):
             from datetime import date
             progress["weight_log"] = [{"date": str(date.today()), "weight_kg": profile["current_weight_kg"], "note": "משקל התחלתי"}]
-            nutritionist._redis_set(nutritionist.PROGRESS_FILE, progress)
+            nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
     finally:
         nutritionist._current_user_id = None
 
@@ -653,7 +653,7 @@ def api_diet_mode():
         nutritionist._current_user_id = uid
         profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
         profile["diet_mode"] = mode
-        nutritionist._redis_set(nutritionist.PROFILE_FILE, profile)
+        nutritionist.save_json(nutritionist.PROFILE_FILE, profile)
         return jsonify({"ok": True, "mode": mode})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -680,7 +680,7 @@ def api_pregnancy_mode():
             base_kcal = profile.get("target_kcal", 2100)
             # Reset to base if switching, then add trimester bonus
             profile["target_kcal"] = base_kcal + extra
-        nutritionist._redis_set(nutritionist.PROFILE_FILE, profile)
+        nutritionist.save_json(nutritionist.PROFILE_FILE, profile)
         return jsonify({"ok": True, "enabled": enabled, "week": week})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
