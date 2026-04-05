@@ -639,12 +639,19 @@ def api_setup_profile():
         profile = existing
 
         nutritionist.save_json(nutritionist.PROFILE_FILE, profile)
-        # Also log initial weight
-        progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
-        if not progress.get("weight_log"):
+        # Log weight to weight_log whenever current_weight_kg is provided
+        new_weight = data.get("current_weight_kg")
+        if new_weight:
             from datetime import date
-            progress["weight_log"] = [{"date": str(date.today()), "weight_kg": profile["current_weight_kg"], "note": "משקל התחלתי"}]
-            nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
+            progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+            logs = progress.get("weight_log", [])
+            new_weight_f = float(new_weight)
+            # Only add entry if different from last logged weight
+            last_w = logs[-1]["weight_kg"] if logs else None
+            if last_w != new_weight_f:
+                logs.append({"date": str(date.today()), "weight_kg": new_weight_f, "note": "עדכון פרופיל"})
+                progress["weight_log"] = logs
+                nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
     finally:
         nutritionist._current_user_id = None
 
