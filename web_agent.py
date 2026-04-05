@@ -569,6 +569,15 @@ def api_calorie_burn():
                         nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
                 return jsonify({"ok": True})
 
+        # Migrate legacy entries without IDs (backfill uuid so delete works)
+        changed = False
+        for entry in burn_log:
+            if not entry.get("id"):
+                entry["id"] = str(uuid.uuid4())[:8]
+                changed = True
+        if changed:
+            nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
+
         # GET — return burn data
         # Today
         today_entries = [e for e in burn_log if e.get("date") == today]
