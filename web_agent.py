@@ -248,7 +248,7 @@ def get_user_stats(user_id: str) -> dict:
         logs = progress.get("weight_log", [])
         current_w = logs[-1]["weight_kg"] if logs else profile.get("current_weight_kg", None)
         # Use first weight_log entry as start weight; fall back to profile field
-        start_w = logs[0]["weight_kg"] if len(logs) > 1 else profile.get("current_weight_kg", None)
+        start_w = logs[0]["weight_kg"] if len(logs) >= 1 else profile.get("current_weight_kg", None)
         target_min = profile.get("target_range", {}).get("min", None)
         target_max = profile.get("target_range", {}).get("max", None)
 

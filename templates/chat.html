@@ -915,12 +915,14 @@
     try{
       const d=await(await fetch('/api/water',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add'})})).json();
       setWater(d.glasses);
+      loadStats();
     }catch(e){console.log('water add err',e);}
   }
   async function resetWater(){
     try{
       const d=await(await fetch('/api/water',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset'})})).json();
       setWater(d.glasses);
+      loadStats();
     }catch(e){console.log('water reset err',e);}
   }
 
@@ -1021,7 +1023,13 @@
         const inp = document.getElementById('preg-week-input');
         if(inp) inp.value = d.pregnancy_week;
         pregnancyModeActive = true;
-        savePregnancyWeek(); // This populates blood tests etc
+        // Populate UI without making an extra API call
+        const _w = d.pregnancy_week;
+        const _t = _w<=13?1:(_w<=26?2:3);
+        const _badge = document.getElementById('preg-trimester-badge');
+        const _tNames = {1:LANG==='he'?'טרימסטר ראשון (שבועות 1-13)':'Trimester 1',2:LANG==='he'?'טרימסטר שני (שבועות 14-26)':'Trimester 2',3:LANG==='he'?'טרימסטר שלישי (שבועות 27-42)':'Trimester 3'};
+        if(_badge){_badge.textContent=`שבוע ${_w} · ${_tNames[_t]}`;_badge.style.display='block';}
+        if(typeof updateBloodTests==='function') updateBloodTests(_w, _t);
         loadVitaminState();
       }
 
@@ -1502,6 +1510,7 @@ function setDietMode(mode) {
       updateDietButtons(mode);
       const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'};
       const ds = document.getElementById('diet-status'); if(ds) ds.textContent = mode !== 'balanced' ? 'מצב פעיל: '+(labels[mode]||mode) : '';
+      loadStats();
     }
   }).catch(()=>{});
 }
@@ -1528,10 +1537,11 @@ function togglePregnancyMode() {
   const panel = document.getElementById('preg-panel');
   panel.style.display = pregnancyModeActive ? 'block' : 'none';
   if(!pregnancyModeActive) {
-    fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:false,week:0})});
+    fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:false,week:0})})
+      .then(()=>loadStats());
   }
   // Load vitamin state from localStorage
-  if(pregnancyModeActive) loadVitaminState();
+  if(pregnancyModeActive) { loadVitaminState(); loadStats(); }
 }
 
 function savePregnancyWeek() {
@@ -1544,7 +1554,8 @@ function savePregnancyWeek() {
   badge.style.display = 'block';
   // Update blood tests section
   updateBloodTests(week, trimester);
-  fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:true,week})});
+  fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:true,week})})
+    .then(()=>loadStats());
 }
 
 function updateBloodTests(week, trimester) {
