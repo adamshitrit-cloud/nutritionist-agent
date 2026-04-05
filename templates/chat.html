@@ -315,14 +315,14 @@
     .water-count{font-size:11px;color:var(--sub);}
     .water-drops{display:flex;gap:4px;flex-wrap:wrap;}
     .water-drop{
-      width:20px;height:20px;cursor:pointer;
+      width:28px;height:28px;cursor:pointer;padding:4px;
       transition:transform var(--t-bounce),opacity var(--t-fast);
-      opacity:.2;
+      opacity:.2;min-width:28px;min-height:28px;
     }
     .water-drop svg{width:100%;height:100%;fill:none;stroke:var(--sub);stroke-width:1.5;}
     .water-drop.filled{opacity:1;}
     .water-drop.filled svg{stroke:var(--em);fill:rgba(139,92,246,.15);}
-    .water-drop:hover{transform:scale(1.25);}
+    .water-drop:hover{transform:scale(1.2);}
 
     /* Toggle switch */
     .toggle-switch{position:relative;display:inline-block;width:32px;height:18px;cursor:pointer;}
@@ -350,7 +350,7 @@
     #menu-btn{
       display:none;background:var(--card);border:1px solid var(--border);
       border-radius:8px;padding:6px 10px;color:var(--sub);cursor:pointer;
-      font-size:18px;flex-shrink:0;
+      font-size:18px;flex-shrink:0;min-width:44px;min-height:44px;
     }
     /* Sidebar overlay on mobile */
     #sidebar-overlay{
@@ -407,24 +407,45 @@
 
       /* Larger tap targets */
       .msg{max-width:92%;}
-      .bubble{font-size:15px;padding:12px 14px;}
-      .qa-btn{padding:11px 14px;font-size:14px;}
+      .bubble{font-size:14px;padding:12px 14px;}
+      .qa-btn{padding:11px 14px;font-size:14px;min-height:44px;}
       #msg-input{font-size:16px;} /* prevents iOS zoom on focus */
       #input-bar{padding:8px 12px 20px;}
 
       /* Topbar adjustments */
-      #topbar{padding:10px 14px;gap:8px;}
-      .top-title{font-size:14px;}
+      #topbar{padding:8px 12px;gap:6px;}
+      .top-title{font-size:13px;}
+      .top-avatar{width:32px;height:32px;}
 
       /* Stat cards bigger touch area */
-      .stat-card{padding:14px;}
-      .stat-val{font-size:24px;}
+      .stat-card{padding:12px;}
+      .stat-val{font-size:22px;}
+
+      /* Water drops bigger on mobile */
+      .water-drop{width:32px;height:32px;padding:5px;}
+
+      /* Canvas chart smaller on mobile */
+      canvas{max-height:85px;}
+
+      /* Hide scrollbars on mobile */
+      #sidebar::-webkit-scrollbar{display:none;}
+      #chat::-webkit-scrollbar{display:none;}
+      #sidebar{scrollbar-width:none;}
+    }
+
+    /* iPhone 14/15 + modern Android (390–412px) */
+    @media(max-width:412px){
+      #sidebar{width:min(85vw,300px);min-width:0;}
+      .bubble{font-size:14px;}
+      .stat-val{font-size:20px;}
+      #topbar{padding:7px 10px;}
     }
 
     /* Very small screens */
     @media(max-width:380px){
       #sidebar{width:260px;min-width:260px;}
-      .bubble{font-size:14px;}
+      .bubble{font-size:13.5px;}
+      .stat-row{grid-template-columns:1fr;}
     }
 
     #file-input{display:none;}
