@@ -1631,6 +1631,7 @@ async function openProfileEdit() {
     const latestW = stats.current_weight || p.current_weight_kg;
     if(latestW) document.getElementById('pe-weight').value = latestW;
     if(p.target_range) document.getElementById('pe-target').value = p.target_range.max || p.target_range.min || '';
+    if(p.target_kcal) document.getElementById('pe-kcal').value = p.target_kcal;
     if(p.fav_foods) document.getElementById('pe-fav').value = p.fav_foods;
     if(p.disliked_foods) document.getElementById('pe-dis').value = p.disliked_foods;
     if(p.cooking_level) document.getElementById('pe-cooking').value = p.cooking_level;
@@ -1724,6 +1725,8 @@ async function saveProfileEdit() {
   if (ageRaw) payload.age = parseInt(ageRaw);
   if (heightRaw) payload.height_cm = parseInt(heightRaw);
   if (weightRaw) payload.current_weight_kg = parseFloat(weightRaw);
+  const kcalRaw = document.getElementById('pe-kcal').value;
+  if (kcalRaw) payload.target_kcal = parseInt(kcalRaw);
   if (peExerciseVal) payload.exercise = peExerciseVal;
   const wakeVal = document.getElementById('pe-wake').value;
   const sleepVal = document.getElementById('pe-sleep').value;
@@ -1853,6 +1856,10 @@ async function saveProfileEdit() {
         <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">משקל יעד (ק"ג)</label>
         <input type="number" id="pe-target" min="30" max="300" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
       </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">יעד קלוריות יומי (קל)</label>
+      <input type="number" id="pe-kcal" min="800" max="5000" step="50" placeholder="2100" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
     </div>
 
     <!-- Food prefs -->

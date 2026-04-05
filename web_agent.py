@@ -624,7 +624,14 @@ def api_setup_profile():
         update_fields["restrictions"] = data.get("restrictions", existing.get("restrictions", []))
         update_fields["meal_frequency"] = data.get("meal_frequency", existing.get("meal_frequency", "3"))
         update_fields["timeline"] = data.get("timeline", existing.get("timeline", ""))
-        update_fields["target_kcal"] = existing.get("target_kcal", 2100)
+        # Allow manual override of target_kcal from profile edit
+        if "target_kcal" in data and data["target_kcal"] is not None and int(data["target_kcal"]) >= 800:
+            update_fields["target_kcal"] = int(data["target_kcal"])
+            # Also reset base target so pregnancy mode uses new base
+            if "_base_target_kcal" in existing:
+                existing["_base_target_kcal"] = int(data["target_kcal"])
+        else:
+            update_fields["target_kcal"] = existing.get("target_kcal", 2100)
         # Numeric fields — only update if explicitly provided (avoids overwriting with hardcoded defaults)
         if "age" in data and data["age"] is not None:
             update_fields["age"] = int(data["age"])
