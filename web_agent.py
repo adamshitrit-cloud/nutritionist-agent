@@ -595,31 +595,45 @@ def api_setup_profile():
         return jsonify({"error": "not logged in"}), 401
     data = request.get_json()
 
-    profile = {
-        "name": session.get("name", ""),
-        "age": int(data.get("age", 30)),
-        "height_cm": int(data.get("height_cm", 170)),
-        "current_weight_kg": float(data.get("current_weight_kg", 75)),
-        "target_range": {
-            "min": float(data.get("target_weight", 70)) - 0.5,
-            "max": float(data.get("target_weight", 70))
-        },
-        "exercise": data.get("exercise", "ריצה פעם בשבוע"),
-        "wake_time": data.get("wake_time", "07:00"),
-        "sleep_time": data.get("sleep_time", "23:00"),
-        "target_kcal": 2100,
-        "target_protein_g": int(float(data.get("current_weight_kg", 75)) * 2),
-        "restrictions": data.get("restrictions", []),
-        "fav_foods": data.get("fav_foods", ""),
-        "disliked_foods": data.get("disliked_foods", ""),
-        "meal_frequency": data.get("meal_frequency", "3"),
-        "cooking_level": data.get("cooking_level", "בסיסי"),
-        "health_conditions": data.get("health_conditions", []),
-        "gender": data.get("gender", "")
-    }
-
     try:
         nutritionist._current_user_id = uid
+        try:
+            existing = nutritionist.load_json(nutritionist.PROFILE_FILE)
+        except Exception:
+            existing = {}
+
+        existing.update({
+            "gender": data.get("gender", existing.get("gender", "")),
+            "age": int(data.get("age", existing.get("age", 30))),
+            "height_cm": int(data.get("height_cm", existing.get("height_cm", 170))),
+            "current_weight_kg": float(data.get("current_weight_kg", existing.get("current_weight_kg", 75))),
+            "target_range": {
+                "min": float(data.get("target_weight", 70)) - 0.5,
+                "max": float(data.get("target_weight", 70))
+            },
+            "target_kcal": existing.get("target_kcal", 2100),
+            "target_protein_g": int(float(data.get("current_weight_kg", existing.get("current_weight_kg", 75))) * 2),
+            "fav_foods": data.get("fav_foods", existing.get("fav_foods", "")),
+            "disliked_foods": data.get("disliked_foods", existing.get("disliked_foods", "")),
+            "cooking_level": data.get("cooking_level", existing.get("cooking_level", "בסיסי")),
+            "health_conditions": data.get("health_conditions", existing.get("health_conditions", [])),
+            "meal_frequency": data.get("meal_frequency", existing.get("meal_frequency", "3")),
+            "restrictions": data.get("restrictions", existing.get("restrictions", [])),
+        })
+        # Only update exercise if not placeholder
+        if data.get("exercise") and data.get("exercise") != 'לא שונה':
+            existing["exercise"] = data["exercise"]
+        if data.get("wake_time") and data.get("wake_time") != '07:00':
+            existing["wake_time"] = data["wake_time"]
+        if data.get("sleep_time") and data.get("sleep_time") != '23:00':
+            existing["sleep_time"] = data["sleep_time"]
+        # Keep name from existing or session
+        if data.get("name"):
+            existing["name"] = data["name"]
+        elif not existing.get("name"):
+            existing["name"] = session.get("name", "")
+        profile = existing
+
         nutritionist.save_json(nutritionist.PROFILE_FILE, profile)
         # Also log initial weight
         progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
@@ -643,6 +657,20 @@ def api_link_phone():
         return jsonify({"error": "מספר טלפון חסר"})
     _link_phone_to_user(phone, uid)
     return jsonify({"ok": True})
+
+@app.route("/api/profile", methods=["GET"])
+def api_get_profile():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    try:
+        nutritionist._current_user_id = uid
+        profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
+        return jsonify(profile)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        nutritionist._current_user_id = None
 
 @app.route("/api/diet-mode", methods=["POST"])
 def api_diet_mode():

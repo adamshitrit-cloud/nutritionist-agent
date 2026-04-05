@@ -453,6 +453,7 @@
       <div>
         <div class="sb-name">NutriAI Longevity</div>
         <div class="sb-user">{{ user_name }}</div>
+        <button onclick="openProfileEdit()" style="background:none;border:none;cursor:pointer;color:var(--sub);font-size:10px;font-family:'Inter',sans-serif;padding:2px 6px;border-radius:4px;transition:color var(--t-fast);" onmouseenter="this.style.color='var(--em)'" onmouseleave="this.style.color='var(--sub)'">✏️ עריכת פרופיל</button>
       </div>
       <div id="premium-badge" onclick="document.getElementById('premium-modal').style.display='flex'"
         style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;cursor:pointer;margin-top:6px;">⭐ שדרג לפרמיום</div>
@@ -1568,6 +1569,88 @@ function loadVitaminState() {
     }
   });
 }
+
+// ── Profile Edit ──
+let peGenderVal = '';
+let peHealthArr = [];
+
+async function openProfileEdit() {
+  document.getElementById('profile-edit-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  try {
+    const p = await (await fetch('/api/profile')).json();
+    // Fill fields
+    if(p.age) document.getElementById('pe-age').value = p.age;
+    if(p.height_cm) document.getElementById('pe-height').value = p.height_cm;
+    if(p.current_weight_kg) document.getElementById('pe-weight').value = p.current_weight_kg;
+    if(p.target_range) document.getElementById('pe-target').value = p.target_range.max || p.target_range.min || '';
+    if(p.fav_foods) document.getElementById('pe-fav').value = p.fav_foods;
+    if(p.disliked_foods) document.getElementById('pe-dis').value = p.disliked_foods;
+    if(p.cooking_level) document.getElementById('pe-cooking').value = p.cooking_level;
+    // Gender
+    if(p.gender) { peGenderVal = p.gender; peGender(p.gender); }
+    // Health chips
+    peHealthArr = p.health_conditions || [];
+    document.querySelectorAll('#pe-health-chips button').forEach(btn => {
+      const isActive = peHealthArr.includes(btn.textContent.trim()) || peHealthArr.some(h => btn.textContent.includes(h));
+      if(isActive) { btn.style.background='var(--em-dim)'; btn.style.borderColor='var(--em)'; btn.style.color='var(--em)'; }
+      else { btn.style.background='transparent'; btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.color='var(--sub)'; }
+    });
+  } catch(e) { console.log('profile load err',e); }
+}
+
+function closeProfileEdit() {
+  document.getElementById('profile-edit-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function peGender(g) {
+  peGenderVal = g;
+  ['male','female','other'].forEach(x => {
+    const b = document.getElementById('pe-g-'+x);
+    if(b) { b.style.background = x===g ? 'var(--em-dim)' : 'transparent'; b.style.borderColor = x===g ? 'var(--em)' : 'rgba(255,255,255,.12)'; b.style.color = x===g ? 'var(--em)' : 'var(--sub)'; }
+  });
+}
+
+function pToggleHealth(btn, val) {
+  const idx = peHealthArr.indexOf(val);
+  if(idx === -1) {
+    peHealthArr.push(val);
+    btn.style.background='var(--em-dim)'; btn.style.borderColor='var(--em)'; btn.style.color='var(--em)';
+  } else {
+    peHealthArr.splice(idx, 1);
+    btn.style.background='transparent'; btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.color='var(--sub)';
+  }
+}
+
+async function saveProfileEdit() {
+  const targetVal = parseFloat(document.getElementById('pe-target').value) || 70;
+  const payload = {
+    age: parseInt(document.getElementById('pe-age').value) || 30,
+    height_cm: parseInt(document.getElementById('pe-height').value) || 170,
+    current_weight_kg: parseFloat(document.getElementById('pe-weight').value) || 75,
+    target_weight: targetVal,
+    fav_foods: document.getElementById('pe-fav').value,
+    disliked_foods: document.getElementById('pe-dis').value,
+    cooking_level: document.getElementById('pe-cooking').value,
+    health_conditions: peHealthArr,
+    gender: peGenderVal,
+    // Keep existing values for fields not in this form
+    exercise: 'לא שונה',
+    wake_time: '07:00',
+    sleep_time: '23:00',
+    restrictions: []
+  };
+  try {
+    const r = await fetch('/api/setup-profile', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+    const d = await r.json();
+    if(d.ok) {
+      closeProfileEdit();
+      loadStats();
+      showNotifMsg('✅ הפרופיל עודכן בהצלחה!');
+    }
+  } catch(e) { console.log('save profile err', e); }
+}
 </script>
 
 <!-- Premium Modal -->
@@ -1641,6 +1724,82 @@ function loadVitaminState() {
     <button onclick="saveBurnActivity()" style="width:100%;padding:10px;background:linear-gradient(135deg,var(--em),var(--vi));border:none;border-radius:var(--radius-sm);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity var(--t-fast);">
       {{ 'שמור פעילות' if lang == 'he' else 'Save Activity' }}
     </button>
+  </div>
+</div>
+
+<!-- Profile Edit Modal -->
+<div id="profile-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px;">
+  <div style="background:var(--sidebar);border-radius:var(--radius-lg);width:100%;max-width:460px;padding:24px;margin:auto;position:relative;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="font-size:15px;font-weight:600;color:var(--text);">עריכת פרופיל</div>
+      <button onclick="closeProfileEdit()" style="background:none;border:none;cursor:pointer;color:var(--sub);display:flex;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <!-- Gender -->
+    <div style="margin-bottom:16px;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">מגדר</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <button type="button" onclick="peGender('male')" id="pe-g-male" style="padding:8px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;">זכר ♂</button>
+        <button type="button" onclick="peGender('female')" id="pe-g-female" style="padding:8px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;">נקבה ♀</button>
+        <button type="button" onclick="peGender('other')" id="pe-g-other" style="padding:8px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;">אחר</button>
+      </div>
+    </div>
+
+    <!-- Age / Height / Weight / Target -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">גיל</label>
+        <input type="number" id="pe-age" min="10" max="100" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">גובה (ס"מ)</label>
+        <input type="number" id="pe-height" min="100" max="250" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">משקל נוכחי (ק"ג)</label>
+        <input type="number" id="pe-weight" min="30" max="300" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">משקל יעד (ק"ג)</label>
+        <input type="number" id="pe-target" min="30" max="300" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+      </div>
+    </div>
+
+    <!-- Food prefs -->
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">אוכלים שאוהב</label>
+      <input type="text" id="pe-fav" placeholder="סלמון, ביצים, אבוקדו..." style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">אוכלים שלא אוהב</label>
+      <input type="text" id="pe-dis" placeholder="כרוב, מיונז..." style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
+    </div>
+
+    <!-- Cooking level -->
+    <div style="margin-bottom:16px;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">רמת בישול</label>
+      <select id="pe-cooking" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+        <option value="מינימלי">מינימלי — מוכן / משלוח</option>
+        <option value="בסיסי">בסיסי — ביצים, פסטה, סנדוויצ'</option>
+        <option value="בינוני">בינוני — מבשל ארוחות מלאות</option>
+        <option value="מתקדם">מתקדם — נהנה לבשל</option>
+      </select>
+    </div>
+
+    <!-- Health conditions -->
+    <div style="margin-bottom:20px;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">מצב בריאותי (אופציונלי)</label>
+      <div id="pe-health-chips" style="display:flex;flex-wrap:wrap;gap:6px;">
+        <button type="button" onclick="pToggleHealth(this,'סוכרת סוג 2')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">סוכרת סוג 2</button>
+        <button type="button" onclick="pToggleHealth(this,'לחץ דם גבוה')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">לחץ דם גבוה</button>
+        <button type="button" onclick="pToggleHealth(this,'כולסטרול גבוה')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">כולסטרול גבוה</button>
+        <button type="button" onclick="pToggleHealth(this,'IBS / מעי רגיז')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">IBS</button>
+        <button type="button" onclick="pToggleHealth(this,'תירואיד')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">תירואיד</button>
+        <button type="button" onclick="pToggleHealth(this,'PCOS')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">PCOS</button>
+      </div>
+    </div>
+
+    <button onclick="saveProfileEdit()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--em),var(--vi));border:none;border-radius:var(--radius-sm);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">שמור שינויים</button>
   </div>
 </div>
 
