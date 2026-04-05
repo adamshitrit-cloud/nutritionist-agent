@@ -1573,13 +1573,14 @@ function loadVitaminState() {
 // ── Profile Edit ──
 let peGenderVal = '';
 let peHealthArr = [];
+let peExerciseVal = '';
+let peRestrictArr = [];
 
 async function openProfileEdit() {
   document.getElementById('profile-edit-modal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
   try {
     const p = await (await fetch('/api/profile')).json();
-    // Fill fields
     if(p.age) document.getElementById('pe-age').value = p.age;
     if(p.height_cm) document.getElementById('pe-height').value = p.height_cm;
     if(p.current_weight_kg) document.getElementById('pe-weight').value = p.current_weight_kg;
@@ -1587,14 +1588,31 @@ async function openProfileEdit() {
     if(p.fav_foods) document.getElementById('pe-fav').value = p.fav_foods;
     if(p.disliked_foods) document.getElementById('pe-dis').value = p.disliked_foods;
     if(p.cooking_level) document.getElementById('pe-cooking').value = p.cooking_level;
+    if(p.wake_time) document.getElementById('pe-wake').value = p.wake_time;
+    if(p.sleep_time) document.getElementById('pe-sleep').value = p.sleep_time;
     // Gender
     if(p.gender) { peGenderVal = p.gender; peGender(p.gender); }
+    // Exercise
+    peExerciseVal = p.exercise || '';
+    document.querySelectorAll('#pe-exercise-chips button').forEach(btn => {
+      const match = peExerciseVal && btn.textContent.replace(/[🛋️🚶🏋️⚡\s]/g,'').includes(peExerciseVal.replace(/[^א-ת0-9\-]/g,'').substring(0,4));
+      if(match){btn.style.background='var(--em-dim)';btn.style.borderColor='var(--em)';btn.style.color='var(--em)';}
+      else{btn.style.background='transparent';btn.style.borderColor='rgba(255,255,255,.12)';btn.style.color='var(--sub)';}
+    });
+    // Restrictions
+    peRestrictArr = p.restrictions || [];
+    document.querySelectorAll('#pe-restrict-chips button').forEach(btn => {
+      const txt = btn.textContent.trim().replace(/^[^\s]+\s/,'');
+      const active = peRestrictArr.some(r => btn.textContent.includes(r) || r.includes(txt));
+      if(active){btn.style.background='var(--em-dim)';btn.style.borderColor='var(--em)';btn.style.color='var(--em)';}
+      else{btn.style.background='transparent';btn.style.borderColor='rgba(255,255,255,.12)';btn.style.color='var(--sub)';}
+    });
     // Health chips
     peHealthArr = p.health_conditions || [];
     document.querySelectorAll('#pe-health-chips button').forEach(btn => {
-      const isActive = peHealthArr.includes(btn.textContent.trim()) || peHealthArr.some(h => btn.textContent.includes(h));
-      if(isActive) { btn.style.background='var(--em-dim)'; btn.style.borderColor='var(--em)'; btn.style.color='var(--em)'; }
-      else { btn.style.background='transparent'; btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.color='var(--sub)'; }
+      const active = peHealthArr.some(h => btn.textContent.includes(h) || h.includes(btn.textContent.trim()));
+      if(active){btn.style.background='var(--em-dim)';btn.style.borderColor='var(--em)';btn.style.color='var(--em)';}
+      else{btn.style.background='transparent';btn.style.borderColor='rgba(255,255,255,.12)';btn.style.color='var(--sub)';}
     });
   } catch(e) { console.log('profile load err',e); }
 }
@@ -1623,6 +1641,25 @@ function pToggleHealth(btn, val) {
   }
 }
 
+function pePickExercise(btn, val) {
+  peExerciseVal = val;
+  document.querySelectorAll('#pe-exercise-chips button').forEach(b => {
+    b.style.background='transparent'; b.style.borderColor='rgba(255,255,255,.12)'; b.style.color='var(--sub)';
+  });
+  btn.style.background='var(--em-dim)'; btn.style.borderColor='var(--em)'; btn.style.color='var(--em)';
+}
+
+function peToggleRestrict(btn, val) {
+  const idx = peRestrictArr.indexOf(val);
+  if(idx === -1) {
+    peRestrictArr.push(val);
+    btn.style.background='var(--em-dim)'; btn.style.borderColor='var(--em)'; btn.style.color='var(--em)';
+  } else {
+    peRestrictArr.splice(idx, 1);
+    btn.style.background='transparent'; btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.color='var(--sub)';
+  }
+}
+
 async function saveProfileEdit() {
   const targetVal = parseFloat(document.getElementById('pe-target').value) || 70;
   const payload = {
@@ -1635,11 +1672,10 @@ async function saveProfileEdit() {
     cooking_level: document.getElementById('pe-cooking').value,
     health_conditions: peHealthArr,
     gender: peGenderVal,
-    // Keep existing values for fields not in this form
-    exercise: 'לא שונה',
-    wake_time: '07:00',
-    sleep_time: '23:00',
-    restrictions: []
+    exercise: peExerciseVal || undefined,
+    wake_time: document.getElementById('pe-wake').value || '07:00',
+    sleep_time: document.getElementById('pe-sleep').value || '23:00',
+    restrictions: peRestrictArr
   };
   try {
     const r = await fetch('/api/setup-profile', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
@@ -1784,6 +1820,42 @@ async function saveProfileEdit() {
         <option value="בינוני">בינוני — מבשל ארוחות מלאות</option>
         <option value="מתקדם">מתקדם — נהנה לבשל</option>
       </select>
+    </div>
+
+    <!-- Exercise frequency -->
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">תדירות פעילות גופנית</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="pe-exercise-chips">
+        <button type="button" onclick="pePickExercise(this,'כמעט ללא פעילות')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🛋️ כמעט ללא</button>
+        <button type="button" onclick="pePickExercise(this,'1-2 פעמים בשבוע')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🚶 1-2 פעמים</button>
+        <button type="button" onclick="pePickExercise(this,'3-4 פעמים בשבוע')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🏋️ 3-4 פעמים</button>
+        <button type="button" onclick="pePickExercise(this,'כל יום')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">⚡ כל יום</button>
+      </div>
+    </div>
+
+    <!-- Wake / Sleep times -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">שעת קימה</label>
+        <input type="time" id="pe-wake" value="07:00" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">שעת שינה</label>
+        <input type="time" id="pe-sleep" value="23:00" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+      </div>
+    </div>
+
+    <!-- Dietary restrictions -->
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">הגבלות תזונה</label>
+      <div id="pe-restrict-chips" style="display:flex;flex-wrap:wrap;gap:6px;">
+        <button type="button" onclick="peToggleRestrict(this,'צמחוני')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🌱 צמחוני</button>
+        <button type="button" onclick="peToggleRestrict(this,'טבעוני')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🌿 טבעוני</button>
+        <button type="button" onclick="peToggleRestrict(this,'ללא גלוטן')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🌾 ללא גלוטן</button>
+        <button type="button" onclick="peToggleRestrict(this,'ללא לקטוז')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🥛 ללא לקטוז</button>
+        <button type="button" onclick="peToggleRestrict(this,'כשר')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">✡️ כשר</button>
+        <button type="button" onclick="peToggleRestrict(this,'ללא בוטנים')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🥜 ללא בוטנים</button>
+      </div>
     </div>
 
     <!-- Health conditions -->

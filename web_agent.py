@@ -620,12 +620,12 @@ def api_setup_profile():
             "meal_frequency": data.get("meal_frequency", existing.get("meal_frequency", "3")),
             "restrictions": data.get("restrictions", existing.get("restrictions", [])),
         })
-        # Only update exercise if not placeholder
-        if data.get("exercise") and data.get("exercise") != 'לא שונה':
+        # Update exercise/wake/sleep only when explicitly provided
+        if data.get("exercise"):
             existing["exercise"] = data["exercise"]
-        if data.get("wake_time") and data.get("wake_time") != '07:00':
+        if data.get("wake_time"):
             existing["wake_time"] = data["wake_time"]
-        if data.get("sleep_time") and data.get("sleep_time") != '23:00':
+        if data.get("sleep_time"):
             existing["sleep_time"] = data["sleep_time"]
         # Keep name from existing or session
         if data.get("name"):
