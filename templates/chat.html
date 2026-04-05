@@ -14,12 +14,12 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --em:#00D4FF;--em-l:#33DDFF;--em-dim:rgba(0,212,255,.10);--em-border:rgba(0,212,255,.25);
+      --em:#8B5CF6;--em-l:#A78BFA;--em-dim:rgba(139,92,246,.10);--em-border:rgba(139,92,246,.25);
       --vi:#6B5CE7;--vi-l:#a78bfa;--vi-dim:rgba(107,92,231,.1);
-      --gold:#C9A960;--gold-dim:rgba(201,169,96,.10);--gold-border:rgba(201,169,96,.25);
-      --bg:#070B12;--sidebar:#090E1A;--card:rgba(255,255,255,.04);
-      --border:rgba(100,140,255,.12);--text:#E8F0FE;--sub:#7A8BA8;--muted:#2A3A52;
-      --user-bg:rgba(107,92,231,.15);--user-border:rgba(107,92,231,.3);
+      --gold:#E879A0;--gold-dim:rgba(232,121,160,.10);--gold-border:rgba(232,121,160,.25);
+      --bg:#0D0A1E;--sidebar:#100C24;--card:rgba(255,255,255,.04);
+      --border:rgba(139,92,246,.15);--text:#F0ECFF;--sub:#8A7AAA;--muted:#2E2050;
+      --user-bg:rgba(139,92,246,.15);--user-border:rgba(139,92,246,.3);
       --alert:#FF6B6B;
     }
     body{
@@ -223,7 +223,7 @@
     #input-row:focus-within{
       border-color:var(--em-border);
       box-shadow:0 0 0 3px var(--em-dim);
-      border-color:rgba(0,212,255,.35);
+      border-color:rgba(139,92,246,.35);
     }
     #msg-input{
       flex:1;background:none;border:none;outline:none;
@@ -241,13 +241,13 @@
     .icon-btn:hover{color:var(--em);}
     #send-btn{
       width:36px;height:36px;border-radius:10px;
-      background:linear-gradient(135deg,var(--em),#0099BB);
+      background:linear-gradient(135deg,var(--em),#6B5CE7);
       border:none;cursor:pointer;flex-shrink:0;
       display:flex;align-items:center;justify-content:center;
       font-size:15px;transition:all .2s;
-      box-shadow:0 4px 12px rgba(0,212,255,.25);
+      box-shadow:0 4px 12px rgba(139,92,246,.25);
     }
-    #send-btn:hover{transform:scale(1.05);box-shadow:0 6px 16px rgba(0,212,255,.4);}
+    #send-btn:hover{transform:scale(1.05);box-shadow:0 6px 16px rgba(139,92,246,.4);}
     #send-btn:disabled{background:var(--muted);cursor:default;box-shadow:none;transform:none;}
 
     /* Streak card */
@@ -356,14 +356,14 @@
 
     /* ── Light mode overrides ── */
     body.light-mode {
-      --bg:#f0faf5; --sidebar:#e8f5ed; --card:rgba(0,0,0,.04);
-      --border:rgba(0,0,0,.08); --text:#1a2e23; --sub:#3d7a56; --muted:#a0c4b0;
+      --bg:#F5F0FF; --sidebar:#EDE8FF; --card:rgba(0,0,0,.04);
+      --border:rgba(139,92,246,.15); --text:#1A0A3C; --sub:#6B5CF6; --muted:#C4B8E8;
       --user-bg:rgba(139,92,246,.1); --user-border:rgba(139,92,246,.2);
     }
     body.light-mode #sidebar { background:var(--sidebar); }
-    body.light-mode #main { background:#f0f4ff; }
-    body.light-mode #topbar { background:rgba(232,238,254,.85); }
-    body.light-mode #input-bar { background:rgba(240,244,255,.95); }
+    body.light-mode #main { background:#F8F5FF; }
+    body.light-mode #topbar { background:rgba(237,232,255,.85); }
+    body.light-mode #input-bar { background:rgba(245,240,255,.95); }
     body.light-mode #input-row { background:rgba(255,255,255,.7); }
   </style>
 </head>
@@ -389,20 +389,20 @@
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'BIOMARKERS' if lang == 'he' else 'BIOMARKERS' }}</div>
+    <div class="sb-sec-title">{{ 'נתוני בריאות' if lang == 'he' else 'BIOMARKERS' }}</div>
     <div class="stat-row">
       <div class="stat-card">
-        <div class="stat-lbl">⚖️ {{ 'BODY MASS' if lang == 'he' else 'BODY MASS' }}</div>
+        <div class="stat-lbl">⚖️ {{ 'משקל גוף' if lang == 'he' else 'BODY MASS' }}</div>
         <div class="stat-val" id="s-w">—</div>
         <div class="stat-sub">kg</div>
       </div>
       <div class="stat-card">
-        <div class="stat-lbl">🎯 {{ 'TARGET' if lang == 'he' else 'TARGET' }}</div>
+        <div class="stat-lbl">🎯 {{ 'יעד' if lang == 'he' else 'TARGET' }}</div>
         <div class="stat-val" id="s-t">—</div>
         <div class="stat-sub">kg</div>
       </div>
       <div class="stat-card full">
-        <div class="stat-lbl">📉 {{ 'ΔWEIGHT' if lang == 'he' else 'ΔWEIGHT' }}</div>
+        <div class="stat-lbl">📉 {{ 'שינוי משקל' if lang == 'he' else 'ΔWEIGHT' }}</div>
         <div class="stat-val" id="s-l">—</div>
         <div class="stat-sub" id="s-ls"></div>
       </div>
@@ -417,9 +417,9 @@
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'WEIGHT TRAJECTORY' if lang == 'he' else 'WEIGHT TRAJECTORY' }}</div>
+    <div class="sb-sec-title">{{ 'מסלול משקל' if lang == 'he' else 'WEIGHT TRAJECTORY' }}</div>
     <div class="chart-card">
-      <div class="chart-title">{{ 'WEIGHT LOG' if lang == 'he' else 'WEIGHT LOG' }}</div>
+      <div class="chart-title">{{ 'יומן משקל' if lang == 'he' else 'WEIGHT LOG' }}</div>
       <canvas id="wChart"></canvas>
     </div>
   </div>
@@ -429,14 +429,14 @@
     <div class="cal-ring-wrap">
       <svg class="cal-ring-svg" width="92" height="92" viewBox="0 0 92 92">
         <circle cx="46" cy="46" r="40" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
-        <circle id="cal-ring-circle" cx="46" cy="46" r="40" fill="none" stroke="#00D4FF" stroke-width="6"
+        <circle id="cal-ring-circle" cx="46" cy="46" r="40" fill="none" stroke="#8B5CF6" stroke-width="6"
           stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"
           transform="rotate(-90 46 46)" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
         <text x="46" y="42" text-anchor="middle" fill="#E8F0FE" font-size="13" font-weight="800" font-family="Inter,sans-serif" id="cal-ring-num">0</text>
         <text x="46" y="56" text-anchor="middle" fill="#7A8BA8" font-size="8" font-family="Inter,sans-serif">kcal</text>
       </svg>
       <div class="cal-ring-info">
-        <div class="cal-ring-lbl">{{ 'CALORIC LOAD' if lang == 'he' else 'CALORIC LOAD' }}</div>
+        <div class="cal-ring-lbl">{{ 'עומס קלורי' if lang == 'he' else 'CALORIC LOAD' }}</div>
         <div class="cal-ring-val" id="cal-today">0</div>
         <div class="cal-ring-sub">{{ 'מתוך' if lang == 'he' else 'of' }} <span id="cal-target">2100</span> יעד</div>
       </div>
@@ -445,7 +445,7 @@
     <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'רצף ימים' if lang == 'he' else 'Streak' }}</div>
     <div class="streak-card" id="streak-card">
       <div>
-        <div class="stat-lbl">⚡ {{ 'STREAK' if lang == 'he' else 'STREAK' }}</div>
+        <div class="stat-lbl">⚡ {{ 'רצף ימים' if lang == 'he' else 'STREAK' }}</div>
         <div class="streak-val normal-text" id="streak-val">0</div>
         <div class="streak-info" id="streak-info">{{ 'רשום ארוחה כדי להתחיל!' if lang == 'he' else 'Log a meal to start!' }}</div>
       </div>
@@ -455,7 +455,7 @@
     <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'מים' if lang == 'he' else 'Water' }}</div>
     <div class="water-wrap">
       <div class="water-header">
-        <span class="water-title">{{ 'HYDRATION' if lang == 'he' else 'HYDRATION' }}</span>
+        <span class="water-title">{{ 'הידרציה' if lang == 'he' else 'HYDRATION' }}</span>
         <span class="water-count"><span id="water-count">0</span>/8 {{ 'כוסות' if lang == 'he' else 'glasses' }}</span>
       </div>
       <div class="water-drops" id="water-drops">
@@ -476,6 +476,38 @@
     </div>
   </div>
 
+  <!-- Diet Mode Selector -->
+  <div class="sb-sec" style="border-top:1px solid var(--border);">
+    <div class="sb-sec-title">{{ 'מצב תזונה' if lang == 'he' else 'Diet Mode' }}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+      <button id="diet-balanced" onclick="setDietMode('balanced')"
+        style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--em-dim);color:var(--em);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
+        ⚖️ {{ 'מאוזן' if lang == 'he' else 'Balanced' }}</button>
+      <button id="diet-keto" onclick="setDietMode('keto')"
+        style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
+        🔥 {{ 'קטוגני' if lang == 'he' else 'Keto' }}</button>
+      <button id="diet-mediterranean" onclick="setDietMode('mediterranean')"
+        style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
+        🫒 {{ 'ים-תיכוני' if lang == 'he' else 'Mediterranean' }}</button>
+      <button id="diet-intermittent" onclick="setDietMode('intermittent')"
+        style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
+        ⏱️ {{ 'צום+חלבון' if lang == 'he' else 'IF+Protein' }}</button>
+    </div>
+    <!-- Pregnancy mode toggle -->
+    <button id="preg-toggle" onclick="togglePregnancyMode()"
+      style="width:100%;padding:7px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--sub);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;margin-bottom:4px;">
+      🤰 {{ 'מצב הריון' if lang == 'he' else 'Pregnancy Mode' }}
+    </button>
+    <div id="preg-week-row" style="display:none;margin-top:6px;">
+      <input type="number" id="preg-week-input" min="1" max="42" placeholder="{{ 'שבוע הריון (1-42)' if lang == 'he' else 'Pregnancy week (1-42)' }}"
+        style="width:100%;padding:6px 10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;text-align:center;">
+      <button onclick="savePregnancyWeek()"
+        style="width:100%;margin-top:4px;padding:6px;background:rgba(232,121,160,.10);border:1px solid rgba(232,121,160,.3);border-radius:8px;color:var(--gold);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">
+        {{ 'שמור שבוע' if lang == 'he' else 'Save Week' }}</button>
+    </div>
+    <div id="diet-status" style="font-size:10px;color:var(--sub);margin-top:4px;text-align:center;"></div>
+  </div>
+
   <div class="sb-section" style="padding:14px 18px;border-top:1px solid var(--border);">
     <div style="font-size:11px;color:var(--sub);margin-bottom:8px;font-weight:600;letter-spacing:.5px;">⏱️ טיימר צום</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;">
@@ -483,14 +515,14 @@
       <button onclick="setFastMode(18)" id="fast18" class="fast-mode-btn" style="flex:1;padding:5px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;">18:6</button>
     </div>
     <div id="fast-display" style="text-align:center;margin-bottom:8px;">
-      <div id="fast-elapsed" style="font-size:22px;font-weight:700;color:#00D4FF;letter-spacing:1px;">00:00:00</div>
+      <div id="fast-elapsed" style="font-size:22px;font-weight:700;color:#8B5CF6;letter-spacing:1px;">00:00:00</div>
       <div id="fast-status" style="font-size:11px;color:var(--sub);">לא פעיל</div>
     </div>
-    <button id="fast-btn" onclick="toggleFast()" style="width:100%;padding:7px;background:rgba(0,212,255,.10);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:#00D4FF;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">▶ התחל צום</button>
+    <button id="fast-btn" onclick="toggleFast()" style="width:100%;padding:7px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">▶ התחל צום</button>
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'ACTIONS' if lang == 'he' else 'ACTIONS' }}</div>
+    <div class="sb-sec-title">{{ 'פעולות מהירות' if lang == 'he' else 'ACTIONS' }}</div>
     <div class="qa-list">
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today\'s meal plan{% endif %}')">
         <span>📅</span><span>{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</span>
@@ -525,14 +557,14 @@
       <button class="qa-btn" onclick="window.open('/gallery','_self')">
         <span>🖼️</span><span>{{ 'גלריית ארוחות' if lang == 'he' else 'Meal Gallery' }}</span>
       </button>
-      <div id="notif-msg" style="font-size:11px;color:#00D4FF;margin-top:4px;display:none;"></div>
+      <div id="notif-msg" style="font-size:11px;color:#8B5CF6;margin-top:4px;display:none;"></div>
     </div>
   </div>
 
   <div class="sb-footer">
     <div id="referral-box" style="margin-bottom:10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;">
       <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">👥 {{ 'הזמן חבר — קבל חודש פרמיום!' if lang == 'he' else 'Refer a friend — get premium!' }}</div>
-      <div id="ref-link" style="font-size:11px;color:#00D4FF;word-break:break-all;margin-bottom:6px;cursor:pointer;" onclick="copyRefLink()">{{ 'טוען...' if lang == 'he' else 'Loading...' }}</div>
+      <div id="ref-link" style="font-size:11px;color:#8B5CF6;word-break:break-all;margin-bottom:6px;cursor:pointer;" onclick="copyRefLink()">{{ 'טוען...' if lang == 'he' else 'Loading...' }}</div>
       <div id="ref-count" style="font-size:11px;color:var(--sub);"></div>
     </div>
     <div id="wa-link-box" style="margin-bottom:10px;">
@@ -541,7 +573,7 @@
         <input id="wa-phone-input" type="tel" placeholder="{{ '05XXXXXXXX' if lang == 'he' else '+1XXXXXXXXXX' }}"
           style="flex:1;padding:7px 10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;">
         <button onclick="linkWhatsApp()"
-          style="padding:7px 12px;background:rgba(0,212,255,.10);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:#00D4FF;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
+          style="padding:7px 12px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
           {{ 'חבר' if lang == 'he' else 'Link' }}
         </button>
       </div>
@@ -561,7 +593,7 @@
   <div id="topbar">
     <button id="menu-btn" onclick="toggleSidebar()" aria-label="תפריט">☰</button>
     <div class="top-avatar">🥗</div>
-    <div class="top-title">{{ 'Longevity AI' if lang == 'he' else 'Longevity AI' }}</div>
+    <div class="top-title">{{ 'AI תזונה חכמה' if lang == 'he' else 'Longevity AI' }}</div>
     <span class="top-badge" id="top-w"></span>
     <button id="theme-btn" onclick="toggleTheme()" title="החלף מצב תצוגה"
       style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--sub);cursor:pointer;font-size:14px;">🌙</button>
@@ -593,10 +625,10 @@
   <div style="background:#0B1120;border:1px solid rgba(0,212,255,.25);border-radius:20px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;position:relative;">
     <button onclick="document.getElementById('shop-modal').style.display='none'"
       style="position:absolute;top:12px;left:12px;background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;">✕</button>
-    <h3 style="color:#00D4FF;margin-bottom:16px;font-size:16px;">🛒 {{ 'רשימת קניות שבועית' if lang == 'he' else 'Weekly Shopping List' }}</h3>
+    <h3 style="color:#8B5CF6;margin-bottom:16px;font-size:16px;">🛒 {{ 'רשימת קניות שבועית' if lang == 'he' else 'Weekly Shopping List' }}</h3>
     <div id="shop-content" style="color:var(--text);font-size:14px;line-height:1.7;white-space:pre-wrap;"></div>
     <button onclick="copyShoppingList()"
-      style="margin-top:16px;width:100%;padding:10px;background:rgba(0,212,255,.10);border:1px solid rgba(0,212,255,.25);border-radius:10px;color:#00D4FF;cursor:pointer;font-family:'Inter',sans-serif;">
+      style="margin-top:16px;width:100%;padding:10px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:10px;color:#8B5CF6;cursor:pointer;font-family:'Inter',sans-serif;">
       📋 {{ 'העתק רשימה' if lang == 'he' else 'Copy List' }}
     </button>
   </div>
@@ -809,6 +841,10 @@
         if(pText)pText.textContent=(d.referral_count||0)+'/3 חברים הצטרפו';
         if(pBar)pBar.style.width=Math.min(100,(d.referral_count||0)/3*100)+'%';
       }
+
+      // Restore diet mode
+      if(d.diet_mode) { currentDietMode = d.diet_mode; updateDietButtons(d.diet_mode); const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'}; document.getElementById('diet-status').textContent = d.diet_mode !== 'balanced' ? 'מצב פעיל: '+(labels[d.diet_mode]||d.diet_mode) : ''; }
+      if(d.pregnancy_mode) { pregnancyModeActive = true; const btn=document.getElementById('preg-toggle'); if(btn){btn.style.background='rgba(232,121,160,.10)';btn.style.borderColor='rgba(232,121,160,.3)';btn.style.color='var(--gold)';} const row=document.getElementById('preg-week-row'); if(row) row.style.display='block'; const inp=document.getElementById('preg-week-input'); if(inp&&d.pregnancy_week) inp.value=d.pregnancy_week; const tri=d.pregnancy_week<=13?1:(d.pregnancy_week<=26?2:3); const ds=document.getElementById('diet-status'); if(ds) ds.textContent=`🤰 שבוע ${d.pregnancy_week} | טרימסטר ${tri}`; }
 
     }catch(e){console.log('stats err',e);}
   }
@@ -1192,6 +1228,76 @@
     loadReferral();
     qs(LANG==='he'?'שלום! תראה לי את תפריט היום ותסביר מה חשוב.':'Hello! Show me today\'s meal plan and what I should know.');
   };
+
+// ── Diet Mode ──
+let currentDietMode = 'balanced';
+let pregnancyModeActive = false;
+
+function setDietMode(mode) {
+  fetch('/api/diet-mode', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mode})
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok) {
+      currentDietMode = mode;
+      updateDietButtons(mode);
+      const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'};
+      document.getElementById('diet-status').textContent = 'מצב פעיל: ' + (labels[mode]||mode);
+    }
+  }).catch(()=>{});
+}
+
+function updateDietButtons(mode) {
+  ['balanced','keto','mediterranean','intermittent'].forEach(m=>{
+    const btn = document.getElementById('diet-'+m);
+    if(!btn) return;
+    if(m === mode) {
+      btn.style.background = 'var(--em-dim)';
+      btn.style.borderColor = 'var(--em-border)';
+      btn.style.color = 'var(--em)';
+    } else {
+      btn.style.background = 'var(--card)';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--sub)';
+    }
+  });
+}
+
+function togglePregnancyMode() {
+  pregnancyModeActive = !pregnancyModeActive;
+  const row = document.getElementById('preg-week-row');
+  const btn = document.getElementById('preg-toggle');
+  if(pregnancyModeActive) {
+    row.style.display = 'block';
+    btn.style.background = 'rgba(232,121,160,.10)';
+    btn.style.borderColor = 'rgba(232,121,160,.3)';
+    btn.style.color = 'var(--gold)';
+  } else {
+    row.style.display = 'none';
+    btn.style.background = 'var(--card)';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--sub)';
+    // Disable pregnancy mode
+    fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:false,week:0})});
+    document.getElementById('diet-status').textContent = '';
+  }
+}
+
+function savePregnancyWeek() {
+  const week = parseInt(document.getElementById('preg-week-input').value) || 0;
+  if(week < 1 || week > 42) {
+    document.getElementById('diet-status').textContent = 'הכנס שבוע תקין (1-42)';
+    return;
+  }
+  fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:true,week})})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok) {
+        const trimester = week<=13?1:(week<=26?2:3);
+        document.getElementById('diet-status').textContent = `🤰 שבוע ${week} | טרימסטר ${trimester}`;
+      }
+    });
+}
 </script>
 
 <!-- Premium Modal -->
@@ -1217,9 +1323,9 @@
 
 <!-- Barcode Modal -->
 <div id="barcode-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;">
-  <div style="background:#0B1120;border:1px solid rgba(0,212,255,.25);border-radius:20px;padding:24px;width:90%;max-width:400px;">
+  <div style="background:#0B1120;border:1px solid rgba(139,92,246,.25);border-radius:20px;padding:24px;width:90%;max-width:400px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h3 style="color:#00D4FF;font-size:15px;">📷 סריקת ברקוד</h3>
+      <h3 style="color:#8B5CF6;font-size:15px;">📷 סריקת ברקוד</h3>
       <button onclick="closeBarcodeScanner()" style="background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;">✕</button>
     </div>
     <video id="barcode-video" style="width:100%;border-radius:10px;background:#000;max-height:220px;" autoplay playsinline muted></video>
@@ -1227,7 +1333,7 @@
     <input id="barcode-manual" type="text" placeholder="או הכנס ברקוד ידנית (EAN-13...)"
       style="width:100%;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;margin-bottom:8px;">
     <button onclick="lookupBarcode(document.getElementById('barcode-manual').value)"
-      style="width:100%;padding:9px;background:rgba(0,212,255,.10);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:#00D4FF;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">חפש מוצר</button>
+      style="width:100%;padding:9px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">חפש מוצר</button>
   </div>
 </div>
 

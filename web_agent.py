@@ -284,7 +284,10 @@ def get_user_stats(user_id: str) -> dict:
             "target_kcal": profile.get("target_kcal", 2100),
             "measurements": latest_measurements,
             "is_premium": is_premium,
-            "referral_count": referral_count
+            "referral_count": referral_count,
+            "diet_mode": profile.get("diet_mode", "balanced"),
+            "pregnancy_mode": profile.get("pregnancy_mode", False),
+            "pregnancy_week": profile.get("pregnancy_week", 0)
         }
     except Exception as e:
         return {}
@@ -567,6 +570,51 @@ def api_link_phone():
         return jsonify({"error": "מספר טלפון חסר"})
     _link_phone_to_user(phone, uid)
     return jsonify({"ok": True})
+
+@app.route("/api/diet-mode", methods=["POST"])
+def api_diet_mode():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    data = request.get_json()
+    mode = data.get("mode", "balanced")  # balanced/keto/mediterranean/intermittent
+    try:
+        nutritionist._current_user_id = uid
+        profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
+        profile["diet_mode"] = mode
+        nutritionist._redis_set(nutritionist.PROFILE_FILE, profile)
+        return jsonify({"ok": True, "mode": mode})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        nutritionist._current_user_id = None
+
+@app.route("/api/pregnancy-mode", methods=["POST"])
+def api_pregnancy_mode():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    data = request.get_json()
+    enabled = data.get("enabled", False)
+    week = int(data.get("week", 0))
+    try:
+        nutritionist._current_user_id = uid
+        profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
+        profile["pregnancy_mode"] = enabled
+        profile["pregnancy_week"] = week
+        # Adjust target calories based on trimester
+        if enabled and week > 0:
+            trimester = 1 if week <= 13 else (2 if week <= 26 else 3)
+            extra = {1: 0, 2: 350, 3: 450}.get(trimester, 0)
+            base_kcal = profile.get("target_kcal", 2100)
+            # Reset to base if switching, then add trimester bonus
+            profile["target_kcal"] = base_kcal + extra
+        nutritionist._redis_set(nutritionist.PROFILE_FILE, profile)
+        return jsonify({"ok": True, "enabled": enabled, "week": week})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        nutritionist._current_user_id = None
 
 @app.route("/reset", methods=["POST"])
 def reset():
