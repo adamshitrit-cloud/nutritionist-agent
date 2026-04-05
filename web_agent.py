@@ -542,6 +542,7 @@ def api_calorie_burn():
                 calories = int(data.get("calories", 0))
                 duration_min = int(data.get("duration_min", 0))
                 entry = {
+                    "id": str(uuid.uuid4())[:8],
                     "date": today,
                     "time": __import__('datetime').datetime.now().strftime("%H:%M"),
                     "activity": activity,
@@ -553,10 +554,19 @@ def api_calorie_burn():
                 today_burn = sum(e["calories"] for e in burn_log if e.get("date") == today)
                 return jsonify({"ok": True, "today_burn": today_burn})
             elif action == "delete":
-                idx = data.get("index", -1)
-                if 0 <= idx < len(burn_log):
-                    burn_log.pop(idx)
-                    nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
+                entry_id = data.get("id")
+                if entry_id:
+                    # Delete by unique ID (robust — index-independent)
+                    before = len(burn_log)
+                    progress["burn_log"] = [e for e in burn_log if e.get("id") != entry_id]
+                    if len(progress["burn_log"]) < before:
+                        nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
+                else:
+                    # Fallback: delete by global index (legacy)
+                    idx = data.get("index", -1)
+                    if 0 <= idx < len(burn_log):
+                        burn_log.pop(idx)
+                        nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
                 return jsonify({"ok": True})
 
         # GET — return burn data

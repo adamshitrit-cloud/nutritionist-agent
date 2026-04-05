@@ -1448,11 +1448,11 @@ async function loadBurnData() {
     const container = document.getElementById('burn-activities');
     if(container) {
       if(d.today_entries && d.today_entries.length > 0) {
-        container.innerHTML = d.today_entries.map((e, i) =>
+        container.innerHTML = d.today_entries.map((e) =>
           `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--card);border-radius:var(--radius-sm);font-size:11px;gap:6px;">
             <span style="color:var(--sub);flex:1;">${e.activity} · ${e.duration_min} דק'</span>
             <span style="color:var(--em);font-weight:600;">${e.calories} קל</span>
-            <button onclick="deleteBurnEntry(${i})" style="background:none;border:none;cursor:pointer;color:var(--sub);padding:0 2px;font-size:13px;line-height:1;transition:color .15s;" onmouseenter="this.style.color='#fb7185'" onmouseleave="this.style.color='var(--sub)'">✕</button>
+            <button onclick="deleteBurnEntry('${e.id||''}')" style="background:none;border:none;cursor:pointer;color:var(--sub);padding:0 2px;font-size:13px;line-height:1;transition:color .15s;" onmouseenter="this.style.color='#fb7185'" onmouseleave="this.style.color='var(--sub)'">✕</button>
           </div>`
         ).join('');
       } else {
@@ -1484,12 +1484,13 @@ async function saveBurnActivity() {
   } catch(e) { console.log('burn save err', e); }
 }
 
-async function deleteBurnEntry(index) {
+async function deleteBurnEntry(id) {
   try {
+    const payload = id ? {action: 'delete', id} : {action: 'delete', index: -1};
     const d = await (await fetch('/api/calorie-burn', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({action: 'delete', index})
+      body: JSON.stringify(payload)
     })).json();
     if(d.ok) { loadBurnData(); loadStats(); }
   } catch(e) { console.log('burn delete err', e); }
