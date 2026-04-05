@@ -292,7 +292,8 @@ def get_user_stats(user_id: str) -> dict:
             "diet_mode": profile.get("diet_mode", "balanced"),
             "pregnancy_mode": profile.get("pregnancy_mode", False),
             "pregnancy_week": profile.get("pregnancy_week", 0),
-            "today_burn": today_burn
+            "today_burn": today_burn,
+            "gender": profile.get("gender", "")
         }
     except Exception as e:
         return {}
@@ -613,7 +614,8 @@ def api_setup_profile():
         "disliked_foods": data.get("disliked_foods", ""),
         "meal_frequency": data.get("meal_frequency", "3"),
         "cooking_level": data.get("cooking_level", "בסיסי"),
-        "health_conditions": data.get("health_conditions", [])
+        "health_conditions": data.get("health_conditions", []),
+        "gender": data.get("gender", "")
     }
 
     try:

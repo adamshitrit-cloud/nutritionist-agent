@@ -552,7 +552,7 @@
   </div>
 
   <!-- ── Pregnancy Tracker ── -->
-  <div class="sb-sec" id="pregnancy-section" style="border-top:1px solid rgba(255,255,255,.05);">
+  <div class="sb-sec" id="preg-section" style="border-top:1px solid rgba(255,255,255,.05);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div class="sb-sec-title" style="margin-bottom:0;color:var(--gold);">
         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:4px;opacity:.9;"><ellipse cx="12" cy="13" rx="6" ry="8"/><path d="M12 5V2"/><path d="M9 2h6"/></svg>
@@ -1004,6 +1004,12 @@
 
       // Restore diet mode
       if(d.diet_mode) { currentDietMode = d.diet_mode; updateDietButtons(d.diet_mode); const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'}; const ds = document.getElementById('diet-status'); if(ds) ds.textContent = d.diet_mode !== 'balanced' ? 'מצב פעיל: '+(labels[d.diet_mode]||d.diet_mode) : ''; }
+      if(d.gender !== undefined) {
+        const pregSection = document.getElementById('preg-section');
+        if(pregSection) {
+          pregSection.style.display = (d.gender === 'female' || d.gender === 'other' || d.gender === '') ? '' : 'none';
+        }
+      }
       if(d.pregnancy_mode && d.pregnancy_week > 0) {
         const check = document.getElementById('preg-toggle-check');
         if(check) { check.checked = true; }

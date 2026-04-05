@@ -741,6 +741,7 @@ def build_system_prompt() -> str:
 {today_food_section}
 
 **פרופיל המשתמש:**
+- מגדר: {profile.get('gender', '') or 'לא צוין'}
 - גיל: {profile.get('age', 39)}, גובה: {profile.get('height_cm', 190)}cm
 - משקל נוכחי: {latest_weight}kg | יעד: {target_min}-{target_max}kg | נשאר: {kg_to_go}kg
 - אימון: {profile.get('exercise', 'ריצה פעם בשבוע')}

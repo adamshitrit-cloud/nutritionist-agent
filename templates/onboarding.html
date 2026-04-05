@@ -179,6 +179,12 @@
       <div class="card-icon">👤</div>
       <div class="card-title">מידע בסיסי</div>
       <div class="card-sub">ספר לנו קצת על עצמך כדי שנוכל להתאים את התוכנית האישית שלך</div>
+      <label style="display:block;font-size:12px;color:rgba(255,255,255,.5);margin-bottom:8px;font-family:'Inter',sans-serif;">מגדר</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+        <button type="button" onclick="pickGender('male')" id="g-male" style="padding:10px;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:transparent;color:rgba(255,255,255,.7);font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;">זכר ♂</button>
+        <button type="button" onclick="pickGender('female')" id="g-female" style="padding:10px;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:transparent;color:rgba(255,255,255,.7);font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;">נקבה ♀</button>
+        <button type="button" onclick="pickGender('other')" id="g-other" style="padding:10px;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:transparent;color:rgba(255,255,255,.7);font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;">אחר</button>
+      </div>
       <div class="field-row">
         <div class="field">
           <label>גיל</label>
@@ -340,6 +346,7 @@
   let restrictions = [];
   let mealFreq = '3';
   let healthConditions = [];
+  let gender = '';
 
   const stepTitles = ['שלב 1 מתוך 5','שלב 2 מתוך 5','שלב 3 מתוך 5','שלב 4 מתוך 5','סיום!'];
   const stepPcts = ['20%','40%','60%','80%','100%'];
@@ -371,6 +378,14 @@
         showConfettiSmall();
       }
     }
+  }
+
+  function pickGender(g) {
+    gender = g;
+    ['male','female','other'].forEach(x => {
+      const b = document.getElementById('g-'+x);
+      if(b) { b.style.background = x===g ? 'rgba(16,185,129,.15)' : 'transparent'; b.style.borderColor = x===g ? '#10b981' : 'rgba(255,255,255,.12)'; b.style.color = x===g ? '#10b981' : 'rgba(255,255,255,.7)'; }
+    });
   }
 
   function pickMealFreq(el, val) {
@@ -443,7 +458,8 @@
       disliked_foods: document.getElementById('disliked_foods').value || '',
       meal_frequency: mealFreq,
       cooking_level: document.getElementById('cooking_level').value || 'בסיסי',
-      health_conditions: healthConditions
+      health_conditions: healthConditions,
+      gender: gender
     };
 
     try{
