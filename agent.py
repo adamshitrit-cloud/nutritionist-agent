@@ -301,8 +301,13 @@ def log_weight(weight_kg: float, note: str = "") -> str:
     progress.setdefault("weight_log", []).append(entry)
     save_json(PROGRESS_FILE, progress)
 
-    start = profile.get("current_weight_kg", 93)
-    target = profile.get("target_weight_kg", 85.5)
+    # Keep profile.current_weight_kg in sync with latest logged weight
+    profile["current_weight_kg"] = weight_kg
+    save_json(PROFILE_FILE, profile)
+
+    logs_all = progress.get("weight_log", [])
+    start = logs_all[0]["weight_kg"] if len(logs_all) > 1 else profile.get("current_weight_kg", weight_kg)
+    target = profile.get("target_range", {}).get("max") or profile.get("target_weight_kg") or (weight_kg - 5)
     lost = round(start - weight_kg, 1)
     remaining = round(weight_kg - target, 1)
     pct = round((lost / (start - target)) * 100, 1) if (start - target) > 0 else 0
@@ -379,11 +384,11 @@ def get_progress_summary() -> str:
     if not logs:
         return "אין נתוני משקל עדיין. הוסף את המשקל הראשון שלך!"
 
-    start_w = profile.get("current_weight_kg", 93)
-    target_min = profile.get("target_range", {}).get("min", 85)
-    target_max = profile.get("target_range", {}).get("max", 86)
     current_w = logs[-1]["weight_kg"]
-    target = (target_min + target_max) / 2
+    start_w = logs[0]["weight_kg"] if len(logs) > 1 else profile.get("current_weight_kg", current_w)
+    target_min = profile.get("target_range", {}).get("min") or profile.get("target_weight_kg")
+    target_max = profile.get("target_range", {}).get("max") or target_min
+    target = (((target_min or current_w) + (target_max or current_w)) / 2)
 
     lost_total = round(start_w - current_w, 1)
     remaining = round(current_w - target, 1)

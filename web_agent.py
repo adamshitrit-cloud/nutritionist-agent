@@ -715,12 +715,18 @@ def api_pregnancy_mode():
         profile["pregnancy_mode"] = enabled
         profile["pregnancy_week"] = week
         # Adjust target calories based on trimester
+        # Always use stored base to avoid stacking calories on repeat toggles
         if enabled and week > 0:
             trimester = 1 if week <= 13 else (2 if week <= 26 else 3)
             extra = {1: 0, 2: 350, 3: 450}.get(trimester, 0)
-            base_kcal = profile.get("target_kcal", 2100)
-            # Reset to base if switching, then add trimester bonus
-            profile["target_kcal"] = base_kcal + extra
+            # Save base target once so toggling off/on never accumulates
+            if "_base_target_kcal" not in profile:
+                profile["_base_target_kcal"] = profile.get("target_kcal", 2100)
+            profile["target_kcal"] = profile["_base_target_kcal"] + extra
+        elif not enabled:
+            # Restore original target_kcal when disabling pregnancy mode
+            if "_base_target_kcal" in profile:
+                profile["target_kcal"] = profile["_base_target_kcal"]
         nutritionist.save_json(nutritionist.PROFILE_FILE, profile)
         return jsonify({"ok": True, "enabled": enabled, "week": week})
     except Exception as e:

@@ -872,7 +872,7 @@
       const d=await r.json();
       hideTyping();
       if(d.error)addMsg('agent',`❌ ${d.error}`);
-      else{addMsg('agent',fmt(d.response),true);if(d.weight)refreshWeight(d.weight);else{loadStats();loadBurnData();}}
+      else{addMsg('agent',fmt(d.response),true);if(d.weight)refreshWeight(d.weight);loadStats();loadBurnData();}
     }catch(e){hideTyping();addMsg('agent',`❌ ${LANG==='he'?'שגיאת חיבור':'Connection error'}: ${e.message}`);}
     loading=false;document.getElementById('send-btn').disabled=false;
   }
