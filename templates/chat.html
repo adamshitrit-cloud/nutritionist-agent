@@ -1690,20 +1690,26 @@ function peToggleRestrict(btn, val) {
 async function saveProfileEdit() {
   const targetRaw = document.getElementById('pe-target').value;
   const targetVal = targetRaw ? parseFloat(targetRaw) : null;
+  const ageRaw = document.getElementById('pe-age').value;
+  const heightRaw = document.getElementById('pe-height').value;
+  const weightRaw = document.getElementById('pe-weight').value;
   const payload = {
-    age: parseInt(document.getElementById('pe-age').value) || 30,
-    height_cm: parseInt(document.getElementById('pe-height').value) || 170,
-    current_weight_kg: parseFloat(document.getElementById('pe-weight').value) || 75,
     fav_foods: document.getElementById('pe-fav').value,
     disliked_foods: document.getElementById('pe-dis').value,
     cooking_level: document.getElementById('pe-cooking').value,
     health_conditions: peHealthArr,
     gender: peGenderVal,
-    exercise: peExerciseVal || undefined,
-    wake_time: document.getElementById('pe-wake').value || undefined,
-    sleep_time: document.getElementById('pe-sleep').value || undefined,
     restrictions: peRestrictArr
   };
+  // Only include numeric fields if explicitly filled — avoids overwriting with defaults
+  if (ageRaw) payload.age = parseInt(ageRaw);
+  if (heightRaw) payload.height_cm = parseInt(heightRaw);
+  if (weightRaw) payload.current_weight_kg = parseFloat(weightRaw);
+  if (peExerciseVal) payload.exercise = peExerciseVal;
+  const wakeVal = document.getElementById('pe-wake').value;
+  const sleepVal = document.getElementById('pe-sleep').value;
+  if (wakeVal) payload.wake_time = wakeVal;
+  if (sleepVal) payload.sleep_time = sleepVal;
   // Only include target_weight if explicitly entered
   if (targetVal) payload.target_weight = targetVal;
   try {

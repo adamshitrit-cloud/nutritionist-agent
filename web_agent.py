@@ -603,21 +603,33 @@ def api_setup_profile():
         except Exception:
             existing = {}
 
-        update_fields = {
-            "gender": data.get("gender", existing.get("gender", "")),
-            "age": int(data.get("age", existing.get("age", 30))),
-            "height_cm": int(data.get("height_cm", existing.get("height_cm", 170))),
-            "current_weight_kg": float(data.get("current_weight_kg", existing.get("current_weight_kg", 75))),
-            "target_kcal": existing.get("target_kcal", 2100),
-            "target_protein_g": int(float(data.get("current_weight_kg", existing.get("current_weight_kg", 75))) * 2),
-            "fav_foods": data.get("fav_foods", existing.get("fav_foods", "")),
-            "disliked_foods": data.get("disliked_foods", existing.get("disliked_foods", "")),
-            "cooking_level": data.get("cooking_level", existing.get("cooking_level", "")),
-            "health_conditions": data.get("health_conditions", existing.get("health_conditions", [])),
-            "meal_frequency": data.get("meal_frequency", existing.get("meal_frequency", "3")),
-            "restrictions": data.get("restrictions", existing.get("restrictions", [])),
-            "timeline": data.get("timeline", existing.get("timeline", "")),
-        }
+        # Only overwrite a field if it was explicitly sent in the request
+        update_fields = {}
+        # Always-present string fields (safe to overwrite with empty)
+        update_fields["gender"] = data.get("gender", existing.get("gender", ""))
+        update_fields["fav_foods"] = data.get("fav_foods", existing.get("fav_foods", ""))
+        update_fields["disliked_foods"] = data.get("disliked_foods", existing.get("disliked_foods", ""))
+        update_fields["cooking_level"] = data.get("cooking_level", existing.get("cooking_level", ""))
+        update_fields["health_conditions"] = data.get("health_conditions", existing.get("health_conditions", []))
+        update_fields["restrictions"] = data.get("restrictions", existing.get("restrictions", []))
+        update_fields["meal_frequency"] = data.get("meal_frequency", existing.get("meal_frequency", "3"))
+        update_fields["timeline"] = data.get("timeline", existing.get("timeline", ""))
+        update_fields["target_kcal"] = existing.get("target_kcal", 2100)
+        # Numeric fields — only update if explicitly provided (avoids overwriting with hardcoded defaults)
+        if "age" in data and data["age"] is not None:
+            update_fields["age"] = int(data["age"])
+        elif "age" in existing:
+            update_fields["age"] = existing["age"]
+        if "height_cm" in data and data["height_cm"] is not None:
+            update_fields["height_cm"] = int(data["height_cm"])
+        elif "height_cm" in existing:
+            update_fields["height_cm"] = existing["height_cm"]
+        if "current_weight_kg" in data and data["current_weight_kg"] is not None:
+            update_fields["current_weight_kg"] = float(data["current_weight_kg"])
+            update_fields["target_protein_g"] = int(float(data["current_weight_kg"]) * 2)
+        elif "current_weight_kg" in existing:
+            update_fields["current_weight_kg"] = existing["current_weight_kg"]
+            update_fields["target_protein_g"] = existing.get("target_protein_g", int(float(existing["current_weight_kg"]) * 2))
         existing.update(update_fields)
         # Only update target_range if target_weight was explicitly provided
         if data.get("target_weight"):
