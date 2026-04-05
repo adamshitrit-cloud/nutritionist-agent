@@ -872,7 +872,7 @@
       const d=await r.json();
       hideTyping();
       if(d.error)addMsg('agent',`❌ ${d.error}`);
-      else{addMsg('agent',fmt(d.response),true);if(d.weight)refreshWeight(d.weight);}
+      else{addMsg('agent',fmt(d.response),true);if(d.weight)refreshWeight(d.weight);else{loadStats();loadBurnData();}}
     }catch(e){hideTyping();addMsg('agent',`❌ ${LANG==='he'?'שגיאת חיבור':'Connection error'}: ${e.message}`);}
     loading=false;document.getElementById('send-btn').disabled=false;
   }
@@ -943,7 +943,7 @@
     try{
       const d=await(await fetch('/api/stats')).json();
       if(d.current_weight){document.getElementById('s-w').textContent=d.current_weight;const twv=document.getElementById('top-w-val');if(twv)twv.textContent=`${d.current_weight} kg`;document.getElementById('top-w').style.display='inline-flex';}
-      if(d.target_min&&d.target_max)document.getElementById('s-t').textContent=d.target_max;
+      const tEl=document.getElementById('s-t');if(d.target_max){tEl.textContent=d.target_max;}else if(d.target_min){tEl.textContent=d.target_min;}
       if(d.lost!=null){
         const lEl=document.getElementById('s-l');
         lEl.textContent=(d.lost>0?'-':d.lost<0?'+':'')+Math.abs(d.lost)+' kg';
@@ -1438,13 +1438,18 @@ async function loadBurnData() {
     document.getElementById('burn-net').style.color = net < 0 ? '#22c55e' : (net > 500 ? '#fb7185' : 'var(--em)');
     // Today activities
     const container = document.getElementById('burn-activities');
-    if(container && d.today_entries && d.today_entries.length > 0) {
-      container.innerHTML = d.today_entries.map((e, i) =>
-        `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--card);border-radius:var(--radius-sm);font-size:11px;">
-          <span style="color:var(--sub);">${e.activity} · ${e.duration_min} דק'</span>
-          <span style="color:var(--em);font-weight:600;">${e.calories} קל</span>
-        </div>`
-      ).join('');
+    if(container) {
+      if(d.today_entries && d.today_entries.length > 0) {
+        container.innerHTML = d.today_entries.map((e, i) =>
+          `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--card);border-radius:var(--radius-sm);font-size:11px;gap:6px;">
+            <span style="color:var(--sub);flex:1;">${e.activity} · ${e.duration_min} דק'</span>
+            <span style="color:var(--em);font-weight:600;">${e.calories} קל</span>
+            <button onclick="deleteBurnEntry(${i})" style="background:none;border:none;cursor:pointer;color:var(--sub);padding:0 2px;font-size:13px;line-height:1;transition:color .15s;" onmouseenter="this.style.color='#fb7185'" onmouseleave="this.style.color='var(--sub)'">✕</button>
+          </div>`
+        ).join('');
+      } else {
+        container.innerHTML = '';
+      }
     }
   } catch(e) { console.log('burn err', e); }
 }
@@ -1469,6 +1474,17 @@ async function saveBurnActivity() {
       loadStats();
     }
   } catch(e) { console.log('burn save err', e); }
+}
+
+async function deleteBurnEntry(index) {
+  try {
+    const d = await (await fetch('/api/calorie-burn', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'delete', index})
+    })).json();
+    if(d.ok) { loadBurnData(); loadStats(); }
+  } catch(e) { console.log('burn delete err', e); }
 }
 
 // ── Diet Mode ──

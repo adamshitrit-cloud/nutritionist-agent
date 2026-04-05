@@ -744,7 +744,7 @@ def build_system_prompt() -> str:
 - מגדר: {profile.get('gender', '') or 'לא צוין'}
 - גיל: {profile.get('age', 39)}, גובה: {profile.get('height_cm', 190)}cm
 - משקל נוכחי: {latest_weight}kg | יעד: {target_min}-{target_max}kg | נשאר: {kg_to_go}kg
-- אימון: {profile.get('exercise', 'ריצה פעם בשבוע')}
+- אימון: {profile.get('exercise', '') or 'לא צוין'}
 - אוכלים אהובים: {profile.get('fav_foods', '') or 'לא צוין'}
 - אוכלים שלא אוהב: {profile.get('disliked_foods', '') or 'לא צוין'}
 - רמת בישול: {profile.get('cooking_level', 'בסיסי')}
