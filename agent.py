@@ -744,6 +744,10 @@ def build_system_prompt() -> str:
 - גיל: {profile.get('age', 39)}, גובה: {profile.get('height_cm', 190)}cm
 - משקל נוכחי: {latest_weight}kg | יעד: {target_min}-{target_max}kg | נשאר: {kg_to_go}kg
 - אימון: {profile.get('exercise', 'ריצה פעם בשבוע')}
+- אוכלים אהובים: {profile.get('fav_foods', '') or 'לא צוין'}
+- אוכלים שלא אוהב: {profile.get('disliked_foods', '') or 'לא צוין'}
+- רמת בישול: {profile.get('cooking_level', 'בסיסי')}
+- מצב בריאות: {', '.join(profile.get('health_conditions', [])) or 'תקין'}
 - יעד קלוריות יומי: {profile.get('target_kcal', 2100)} קל | חלבון: {profile.get('target_protein_g', 180)}g
 - שעות קימה: {profile.get('wake_time', '07:00')} | שינה: {profile.get('sleep_time', '23:00')}
 - מצב תזונה: {diet_mode}{' | הריון שבוע ' + str(pregnancy_week) if pregnancy_mode else ''}

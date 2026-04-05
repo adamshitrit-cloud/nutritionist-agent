@@ -2,6 +2,7 @@
 <html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'he' else 'ltr' }}">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NutriAI Longevity 🥗</title>
   <link rel="manifest" href="/static/manifest.json">
@@ -34,7 +35,11 @@
     .icon-18{width:18px;height:18px;}
     .icon-20{width:20px;height:20px;}
     body{
-      font-family:'Inter',sans-serif;
+      font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      text-rendering:optimizeLegibility;
+      unicode-bidi:plaintext;
       background:var(--bg);color:var(--text);
       height:100vh;display:flex;overflow:hidden;
       direction:{{ 'rtl' if lang == 'he' else 'ltr' }};
@@ -350,29 +355,52 @@
     /* Sidebar overlay on mobile */
     #sidebar-overlay{
       display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
-      z-index:99;backdrop-filter:blur(4px);
+      z-index:99;
+      -webkit-tap-highlight-color:transparent;
+      touch-action:none;
     }
+    #sidebar-overlay.open{display:block;}
 
     /* ── Mobile ── */
     @media(max-width:768px){
       /* Show hamburger, hide weight badge in topbar */
-      #menu-btn{display:flex;align-items:center;justify-content:center;}
+      #menu-btn{
+        display:flex;align-items:center;justify-content:center;
+        min-width:40px;min-height:40px;
+        background:var(--card);border:1px solid var(--border);
+        border-radius:var(--radius-sm);padding:6px 10px;color:var(--sub);cursor:pointer;
+      }
       #top-w{display:none;}
 
       /* Sidebar becomes a slide-over drawer */
       #sidebar{
-        position:fixed;top:0;right:0;height:100vh;
-        z-index:100;transform:translateX(100%);
-        transition:transform .3s cubic-bezier(.4,0,.2,1);
+        position:fixed;top:0;right:0;height:100%;
+        z-index:100;
+        transform:translate3d(100%, 0, 0);
+        -webkit-transform:translate3d(100%, 0, 0);
+        transition:transform 300ms cubic-bezier(0.4,0,0.2,1);
+        -webkit-transition:-webkit-transform 300ms cubic-bezier(0.4,0,0.2,1);
         box-shadow:-8px 0 32px rgba(0,0,0,.5);
         width:280px;min-width:280px;
+        will-change:transform;
+        -webkit-overflow-scrolling:touch;
       }
-      #sidebar.open{transform:translateX(0);}
-      body.ltr #sidebar{right:auto;left:0;transform:translateX(-100%);}
-      body.ltr #sidebar.open{transform:translateX(0);}
+      #sidebar.open{
+        transform:translate3d(0, 0, 0) !important;
+        -webkit-transform:translate3d(0, 0, 0) !important;
+      }
+      /* LTR layout */
+      html[dir="ltr"] #sidebar, body:not([dir]) #sidebar{
+        right:auto;left:0;
+        transform:translate3d(-100%, 0, 0);
+        -webkit-transform:translate3d(-100%, 0, 0);
+      }
+      html[dir="ltr"] #sidebar.open, body:not([dir]) #sidebar.open{
+        transform:translate3d(0, 0, 0) !important;
+        -webkit-transform:translate3d(0, 0, 0) !important;
+      }
 
       /* Show overlay when sidebar open */
-      #sidebar-overlay.open{display:block;}
 
       /* Chat takes full width */
       #main{width:100%;min-width:0;}
@@ -606,6 +634,39 @@
         {{ 'צום+חלבון' if lang == 'he' else 'IF+Protein' }}</button>
     </div>
     <div id="diet-status" style="font-size:10px;color:var(--sub);margin-top:4px;text-align:center;"></div>
+  </div>
+
+  <!-- ── Calorie Burn Tracker ── -->
+  <div class="sb-sec" style="border-top:1px solid rgba(255,255,255,.05);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="sb-sec-title" style="margin-bottom:0;">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:3px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        {{ 'שריפת קלוריות' if lang == 'he' else 'Calorie Burn' }}
+      </div>
+      <button onclick="showAddBurnModal()" style="background:var(--em-dim);border:none;border-radius:var(--radius-sm);padding:3px 8px;color:var(--em);font-size:10px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">+ הוסף</button>
+    </div>
+    <!-- Burn stats row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
+      <div style="text-align:center;background:var(--card);border-radius:var(--radius-sm);padding:8px 4px;box-shadow:var(--shadow-sm);">
+        <div style="font-size:14px;font-weight:700;color:var(--em);" id="burn-today">0</div>
+        <div style="font-size:8.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">{{ 'היום' if lang == 'he' else 'Today' }}</div>
+      </div>
+      <div style="text-align:center;background:var(--card);border-radius:var(--radius-sm);padding:8px 4px;box-shadow:var(--shadow-sm);">
+        <div style="font-size:14px;font-weight:700;color:var(--sub);" id="burn-week">0</div>
+        <div style="font-size:8.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">{{ 'שבוע' if lang == 'he' else 'Week' }}</div>
+      </div>
+      <div style="text-align:center;background:var(--card);border-radius:var(--radius-sm);padding:8px 4px;box-shadow:var(--shadow-sm);">
+        <div style="font-size:14px;font-weight:700;color:var(--sub);" id="burn-month">0</div>
+        <div style="font-size:8.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">{{ 'חודש' if lang == 'he' else 'Month' }}</div>
+      </div>
+    </div>
+    <!-- Net calories -->
+    <div style="background:var(--card);border-radius:var(--radius-sm);padding:8px 10px;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:10px;color:var(--sub);">{{ 'קלוריות נטו היום' if lang == 'he' else 'Net calories today' }}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--em);" id="burn-net">—</div>
+    </div>
+    <!-- Today's activities -->
+    <div id="burn-activities" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:100px;overflow-y:auto;"></div>
   </div>
 
   <div class="sb-section" style="padding:14px 18px;border-top:1px solid var(--border);">
@@ -1141,12 +1202,23 @@
 
   // ── Mobile sidebar toggle ──
   function toggleSidebar(){
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebar-overlay').classList.toggle('open');
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('sidebar-overlay');
+    const isOpen = sb.classList.contains('open');
+    if(isOpen) {
+      sb.classList.remove('open');
+      ov.classList.remove('open');
+      document.body.style.overflow = '';
+    } else {
+      sb.classList.add('open');
+      ov.classList.add('open');
+      document.body.style.overflow = 'hidden'; // prevent background scroll on iOS
+    }
   }
   function closeSidebar(){
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
+    document.body.style.overflow = '';
   }
   // Close sidebar when clicking a quick-action button on mobile
   document.querySelectorAll('.qa-btn').forEach(btn=>{
@@ -1338,8 +1410,57 @@
     loadStats();
     loadWater();
     loadReferral();
+    loadBurnData();
     qs(LANG==='he'?'שלום! תראה לי את תפריט היום ותסביר מה חשוב.':'Hello! Show me today\'s meal plan and what I should know.');
   };
+
+// ── Calorie Burn Tracker ──
+async function loadBurnData() {
+  try {
+    const d = await (await fetch('/api/calorie-burn')).json();
+    document.getElementById('burn-today').textContent = d.today_burn || 0;
+    document.getElementById('burn-week').textContent = d.week_burn || 0;
+    document.getElementById('burn-month').textContent = d.month_burn || 0;
+    // Net calories
+    const calIn = parseInt(document.getElementById('cal-today')?.textContent || '0');
+    const calOut = d.today_burn || 0;
+    const net = calIn - calOut;
+    document.getElementById('burn-net').textContent = (net > 0 ? '+' : '') + net + ' קל';
+    document.getElementById('burn-net').style.color = net < 0 ? '#22c55e' : (net > 500 ? '#fb7185' : 'var(--em)');
+    // Today activities
+    const container = document.getElementById('burn-activities');
+    if(container && d.today_entries && d.today_entries.length > 0) {
+      container.innerHTML = d.today_entries.map((e, i) =>
+        `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--card);border-radius:var(--radius-sm);font-size:11px;">
+          <span style="color:var(--sub);">${e.activity} · ${e.duration_min} דק'</span>
+          <span style="color:var(--em);font-weight:600;">${e.calories} קל</span>
+        </div>`
+      ).join('');
+    }
+  } catch(e) { console.log('burn err', e); }
+}
+
+function showAddBurnModal() {
+  document.getElementById('burn-modal').style.display = 'flex';
+}
+
+async function saveBurnActivity() {
+  const activity = document.getElementById('burn-activity-type').value;
+  const duration = parseInt(document.getElementById('burn-duration').value) || 30;
+  const calories = parseInt(document.getElementById('burn-calories').value) || 300;
+  try {
+    const d = await (await fetch('/api/calorie-burn', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'add', activity, duration_min: duration, calories})
+    })).json();
+    if(d.ok) {
+      document.getElementById('burn-modal').style.display = 'none';
+      loadBurnData();
+      loadStats();
+    }
+  } catch(e) { console.log('burn save err', e); }
+}
 
 // ── Diet Mode ──
 let currentDietMode = 'balanced';
@@ -1475,6 +1596,43 @@ function loadVitaminState() {
       style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;margin-bottom:8px;">
     <button onclick="lookupBarcode(document.getElementById('barcode-manual').value)"
       style="width:100%;padding:9px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">חפש מוצר</button>
+  </div>
+</div>
+
+<!-- Calorie Burn Add Modal -->
+<div id="burn-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--sidebar);border-radius:var(--radius-lg);padding:24px;max-width:360px;width:90%;box-shadow:var(--shadow-lg);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:600;color:var(--text);">{{ 'הוסף פעילות' if lang == 'he' else 'Add Activity' }}</div>
+      <button onclick="document.getElementById('burn-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--sub);display:flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ 'סוג פעילות' if lang == 'he' else 'Activity type' }}</label>
+      <select id="burn-activity-type" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+        <option value="ריצה">🏃 ריצה</option>
+        <option value="הליכה">🚶 הליכה</option>
+        <option value="אופניים">🚴 אופניים</option>
+        <option value="חדר כושר">🏋️ חדר כושר</option>
+        <option value="שחייה">🏊 שחייה</option>
+        <option value="יוגה">🧘 יוגה</option>
+        <option value="כדורסל">🏀 כדורסל</option>
+        <option value="כדורגל">⚽ כדורגל</option>
+        <option value="אחר">💪 אחר</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ 'משך (דקות)' if lang == 'he' else 'Duration (min)' }}</label>
+        <input type="number" id="burn-duration" min="1" max="480" value="30" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;text-align:center;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ 'קלוריות' if lang == 'he' else 'Calories burned' }}</label>
+        <input type="number" id="burn-calories" min="1" max="3000" value="300" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;text-align:center;">
+      </div>
+    </div>
+    <button onclick="saveBurnActivity()" style="width:100%;padding:10px;background:linear-gradient(135deg,var(--em),var(--vi));border:none;border-radius:var(--radius-sm);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity var(--t-fast);">
+      {{ 'שמור פעילות' if lang == 'he' else 'Save Activity' }}
+    </button>
   </div>
 </div>
 

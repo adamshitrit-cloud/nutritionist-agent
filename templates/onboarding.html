@@ -158,17 +158,18 @@
   <!-- Progress -->
   <div class="progress-wrap">
     <div class="progress-label">
-      <span id="step-label">שלב 1 מתוך 4</span>
-      <span id="step-pct">25%</span>
+      <span id="step-label">שלב 1 מתוך 5</span>
+      <span id="step-pct">20%</span>
     </div>
     <div class="progress-track">
-      <div class="progress-fill" id="prog-fill" style="width:25%"></div>
+      <div class="progress-fill" id="prog-fill" style="width:20%"></div>
     </div>
     <div class="step-dots">
       <div class="step-dot active" id="dot-0"></div>
       <div class="step-dot" id="dot-1"></div>
       <div class="step-dot" id="dot-2"></div>
       <div class="step-dot" id="dot-3"></div>
+      <div class="step-dot" id="dot-4"></div>
     </div>
   </div>
 
@@ -266,8 +267,62 @@
       </div>
     </div>
 
+    <!-- Step 3: Food Preferences -->
+    <div class="step" id="step-3" style="display:none;">
+      <div class="card-icon" style="font-size:40px;">🍽️</div>
+      <div class="card-title">העדפות אוכל</div>
+      <div class="card-sub">נתאים לך תפריט שתאהב לאכול — לא רק בריא</div>
+
+      <div class="field">
+        <label>אוכלים שאתה אוהב במיוחד</label>
+        <input type="text" id="fav_foods" placeholder="למשל: שקדים, סלמון, ביצים, אורז" style="width:100%;padding:12px 16px;background:rgba(0,0,0,.3);border:1px solid var(--glass-border);border-radius:12px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;">
+      </div>
+
+      <div class="field">
+        <label>אוכלים שאתה לא אוהב / לא יכול לאכול</label>
+        <input type="text" id="disliked_foods" placeholder="למשל: כרוב, קישואים, מיונז" style="width:100%;padding:12px 16px;background:rgba(0,0,0,.3);border:1px solid var(--glass-border);border-radius:12px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;">
+      </div>
+
+      <div class="field">
+        <label>כמה ארוחות ביום בדרך כלל?</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;" id="meal-freq-opts">
+          <button type="button" class="chip" onclick="pickMealFreq(this,'2')" data-val="2">2 ארוחות</button>
+          <button type="button" class="chip selected" onclick="pickMealFreq(this,'3')" data-val="3">3 ארוחות</button>
+          <button type="button" class="chip" onclick="pickMealFreq(this,'4')" data-val="4">4 ארוחות</button>
+          <button type="button" class="chip" onclick="pickMealFreq(this,'5+')" data-val="5+">5+ ארוחות</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>רמת ניסיון בבישול</label>
+        <select id="cooking_level" style="width:100%;padding:12px 16px;background:rgba(0,0,0,.3);border:1px solid var(--glass-border);border-radius:12px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;">
+          <option value="מינימלי">מינימלי — מעדיף מאכלים מוכנים</option>
+          <option value="בסיסי" selected>בסיסי — ביצים, סנדוויצ'ים, פסטה</option>
+          <option value="בינוני">בינוני — מבשל ארוחות מלאות</option>
+          <option value="מתקדם">מתקדם — נהנה לבשל</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>מצב בריאותי רלוונטי (אופציונלי)</label>
+        <div class="chips" id="health-chips" style="margin-top:6px;">
+          <button type="button" class="chip" onclick="toggleHealthChip(this,'סוכרת סוג 2')">סוכרת סוג 2</button>
+          <button type="button" class="chip" onclick="toggleHealthChip(this,'לחץ דם גבוה')">לחץ דם גבוה</button>
+          <button type="button" class="chip" onclick="toggleHealthChip(this,'כולסטרול גבוה')">כולסטרול גבוה</button>
+          <button type="button" class="chip" onclick="toggleHealthChip(this,'IBS / מעי רגיז')">IBS / מעי רגיז</button>
+          <button type="button" class="chip" onclick="toggleHealthChip(this,'תירואיד')">תירואיד</button>
+          <button type="button" class="chip" onclick="toggleHealthChip(this,'PCOS')">PCOS</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="prevStep()">→ חזור</button>
+        <button class="btn-primary" onclick="nextStep()">הבא ←</button>
+      </div>
+    </div>
+
     <!-- Step 4: Done -->
-    <div class="step" id="step-3">
+    <div class="step" id="step-4">
       <div class="done-wrap">
         <div class="done-icon" id="done-icon">🎉</div>
         <div class="done-title">הכל מוכן!</div>
@@ -283,16 +338,19 @@
   let currentStep = 0;
   let exerciseVal = 'ריצה פעם בשבוע';
   let restrictions = [];
+  let mealFreq = '3';
+  let healthConditions = [];
 
-  const stepTitles = ['שלב 1 מתוך 4','שלב 2 מתוך 4','שלב 3 מתוך 4','סיום!'];
-  const stepPcts = ['25%','50%','75%','100%'];
-  const progWidths = ['25%','50%','75%','100%'];
+  const stepTitles = ['שלב 1 מתוך 5','שלב 2 מתוך 5','שלב 3 מתוך 5','שלב 4 מתוך 5','סיום!'];
+  const stepPcts = ['20%','40%','60%','80%','100%'];
+  const progWidths = ['20%','40%','60%','80%','100%'];
+  const stepIds = ['step-0','step-1','step-2','step-3','step-4'];
 
   function updateProgress(step){
     document.getElementById('step-label').textContent = stepTitles[step];
     document.getElementById('step-pct').textContent = stepPcts[step];
     document.getElementById('prog-fill').style.width = progWidths[step];
-    for(let i=0;i<4;i++){
+    for(let i=0;i<5;i++){
       const dot = document.getElementById('dot-'+i);
       dot.classList.remove('active','done');
       if(i<step) dot.classList.add('done');
@@ -301,12 +359,12 @@
   }
 
   function nextStep(){
-    if(currentStep<3){
-      document.getElementById('step-'+currentStep).classList.remove('active');
+    if(currentStep<4){
+      document.getElementById(stepIds[currentStep]).classList.remove('active');
       currentStep++;
-      document.getElementById('step-'+currentStep).classList.add('active');
+      document.getElementById(stepIds[currentStep]).classList.add('active');
       updateProgress(currentStep);
-      if(currentStep===3){
+      if(currentStep===4){
         // animate done icon
         const icon = document.getElementById('done-icon');
         icon.textContent='🎉';
@@ -315,11 +373,26 @@
     }
   }
 
+  function pickMealFreq(el, val) {
+    document.querySelectorAll('#meal-freq-opts .chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    mealFreq = val;
+  }
+
+  function toggleHealthChip(el, val) {
+    el.classList.toggle('selected');
+    if(el.classList.contains('selected')) {
+      if(!healthConditions.includes(val)) healthConditions.push(val);
+    } else {
+      healthConditions = healthConditions.filter(h => h !== val);
+    }
+  }
+
   function prevStep(){
     if(currentStep>0){
-      document.getElementById('step-'+currentStep).classList.remove('active');
+      document.getElementById(stepIds[currentStep]).classList.remove('active');
       currentStep--;
-      document.getElementById('step-'+currentStep).classList.add('active');
+      document.getElementById(stepIds[currentStep]).classList.add('active');
       updateProgress(currentStep);
     }
   }
@@ -365,7 +438,12 @@
       exercise: exerciseVal,
       wake_time: document.getElementById('wake_time').value||'07:00',
       sleep_time: document.getElementById('sleep_time').value||'23:00',
-      restrictions: restrictions
+      restrictions: restrictions,
+      fav_foods: document.getElementById('fav_foods').value || '',
+      disliked_foods: document.getElementById('disliked_foods').value || '',
+      meal_frequency: mealFreq,
+      cooking_level: document.getElementById('cooking_level').value || 'בסיסי',
+      health_conditions: healthConditions
     };
 
     try{

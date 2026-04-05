@@ -271,6 +271,10 @@ def get_user_stats(user_id: str) -> dict:
         referral_count = int(_redis_raw_get(f"referral_count:{user_id}") or 0)
         is_premium = referral_count >= 3
 
+        # Calorie burn
+        burn_log = progress.get("burn_log", [])
+        today_burn = sum(e["calories"] for e in burn_log if e.get("date") == today_iso)
+
         return {
             "current_weight": current_w,
             "start_weight": start_w,
@@ -287,7 +291,8 @@ def get_user_stats(user_id: str) -> dict:
             "referral_count": referral_count,
             "diet_mode": profile.get("diet_mode", "balanced"),
             "pregnancy_mode": profile.get("pregnancy_mode", False),
-            "pregnancy_week": profile.get("pregnancy_week", 0)
+            "pregnancy_week": profile.get("pregnancy_week", 0),
+            "today_burn": today_burn
         }
     except Exception as e:
         return {}
@@ -515,6 +520,67 @@ def api_water():
         glasses = int(_redis_raw_get(water_key) or 0)
         return jsonify({"glasses": glasses})
 
+@app.route("/api/calorie-burn", methods=["GET", "POST"])
+def api_calorie_burn():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    from datetime import date, timedelta
+    today = str(date.today())
+    try:
+        nutritionist._current_user_id = uid
+        progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+        burn_log = progress.setdefault("burn_log", [])
+
+        if request.method == "POST":
+            data = request.get_json()
+            action = data.get("action", "add")
+            if action == "add":
+                activity = data.get("activity", "אחר")
+                calories = int(data.get("calories", 0))
+                duration_min = int(data.get("duration_min", 0))
+                entry = {
+                    "date": today,
+                    "time": __import__('datetime').datetime.now().strftime("%H:%M"),
+                    "activity": activity,
+                    "calories": calories,
+                    "duration_min": duration_min
+                }
+                burn_log.append(entry)
+                nutritionist._redis_set(nutritionist.PROGRESS_FILE, progress)
+                today_burn = sum(e["calories"] for e in burn_log if e.get("date") == today)
+                return jsonify({"ok": True, "today_burn": today_burn})
+            elif action == "delete":
+                idx = data.get("index", -1)
+                if 0 <= idx < len(burn_log):
+                    burn_log.pop(idx)
+                    nutritionist._redis_set(nutritionist.PROGRESS_FILE, progress)
+                return jsonify({"ok": True})
+
+        # GET — return burn data
+        # Today
+        today_entries = [e for e in burn_log if e.get("date") == today]
+        today_burn = sum(e["calories"] for e in today_entries)
+        # This week
+        week_start = date.today() - timedelta(days=date.today().weekday())
+        week_entries = [e for e in burn_log if e.get("date", "") >= str(week_start)]
+        week_burn = sum(e["calories"] for e in week_entries)
+        # This month
+        month_str = today[:7]
+        month_entries = [e for e in burn_log if e.get("date", "").startswith(month_str)]
+        month_burn = sum(e["calories"] for e in month_entries)
+        return jsonify({
+            "today_burn": today_burn,
+            "week_burn": week_burn,
+            "month_burn": month_burn,
+            "today_entries": today_entries,
+            "burn_log": burn_log[-30:]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        nutritionist._current_user_id = None
+
 @app.route("/onboarding")
 def onboarding():
     if not current_user_id():
@@ -542,7 +608,12 @@ def api_setup_profile():
         "sleep_time": data.get("sleep_time", "23:00"),
         "target_kcal": 2100,
         "target_protein_g": int(float(data.get("current_weight_kg", 75)) * 2),
-        "restrictions": data.get("restrictions", [])
+        "restrictions": data.get("restrictions", []),
+        "fav_foods": data.get("fav_foods", ""),
+        "disliked_foods": data.get("disliked_foods", ""),
+        "meal_frequency": data.get("meal_frequency", "3"),
+        "cooking_level": data.get("cooking_level", "בסיסי"),
+        "health_conditions": data.get("health_conditions", [])
     }
 
     try:
