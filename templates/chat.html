@@ -990,6 +990,15 @@
 
       // Calorie ring
       updateCalRing(d.today_calories||0, d.target_kcal||2100);
+      // Also update burn-today and net here (avoids race with loadBurnData reading stale cal-today)
+      const burnTodayEl = document.getElementById('burn-today');
+      if(burnTodayEl) burnTodayEl.textContent = d.today_burn || 0;
+      const netEl = document.getElementById('burn-net');
+      if(netEl) {
+        const net = (d.today_calories||0) - (d.today_burn||0);
+        netEl.textContent = (net > 0 ? '+' : '') + net + ' קל';
+        netEl.style.color = net < 0 ? '#22c55e' : (net > 500 ? '#fb7185' : 'var(--em)');
+      }
 
       // Measurements
       updateMeasurements(d.measurements||{});
@@ -1438,12 +1447,16 @@ async function loadBurnData() {
     document.getElementById('burn-today').textContent = d.today_burn || 0;
     document.getElementById('burn-week').textContent = d.week_burn || 0;
     document.getElementById('burn-month').textContent = d.month_burn || 0;
-    // Net calories
-    const calIn = parseInt(document.getElementById('cal-today')?.textContent || '0');
-    const calOut = d.today_burn || 0;
-    const net = calIn - calOut;
-    document.getElementById('burn-net').textContent = (net > 0 ? '+' : '') + net + ' קל';
-    document.getElementById('burn-net').style.color = net < 0 ? '#22c55e' : (net > 500 ? '#fb7185' : 'var(--em)');
+    // Net calories: calculated using cal-today from DOM (set by loadStats)
+    // Note: loadStats also sets burn-net with reliable data; this only updates if cal-today is ready
+    const calInEl = document.getElementById('cal-today');
+    if(calInEl && calInEl.textContent && calInEl.textContent !== '0') {
+      const calIn = parseInt(calInEl.textContent || '0');
+      const calOut = d.today_burn || 0;
+      const net = calIn - calOut;
+      const netEl2 = document.getElementById('burn-net');
+      if(netEl2) { netEl2.textContent = (net > 0 ? '+' : '') + net + ' קל'; netEl2.style.color = net < 0 ? '#22c55e' : (net > 500 ? '#fb7185' : 'var(--em)'); }
+    }
     // Today activities
     const container = document.getElementById('burn-activities');
     if(container) {
