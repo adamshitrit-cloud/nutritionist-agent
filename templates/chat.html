@@ -942,9 +942,11 @@
     try{
       const d=await(await fetch('/api/stats')).json();
       if(d.current_weight){document.getElementById('s-w').textContent=d.current_weight;const twv=document.getElementById('top-w-val');if(twv)twv.textContent=`${d.current_weight} kg`;document.getElementById('top-w').style.display='inline-flex';}
-      if(d.target_min&&d.target_max)document.getElementById('s-t').textContent=`${d.target_min}–${d.target_max}`;
+      if(d.target_min&&d.target_max)document.getElementById('s-t').textContent=d.target_max;
       if(d.lost!=null){
-        document.getElementById('s-l').textContent=`${d.lost} kg`;
+        const lEl=document.getElementById('s-l');
+        lEl.textContent=(d.lost>0?'-':d.lost<0?'+':'')+Math.abs(d.lost)+' kg';
+        lEl.style.color=d.lost>0?'#22c55e':d.lost<0?'#fb7185':'var(--sub)';
         document.getElementById('s-ls').textContent=LANG==='he'?`מ-${d.start_weight} kg`:`from ${d.start_weight} kg`;
       }
       const logs=d.weight_log||[];
