@@ -247,7 +247,8 @@ def get_user_stats(user_id: str) -> dict:
         profile  = nutritionist.load_json(nutritionist.PROFILE_FILE)
         logs = progress.get("weight_log", [])
         current_w = logs[-1]["weight_kg"] if logs else profile.get("current_weight_kg", None)
-        start_w   = profile.get("current_weight_kg", None)
+        # Use first weight_log entry as start weight; fall back to profile field
+        start_w = logs[0]["weight_kg"] if len(logs) > 1 else profile.get("current_weight_kg", None)
         target_min = profile.get("target_range", {}).get("min", None)
         target_max = profile.get("target_range", {}).get("max", None)
 
@@ -602,15 +603,11 @@ def api_setup_profile():
         except Exception:
             existing = {}
 
-        existing.update({
+        update_fields = {
             "gender": data.get("gender", existing.get("gender", "")),
             "age": int(data.get("age", existing.get("age", 30))),
             "height_cm": int(data.get("height_cm", existing.get("height_cm", 170))),
             "current_weight_kg": float(data.get("current_weight_kg", existing.get("current_weight_kg", 75))),
-            "target_range": {
-                "min": float(data.get("target_weight", 70)) - 0.5,
-                "max": float(data.get("target_weight", 70))
-            },
             "target_kcal": existing.get("target_kcal", 2100),
             "target_protein_g": int(float(data.get("current_weight_kg", existing.get("current_weight_kg", 75))) * 2),
             "fav_foods": data.get("fav_foods", existing.get("fav_foods", "")),
@@ -619,7 +616,14 @@ def api_setup_profile():
             "health_conditions": data.get("health_conditions", existing.get("health_conditions", [])),
             "meal_frequency": data.get("meal_frequency", existing.get("meal_frequency", "3")),
             "restrictions": data.get("restrictions", existing.get("restrictions", [])),
-        })
+        }
+        existing.update(update_fields)
+        # Only update target_range if target_weight was explicitly provided
+        if data.get("target_weight"):
+            existing["target_range"] = {
+                "min": float(data["target_weight"]) - 0.5,
+                "max": float(data["target_weight"])
+            }
         # Update exercise/wake/sleep only when explicitly provided
         if data.get("exercise"):
             existing["exercise"] = data["exercise"]
