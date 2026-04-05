@@ -358,6 +358,7 @@ def register():
         session["user_id"] = result["user_id"]
         session["name"]    = result["name"]
         session["lang"]    = result["lang"]
+        session["email"]   = data.get("email", "").lower().strip()
         # Track referral
         ref_code = data.get("ref_code", "")
         if ref_code:
@@ -378,6 +379,7 @@ def login():
         session["user_id"] = result["user_id"]
         session["name"]    = result["name"]
         session["lang"]    = result.get("lang", "he")
+        session["email"]   = data.get("email", "").lower().strip()
     return jsonify(result)
 
 @app.route("/logout")
@@ -706,6 +708,13 @@ def api_link_phone():
     if not phone:
         return jsonify({"error": "מספר טלפון חסר"})
     _link_phone_to_user(phone, uid)
+    # Also update the phone field in the account record so weekly-summary can find it
+    email = session.get("email", "")
+    if email:
+        user = _get_user_by_email(email)
+        if user:
+            user["phone"] = _phone_digits(phone)
+            _save_user(user)
     return jsonify({"ok": True})
 
 @app.route("/api/profile", methods=["GET"])
