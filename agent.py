@@ -673,10 +673,15 @@ def build_system_prompt() -> str:
 
     # ── Weight context ──
     logs = progress.get("weight_log", [])
-    latest_weight = logs[-1]["weight_kg"] if logs else profile.get("current_weight_kg", 93)
-    target_min = profile.get("target_range", {}).get("min", 85)
-    target_max = profile.get("target_range", {}).get("max", 86)
-    kg_to_go = round(latest_weight - target_max, 1)
+    latest_weight = logs[-1]["weight_kg"] if logs else profile.get("current_weight_kg") or "לא ידוע"
+    _target_range = profile.get("target_range", {})
+    target_min = _target_range.get("min") or profile.get("target_weight_kg")
+    target_max = _target_range.get("max") or target_min
+    # If no target set, show "לא הוגדר" so AI doesn't invent a number
+    target_display = f"{target_min}-{target_max}kg" if target_min else "לא הוגדר"
+    _lw = latest_weight if isinstance(latest_weight, (int, float)) else None
+    kg_to_go = round(_lw - target_max, 1) if (target_max and _lw is not None) else None
+    kg_to_go_display = f"{kg_to_go}kg" if kg_to_go is not None else "לא ידוע"
 
     # ── Memory notes ──
     notes_text = ""
@@ -747,15 +752,18 @@ def build_system_prompt() -> str:
 
 **פרופיל המשתמש:**
 - מגדר: {profile.get('gender', '') or 'לא צוין'}
-- גיל: {profile.get('age', 39)}, גובה: {profile.get('height_cm', 190)}cm
-- משקל נוכחי: {latest_weight}kg | יעד: {target_min}-{target_max}kg | נשאר: {kg_to_go}kg
+- גיל: {profile.get('age', '') or 'לא צוין'}, גובה: {profile.get('height_cm', '') or 'לא צוין'}cm
+- משקל נוכחי: {latest_weight}kg | יעד: {target_display} | נשאר: {kg_to_go_display}
 - אימון: {profile.get('exercise', '') or 'לא צוין'}
+- הגבלות תזונה: {', '.join(profile.get('restrictions', [])) or 'אין'}
 - אוכלים אהובים: {profile.get('fav_foods', '') or 'לא צוין'}
 - אוכלים שלא אוהב: {profile.get('disliked_foods', '') or 'לא צוין'}
-- רמת בישול: {profile.get('cooking_level', 'בסיסי')}
+- רמת בישול: {profile.get('cooking_level', '') or 'לא צוין'}
+- מספר ארוחות ביום: {profile.get('meal_frequency', '3')}
+- לוח זמנים ליעד: {profile.get('timeline', '') or 'לא צוין'} חודשים
 - מצב בריאות: {', '.join(profile.get('health_conditions', [])) or 'תקין'}
-- יעד קלוריות יומי: {profile.get('target_kcal', 2100)} קל | חלבון: {profile.get('target_protein_g', 180)}g
-- שעות קימה: {profile.get('wake_time', '07:00')} | שינה: {profile.get('sleep_time', '23:00')}
+- יעד קלוריות יומי: {profile.get('target_kcal', 2100)} קל | חלבון: {profile.get('target_protein_g', '') or 'לא חושב'}g
+- שעות קימה: {profile.get('wake_time', '') or 'לא צוין'} | שינה: {profile.get('sleep_time', '') or 'לא צוין'}
 - מצב תזונה: {diet_mode}{' | הריון שבוע ' + str(pregnancy_week) if pregnancy_mode else ''}
 
 {diet_guidelines}

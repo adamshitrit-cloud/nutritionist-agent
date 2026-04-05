@@ -612,10 +612,11 @@ def api_setup_profile():
             "target_protein_g": int(float(data.get("current_weight_kg", existing.get("current_weight_kg", 75))) * 2),
             "fav_foods": data.get("fav_foods", existing.get("fav_foods", "")),
             "disliked_foods": data.get("disliked_foods", existing.get("disliked_foods", "")),
-            "cooking_level": data.get("cooking_level", existing.get("cooking_level", "בסיסי")),
+            "cooking_level": data.get("cooking_level", existing.get("cooking_level", "")),
             "health_conditions": data.get("health_conditions", existing.get("health_conditions", [])),
             "meal_frequency": data.get("meal_frequency", existing.get("meal_frequency", "3")),
             "restrictions": data.get("restrictions", existing.get("restrictions", [])),
+            "timeline": data.get("timeline", existing.get("timeline", "")),
         }
         existing.update(update_fields)
         # Only update target_range if target_weight was explicitly provided
