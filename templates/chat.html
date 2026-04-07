@@ -156,22 +156,121 @@
 
     /* Topbar */
     #topbar{
-      padding:12px 20px;
-      background:rgba(16,12,36,.75);
+      padding:10px 16px;
+      background:rgba(16,12,36,.85);
       border-bottom:1px solid rgba(255,255,255,.06);
       backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-      display:flex;align-items:center;gap:12px;
+      display:flex;align-items:center;gap:10px;
       position:relative;z-index:10;
       box-shadow:0 1px 0 rgba(139,92,246,.12);
     }
     .top-avatar{
-      width:36px;height:36px;border-radius:10px;
+      width:34px;height:34px;border-radius:10px;
       background:linear-gradient(135deg,var(--em-dim),var(--vi-dim));
       border:1px solid var(--em-border);
-      display:flex;align-items:center;justify-content:center;font-size:18px;
+      display:flex;align-items:center;justify-content:center;font-size:17px;
     }
-    .top-title{font-size:15px;font-weight:600;flex:1;}
+    .top-title{font-size:14px;font-weight:600;flex:1;}
     .top-badge{font-size:12px;color:var(--sub);}
+
+    /* ── View Tabs ── */
+    .view-tabs{display:flex;gap:2px;background:rgba(255,255,255,.04);border-radius:10px;padding:3px;}
+    .view-tab{
+      padding:5px 14px;border-radius:8px;border:none;
+      font-size:12px;font-weight:600;font-family:'Inter',sans-serif;
+      cursor:pointer;color:var(--sub);background:transparent;
+      transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap;
+    }
+    .view-tab.active{background:var(--em-dim);color:var(--em);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+
+    /* ── Dashboard Panel ── */
+    #dashboard{
+      flex:1;overflow-y:auto;padding:16px;
+      display:none;flex-direction:column;gap:12px;
+    }
+    #dashboard::-webkit-scrollbar{width:4px;}
+    #dashboard::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px;}
+    #dashboard.active{display:flex;}
+
+    /* Dashboard cards */
+    .db-row{display:grid;gap:10px;}
+    .db-row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+    .db-row.cols-2{grid-template-columns:1fr 1fr;}
+    .db-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:14px;padding:14px;
+      box-shadow:var(--shadow-sm);
+      transition:transform .2s,box-shadow .2s;
+    }
+    .db-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);}
+    .db-card-lbl{font-size:9.5px;color:var(--sub);text-transform:uppercase;letter-spacing:1.2px;font-weight:600;margin-bottom:6px;}
+    .db-card-val{font-size:26px;font-weight:800;color:var(--em);line-height:1;}
+    .db-card-sub{font-size:10px;color:var(--sub);margin-top:4px;}
+
+    /* Calorie ring */
+    .calorie-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0;}
+    .ring-svg{transform:rotate(-90deg);}
+    .ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+    .ring-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;}
+    .ring-kcal{font-size:22px;font-weight:800;color:var(--em);}
+    .ring-target{font-size:10px;color:var(--sub);}
+
+    /* Macros bar */
+    .macro-row{display:flex;gap:6px;margin-top:8px;}
+    .macro-pill{flex:1;background:rgba(255,255,255,.04);border-radius:8px;padding:6px 8px;text-align:center;}
+    .macro-pill-val{font-size:13px;font-weight:700;}
+    .macro-pill-lbl{font-size:9px;color:var(--sub);margin-top:2px;}
+
+    /* Water card */
+    .db-water-drops{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;}
+    .db-water-drop{width:26px;height:26px;cursor:pointer;opacity:.25;transition:all .2s;padding:3px;}
+    .db-water-drop svg{width:100%;height:100%;fill:none;stroke:#60a5fa;stroke-width:1.5;}
+    .db-water-drop.filled{opacity:1;}
+    .db-water-drop:hover{transform:scale(1.2);}
+
+    /* Weekly chart */
+    .db-chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;}
+    .db-chart-title{font-size:11px;color:var(--sub);font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;}
+    .weekly-bars{display:flex;align-items:flex-end;gap:4px;height:70px;}
+    .weekly-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;}
+    .weekly-bar{width:100%;border-radius:4px 4px 0 0;background:var(--muted);transition:height .6s cubic-bezier(.4,0,.2,1);min-height:3px;}
+    .weekly-bar.today{background:linear-gradient(180deg,var(--em),var(--vi));}
+    .weekly-bar-lbl{font-size:8.5px;color:var(--sub);white-space:nowrap;}
+
+    /* Today's meals */
+    .meals-list{display:flex;flex-direction:column;gap:8px;}
+    .meal-item{
+      display:flex;align-items:center;gap:10px;
+      background:rgba(255,255,255,.03);border:1px solid var(--border);
+      border-radius:10px;padding:10px 12px;
+    }
+    .meal-icon{font-size:18px;flex-shrink:0;}
+    .meal-info{flex:1;min-width:0;}
+    .meal-name{font-size:12px;font-weight:600;color:var(--text);}
+    .meal-items{font-size:11px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .meal-kcal{font-size:13px;font-weight:700;color:var(--em);flex-shrink:0;}
+    .meal-time{font-size:10px;color:var(--sub);flex-shrink:0;}
+
+    /* Weight progress */
+    .weight-progress{display:flex;align-items:center;gap:12px;}
+    .weight-nums{display:flex;flex-direction:column;gap:2px;}
+    .weight-current{font-size:24px;font-weight:800;color:var(--em);}
+    .weight-target{font-size:11px;color:var(--sub);}
+    .weight-bar-wrap{flex:1;}
+    .weight-bar-bg{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+    .weight-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--vi),var(--em));transition:width .8s cubic-bezier(.4,0,.2,1);}
+
+    /* Quick actions grid */
+    .qa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .qa-card{
+      background:var(--card);border:1px solid var(--border);border-radius:12px;
+      padding:12px 8px;cursor:pointer;text-align:center;
+      transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px;
+    }
+    .qa-card:hover{background:var(--em-dim);border-color:var(--em-border);}
+    .qa-card:active{transform:scale(0.97);}
+    .qa-card-icon{font-size:20px;}
+    .qa-card-lbl{font-size:10px;color:var(--sub);font-weight:500;}
 
     /* Chat */
     #chat{
@@ -181,6 +280,8 @@
     }
     #chat::-webkit-scrollbar{width:4px;}
     #chat::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px;}
+    #chat-view{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    #chat-view.hidden{display:none;}
 
     .msg{display:flex;gap:10px;max-width:78%;animation:msgIn .25s cubic-bezier(.4,0,.2,1);}
     @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -431,6 +532,13 @@
       #sidebar::-webkit-scrollbar{display:none;}
       #chat::-webkit-scrollbar{display:none;}
       #sidebar{scrollbar-width:none;}
+
+      /* Dashboard mobile */
+      .db-row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+      .db-card-val{font-size:20px;}
+      .ring-kcal{font-size:18px;}
+      .qa-grid{grid-template-columns:repeat(3,1fr);}
+      .view-tab{padding:5px 10px;font-size:11px;}
     }
 
     /* iPhone 14/15 + modern Android (390–412px) */
@@ -774,27 +882,129 @@
 <!-- Main -->
 <div id="main">
   <div id="topbar">
-    <button id="menu-btn" onclick="toggleSidebar()" aria-label="תפריט"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
-    <div class="top-avatar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" color="var(--em)"><path d="M12 22V12"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M12 12C12 12 7 9 7 4a5 5 0 0 1 10 0c0 5-5 8-5 8z"/></svg></div>
-    <div class="top-title">{{ 'AI תזונה חכמה' if lang == 'he' else 'Longevity AI' }}</div>
-    <span class="top-badge" id="top-w" style="display:inline-flex;align-items:center;gap:4px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.7;flex-shrink:0;"><circle cx="12" cy="5" r="3"/><path d="M6.5 8h11l-1.5 9H8L6.5 8z"/><path d="M9 12h6"/></svg><span id="top-w-val"></span></span>
-    <button id="theme-btn" onclick="toggleTheme()" title="החלף מצב תצוגה" style="background:transparent;border:none;border-radius:var(--radius-sm);padding:6px 8px;color:var(--sub);cursor:pointer;transition:color var(--t-fast),background var(--t-fast);display:flex;align-items:center;" onmouseenter="this.style.background='var(--card)'" onmouseleave="this.style.background='transparent'"><svg id="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    <button id="menu-btn" onclick="toggleSidebar()" aria-label="תפריט" style="min-width:36px;min-height:36px;background:transparent;border:none;border-radius:8px;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
+    <div class="top-avatar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" color="var(--em)"><path d="M12 22V12"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M12 12C12 12 7 9 7 4a5 5 0 0 1 10 0c0 5-5 8-5 8z"/></svg></div>
+    <div class="view-tabs">
+      <button class="view-tab" id="tab-dashboard" onclick="switchView('dashboard')">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        {{ 'דשבורד' if lang == 'he' else 'Dashboard' }}
+      </button>
+      <button class="view-tab active" id="tab-chat" onclick="switchView('chat')">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        {{ 'צ׳אט' if lang == 'he' else 'Chat' }}
+      </button>
+    </div>
+    <span class="top-badge" id="top-w" style="margin-right:auto;display:inline-flex;align-items:center;gap:4px;font-size:11px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.7;flex-shrink:0;"><circle cx="12" cy="5" r="3"/><path d="M6.5 8h11l-1.5 9H8L6.5 8z"/><path d="M9 12h6"/></svg><span id="top-w-val"></span></span>
+    <button id="theme-btn" onclick="toggleTheme()" title="החלף מצב תצוגה" style="background:transparent;border:none;border-radius:var(--radius-sm);padding:6px;color:var(--sub);cursor:pointer;transition:color var(--t-fast),background var(--t-fast);display:flex;align-items:center;" onmouseenter="this.style.background='var(--card)'" onmouseleave="this.style.background='transparent'"><svg id="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
   </div>
 
-  <div id="chat"></div>
+  <!-- ── Dashboard View ── -->
+  <div id="dashboard">
+    <!-- Calorie Ring + Macros -->
+    <div class="db-card" style="text-align:center;">
+      <div class="db-card-lbl">{{ 'קלוריות היום' if lang == 'he' else "Today's Calories" }}</div>
+      <div class="calorie-ring-wrap">
+        <div class="ring-wrap">
+          <svg class="ring-svg" width="130" height="130" viewBox="0 0 130 130">
+            <circle cx="65" cy="65" r="55" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="12"/>
+            <circle id="db-ring" cx="65" cy="65" r="55" fill="none" stroke="url(#ringGrad)" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="345.4" stroke-dashoffset="345.4" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
+            <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6B5CE7"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-kcal" id="db-kcal-consumed">—</div>
+            <div class="ring-target" id="db-kcal-target">/ — קל</div>
+          </div>
+        </div>
+      </div>
+      <div class="macro-row" id="db-macros" style="display:none;">
+        <div class="macro-pill"><div class="macro-pill-val" id="db-protein" style="color:#60a5fa;">—</div><div class="macro-pill-lbl">{{ 'חלבון' if lang == 'he' else 'Protein' }}</div></div>
+        <div class="macro-pill"><div class="macro-pill-val" id="db-carbs" style="color:#f59e0b;">—</div><div class="macro-pill-lbl">{{ 'פחמימות' if lang == 'he' else 'Carbs' }}</div></div>
+        <div class="macro-pill"><div class="macro-pill-val" id="db-fat" style="color:#ec4899;">—</div><div class="macro-pill-lbl">{{ 'שומן' if lang == 'he' else 'Fat' }}</div></div>
+      </div>
+    </div>
 
-  <div id="img-preview">
-    <img id="img-thumb" src="" alt="">
-    <span id="img-nm"></span>
-    <button class="rm" onclick="clearImg()" style="background:none;border:none;cursor:pointer;color:var(--alert);display:flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <!-- Stats Row: Water, Streak, Weight -->
+    <div class="db-row cols-3">
+      <div class="db-card">
+        <div class="db-card-lbl">{{ 'מים' if lang == 'he' else 'Water' }}</div>
+        <div class="db-card-val" id="db-water-val" style="font-size:20px;">0/8</div>
+        <div class="db-water-drops" id="db-water-drops">
+          {% for i in range(8) %}
+          <span class="db-water-drop" id="db-drop-{{i}}" onclick="dbAddWater()" title="{{ 'הוסף כוס' if lang == 'he' else 'Add glass' }}"><svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="db-card" style="text-align:center;">
+        <div class="db-card-lbl">{{ 'רצף' if lang == 'he' else 'Streak' }}</div>
+        <div class="db-card-val" id="db-streak">—</div>
+        <div class="db-card-sub" id="db-streak-lbl">{{ 'ימים' if lang == 'he' else 'days' }}</div>
+      </div>
+      <div class="db-card" style="text-align:center;">
+        <div class="db-card-lbl">{{ 'משקל' if lang == 'he' else 'Weight' }}</div>
+        <div class="db-card-val" id="db-weight" style="font-size:20px;">—</div>
+        <div class="db-card-sub" id="db-weight-sub">kg</div>
+      </div>
+    </div>
+
+    <!-- Weekly Chart -->
+    <div class="db-chart-card">
+      <div class="db-chart-title">
+        <span>{{ 'קלוריות — 7 ימים אחרונים' if lang == 'he' else 'Calories — Last 7 Days' }}</span>
+        <span id="db-week-avg" style="color:var(--em);"></span>
+      </div>
+      <div class="weekly-bars" id="db-weekly-bars"></div>
+    </div>
+
+    <!-- Today's Meals -->
+    <div>
+      <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">{{ 'ארוחות היום' if lang == 'he' else "Today's Meals" }}</div>
+      <div class="meals-list" id="db-meals-list">
+        <div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">{{ 'עדיין לא דווחו ארוחות היום' if lang == 'he' else 'No meals logged today' }}</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div>
+      <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">{{ 'פעולות מהירות' if lang == 'he' else 'Quick Actions' }}</div>
+      <div class="qa-grid">
+        <div class="qa-card" onclick="switchView('chat');qs('{% if lang==\"he\" %}תראה לי את תפריט היום{% else %}Show me today\'s meal plan{% endif %}')">
+          <div class="qa-card-icon">📅</div><div class="qa-card-lbl">{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</div>
+        </div>
+        <div class="qa-card" onclick="document.getElementById('file-input').click()">
+          <div class="qa-card-icon">📸</div><div class="qa-card-lbl">{{ 'צלם ארוחה' if lang == 'he' else 'Photo Meal' }}</div>
+        </div>
+        <div class="qa-card" onclick="switchView('chat');promptWeight()">
+          <div class="qa-card-icon">⚖️</div><div class="qa-card-lbl">{{ 'עדכן משקל' if lang == 'he' else 'Log Weight' }}</div>
+        </div>
+        <div class="qa-card" onclick="switchView('chat');openBarcodeScanner()">
+          <div class="qa-card-icon">📦</div><div class="qa-card-lbl">{{ 'ברקוד' if lang == 'he' else 'Barcode' }}</div>
+        </div>
+        <div class="qa-card" onclick="switchView('chat');showShoppingList()">
+          <div class="qa-card-icon">🛒</div><div class="qa-card-lbl">{{ 'קניות' if lang == 'he' else 'Shopping' }}</div>
+        </div>
+        <div class="qa-card" onclick="window.open('/report','_blank')">
+          <div class="qa-card-icon">📊</div><div class="qa-card-lbl">{{ 'דוח שבועי' if lang == 'he' else 'Weekly Report' }}</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div id="input-bar">
-    <div id="input-row">
-      <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="{{ 'שלח תמונה' if lang == 'he' else 'Send image' }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
-      <textarea id="msg-input" rows="1"
-        placeholder="{{ 'שאל אותי כל דבר, דווח על ארוחה, שלח תמונה...' if lang == 'he' else 'Ask anything, log a meal, send a photo...' }}"></textarea>
-      <button id="send-btn" onclick="send()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
+  <!-- ── Chat View ── -->
+  <div id="chat-view">
+    <div id="chat"></div>
+    <div id="img-preview">
+      <img id="img-thumb" src="" alt="">
+      <span id="img-nm"></span>
+      <button class="rm" onclick="clearImg()" style="background:none;border:none;cursor:pointer;color:var(--alert);display:flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="input-bar">
+      <div id="input-row">
+        <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="{{ 'שלח תמונה' if lang == 'he' else 'Send image' }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+        <textarea id="msg-input" rows="1"
+          placeholder="{{ 'שאל אותי כל דבר, דווח על ארוחה, שלח תמונה...' if lang == 'he' else 'Ask anything, log a meal, send a photo...' }}"></textarea>
+        <button id="send-btn" onclick="send()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
+      </div>
     </div>
   </div>
 </div>
@@ -819,6 +1029,131 @@
 <script>
   const LANG='{{ lang }}';
   let imgB64=null,imgName=null,loading=false,wChart=null;
+  let _currentView='chat';
+
+  // ── View switcher ──
+  function switchView(v){
+    _currentView=v;
+    document.getElementById('dashboard').classList.toggle('active', v==='dashboard');
+    document.getElementById('chat-view').classList.toggle('hidden', v==='dashboard');
+    document.getElementById('tab-dashboard').classList.toggle('active', v==='dashboard');
+    document.getElementById('tab-chat').classList.toggle('active', v==='chat');
+    if(v==='dashboard') loadDashboard();
+  }
+
+  // ── Dashboard loader ──
+  async function loadDashboard(){
+    try{
+      const [dbRes, waterRes] = await Promise.all([
+        fetch('/api/dashboard'),
+        fetch('/api/water')
+      ]);
+      const db = await dbRes.json();
+      const wt = await waterRes.json();
+      renderDashboard(db, wt.glasses||0);
+    }catch(e){ console.error('Dashboard load error', e); }
+  }
+
+  function renderDashboard(db, glasses){
+    const IS_HE = LANG==='he';
+    // Calorie ring
+    const consumed = db.today_calories||0;
+    const target   = db.target_kcal||2000;
+    const pct = Math.min(consumed/target, 1);
+    const circ = 2*Math.PI*55; // 345.4
+    document.getElementById('db-ring').style.strokeDashoffset = circ*(1-pct);
+    document.getElementById('db-kcal-consumed').textContent = consumed;
+    document.getElementById('db-kcal-target').textContent = `/ ${target} ${IS_HE?'קל':'kcal'}`;
+
+    // Macros
+    if(db.total_protein||db.total_carbs||db.total_fat){
+      document.getElementById('db-macros').style.display='flex';
+      document.getElementById('db-protein').textContent = (db.total_protein||0)+'g';
+      document.getElementById('db-carbs').textContent   = (db.total_carbs||0)+'g';
+      document.getElementById('db-fat').textContent     = (db.total_fat||0)+'g';
+    }
+
+    // Water
+    const g = db.water_glasses!==undefined ? db.water_glasses : glasses;
+    document.getElementById('db-water-val').textContent = g+'/8';
+    for(let i=0;i<8;i++){
+      const el=document.getElementById('db-drop-'+i);
+      if(el) el.classList.toggle('filled', i<g);
+    }
+
+    // Streak
+    const streak = db.streak||0;
+    document.getElementById('db-streak').textContent = streak;
+    document.getElementById('db-streak-lbl').textContent = IS_HE?(streak===1?'יום':'ימים'):'days';
+
+    // Weight
+    if(db.current_weight){
+      document.getElementById('db-weight').textContent = db.current_weight+'kg';
+      const lost = db.lost;
+      if(lost>0) document.getElementById('db-weight-sub').textContent = IS_HE?`-${lost}kg מהתחלה`:`-${lost}kg lost`;
+      else if(db.target_min) document.getElementById('db-weight-sub').textContent = IS_HE?`יעד: ${db.target_min}kg`:`Goal: ${db.target_min}kg`;
+    }
+
+    // Weekly bars
+    if(db.weekly_calories && db.weekly_calories.length){
+      const bars = document.getElementById('db-weekly-bars');
+      bars.innerHTML='';
+      const days = IS_HE?['ש','א','ב','ג','ד','ה','ו']:['Su','Mo','Tu','We','Th','Fr','Sa'];
+      const maxKcal = Math.max(...db.weekly_calories.map(d=>d.calories), 1);
+      const today = new Date().toISOString().slice(0,10);
+      let total=0,count=0;
+      db.weekly_calories.forEach((d,i)=>{
+        const h = Math.max((d.calories/maxKcal)*100, d.calories>0?6:0);
+        const isToday = d.date===today;
+        const dayDate = new Date(d.date);
+        const dayLbl = days[dayDate.getDay()];
+        if(d.calories>0){total+=d.calories;count++;}
+        bars.innerHTML+=`<div class="weekly-bar-wrap">
+          <div class="weekly-bar${isToday?' today':''}" style="height:${h}%" title="${d.calories} קל"></div>
+          <div class="weekly-bar-lbl">${dayLbl}</div>
+        </div>`;
+      });
+      if(count>0) document.getElementById('db-week-avg').textContent = IS_HE?`ממוצע: ${Math.round(total/count)} קל`:`Avg: ${Math.round(total/count)}`;
+    }
+
+    // Today's meals
+    const mealsList = document.getElementById('db-meals-list');
+    if(db.today_meals && db.today_meals.length>0){
+      const icons={'breakfast':'🌅','lunch':'☀️','dinner':'🌙','snack':'🍎','other':'🍽️'};
+      mealsList.innerHTML = db.today_meals.map(m=>`
+        <div class="meal-item">
+          <div class="meal-icon">${icons[m.meal_id]||'🍽️'}</div>
+          <div class="meal-info">
+            <div class="meal-name">${m.name}</div>
+            <div class="meal-items">${(m.items||[]).join(', ')||'—'}</div>
+          </div>
+          <div style="text-align:end">
+            <div class="meal-kcal">${m.calories||0} ${IS_HE?'קל':'kcal'}</div>
+            <div class="meal-time">${m.time||''}</div>
+          </div>
+        </div>`).join('');
+    } else {
+      mealsList.innerHTML=`<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">${IS_HE?'עדיין לא דווחו ארוחות היום':'No meals logged today'}</div>`;
+    }
+
+    // Sync sidebar water too
+    setWater(g);
+  }
+
+  async function dbAddWater(){
+    try{
+      const r = await fetch('/api/water',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add'})});
+      const d = await r.json();
+      setWater(d.glasses||0);
+      // update dashboard water drops
+      const g = d.glasses||0;
+      document.getElementById('db-water-val').textContent = g+'/8';
+      for(let i=0;i<8;i++){
+        const el=document.getElementById('db-drop-'+i);
+        if(el) el.classList.toggle('filled', i<g);
+      }
+    }catch(e){}
+  }
 
   // textarea auto-resize
   const ta=document.getElementById('msg-input');
@@ -893,7 +1228,7 @@
       const d=await r.json();
       hideTyping();
       if(d.error)addMsg('agent',`❌ ${d.error}`);
-      else{addMsg('agent',fmt(d.response),true);if(d.weight)refreshWeight(d.weight);loadStats();loadBurnData();}
+      else{addMsg('agent',fmt(d.response),true);if(d.weight)refreshWeight(d.weight);loadStats();loadBurnData();loadDashboard();}
     }catch(e){hideTyping();addMsg('agent',`❌ ${LANG==='he'?'שגיאת חיבור':'Connection error'}: ${e.message}`);}
     loading=false;document.getElementById('send-btn').disabled=false;
   }
@@ -1484,6 +1819,7 @@
     loadWater();
     loadReferral();
     loadBurnData();
+    loadDashboard(); // pre-load dashboard data in background
     qs(LANG==='he'?'שלום! תראה לי את תפריט היום ותסביר מה חשוב.':'Hello! Show me today\'s meal plan and what I should know.');
   };
 

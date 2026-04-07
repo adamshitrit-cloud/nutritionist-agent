@@ -394,6 +394,67 @@ def api_stats():
         return jsonify({"error": "not logged in"}), 401
     return jsonify(get_user_stats(uid))
 
+@app.route("/api/dashboard")
+def api_dashboard():
+    """Extended stats for the dashboard view — includes today's meals, macros, weekly calories."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    try:
+        nutritionist._current_user_id = uid
+        from datetime import date, timedelta
+        today_iso = str(date.today())
+
+        progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+        profile  = nutritionist.load_json(nutritionist.PROFILE_FILE)
+
+        # Today's meals with macros
+        raw_meals = [m for m in progress.get("meal_log", []) if m.get("date") == today_iso]
+        meal_names = {"breakfast": "ארוחת בוקר", "snack": "חטיף", "lunch": "ארוחת צהריים", "dinner": "ארוחת ערב"}
+        today_meals = []
+        total_protein = total_carbs = total_fat = 0
+        for m in raw_meals:
+            p = m.get("protein_g", 0) or 0
+            c = m.get("carbs_g", 0) or 0
+            f = m.get("fat_g", 0) or 0
+            total_protein += p; total_carbs += c; total_fat += f
+            today_meals.append({
+                "meal_id": m.get("meal_id", "other"),
+                "name": meal_names.get(m.get("meal_id", ""), m.get("meal_id", "ארוחה")),
+                "time": m.get("time", ""),
+                "items": m.get("items", []),
+                "calories": m.get("calories_estimate", 0),
+                "protein": p, "carbs": c, "fat": f
+            })
+
+        # Weekly calories (last 7 days)
+        weekly = []
+        for i in range(6, -1, -1):
+            d = str(date.today() - timedelta(days=i))
+            day_meals = [m for m in progress.get("meal_log", []) if m.get("date") == d]
+            kcal = sum(m.get("calories_estimate", 0) for m in day_meals)
+            weekly.append({"date": d, "calories": kcal})
+
+        # Water today
+        water_key = f"{uid}:water:{today_iso}"
+        glasses = int(_redis_raw_get(water_key) or 0)
+
+        base = get_user_stats(uid)
+        base.update({
+            "today_meals": today_meals,
+            "total_protein": round(total_protein, 1),
+            "total_carbs": round(total_carbs, 1),
+            "total_fat": round(total_fat, 1),
+            "weekly_calories": weekly,
+            "water_glasses": glasses,
+            "water_target": 8,
+        })
+        return jsonify(base)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        nutritionist._current_user_id = None
+
 # ── Chat endpoint ────────────────────────────────────────────────────────────
 
 @app.route("/chat", methods=["POST"])
