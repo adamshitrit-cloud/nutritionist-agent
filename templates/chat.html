@@ -1297,13 +1297,23 @@
       const card = document.getElementById('db-streak-card');
       if(card){ card.style.animation='none'; void card.offsetHeight; card.style.animation='streakBounce .5s cubic-bezier(.34,1.56,.64,1)'; }
     }
-    // Shield button
+    // Shield button — sync with server as source of truth
     const shieldBtn = document.getElementById('db-shield-btn');
-    if(shieldBtn){
+    if(shieldBtn && streak > 0){
       const month = new Date().toISOString().slice(0,7);
-      const shieldUsed = localStorage.getItem('shield_used_'+month);
-      shieldBtn.style.display = (streak > 0 && !shieldUsed) ? 'inline-block' : 'none';
-    }
+      fetch('/api/streak-shield').then(r=>r.json()).then(sd=>{
+        if(sd.used){
+          localStorage.setItem('shield_used_'+month,'1');
+          shieldBtn.style.display='none';
+        } else {
+          localStorage.removeItem('shield_used_'+month);
+          shieldBtn.style.display='inline-block';
+        }
+      }).catch(()=>{
+        const shieldUsed = localStorage.getItem('shield_used_'+month);
+        shieldBtn.style.display = shieldUsed ? 'none' : 'inline-block';
+      });
+    } else if(shieldBtn){ shieldBtn.style.display='none'; }
 
     // ── Weight (weekly average preferred) ──
     const weightEl  = document.getElementById('db-weight');
@@ -1472,7 +1482,14 @@
       const d=await r.json();
       hideTyping();
       if(d.error)addMsg('agent',`❌ ${d.error}`);
-      else{addMsg('agent',fmt(d.response),true);if(d.weight)refreshWeight(d.weight);loadStats();loadBurnData();loadDashboard();}
+      else{
+        addMsg('agent',fmt(d.response),true);
+        if(d.weight)refreshWeight(d.weight);
+        loadStats();
+        loadBurnData();
+        // Only reload dashboard if currently viewing it (avoid 3 wasted API calls per message)
+        if(_currentView==='dashboard') loadDashboard();
+      }
     }catch(e){hideTyping();addMsg('agent',`❌ ${LANG==='he'?'שגיאת חיבור':'Connection error'}: ${e.message}`);}
     loading=false;document.getElementById('send-btn').disabled=false;
   }
@@ -1516,6 +1533,8 @@
       const d=await(await fetch('/api/water',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add'})})).json();
       setWater(d.glasses);
       loadStats();
+      // Also refresh dashboard water card if on dashboard view
+      if(_currentView==='dashboard') loadDashboard();
     }catch(e){console.log('water add err',e);}
   }
   async function resetWater(){

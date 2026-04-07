@@ -222,15 +222,15 @@ TOOLS = [
     },
     {
         "name": "save_note",
-        "description": "שומר הערה או תובנה בזיכרון הסוכן לשימוש עתידי",
+        "description": "שומר הערה, טיפ, או תובנה בזיכרון הסוכן — מוצגות בדשבורד. השתמש ב-tip לטיפים, insight לתובנות, weekly לסיכום שבועי, bloating לנפיחות, preference להעדפות, progress להתקדמות",
         "input_schema": {
             "type": "object",
             "properties": {
                 "note": {"type": "string", "description": "ההערה לשמירה"},
                 "category": {
                     "type": "string",
-                    "enum": ["preference", "bloating", "progress", "general"],
-                    "description": "קטגוריית ההערה"
+                    "enum": ["tip", "insight", "weekly", "bloating", "preference", "progress", "general"],
+                    "description": "קטגוריית ההערה: tip=טיפ, insight=תובנה, weekly=שבועי, bloating=נפיחות, preference=העדפה, progress=התקדמות"
                 }
             },
             "required": ["note", "category"]
@@ -249,6 +249,19 @@ TOOLS = [
                 }
             },
             "required": ["meal_id"]
+        }
+    },
+    {
+        "name": "log_exercise",
+        "description": "מתעד פעילות גופנית ושריפת קלוריות. קרא כשהמשתמש מדווח על ריצה, הליכה, חדר כושר, שחייה, אופניים, יוגה וכו'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "activity": {"type": "string", "description": "סוג הפעילות (למשל: ריצה, הליכה, חדר כושר, שחייה)"},
+                "duration_min": {"type": "integer", "description": "משך הפעילות בדקות"},
+                "calories": {"type": "integer", "description": "הערכת קלוריות שנשרפו"}
+            },
+            "required": ["activity", "duration_min", "calories"]
         }
     },
     {
@@ -342,11 +355,13 @@ def get_full_weekly_plan() -> str:
 
 
 def log_weight(weight_kg: float, note: str = "") -> str:
+    from datetime import timezone, timedelta
+    tz_uk = timezone(timedelta(hours=1))
     progress = load_json(PROGRESS_FILE)
     profile = load_json(PROFILE_FILE)
 
     entry = {
-        "date": datetime.now().strftime("%Y-%m-%d"),
+        "date": datetime.now(tz_uk).strftime("%Y-%m-%d"),
         "weight_kg": weight_kg,
         "note": note
     }
@@ -387,11 +402,14 @@ def log_weight(weight_kg: float, note: str = "") -> str:
 def log_meal(meal_id: str, items: list, calories_estimate: float = 0,
              protein_g: float = 0, carbs_g: float = 0, fat_g: float = 0,
              felt_bloated: bool = False) -> str:
+    from datetime import timezone, timedelta
+    tz_uk = timezone(timedelta(hours=1))
+    _now = datetime.now(tz_uk)
     progress = load_json(PROGRESS_FILE)
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = _now.strftime("%Y-%m-%d")
     entry = {
         "date": today,
-        "time": datetime.now().strftime("%H:%M"),
+        "time": _now.strftime("%H:%M"),
         "meal_id": meal_id,
         "items": items,
         "calories_estimate": calories_estimate,
@@ -454,6 +472,7 @@ def update_meal_plan(day: str, meal_id: str, new_items: list, new_note: str = ""
     if day not in plan.get("weekly_plan", {}):
         return f"❌ יום לא תקין: {day}"
 
+    plan["weekly_plan"].setdefault(day, {}).setdefault(meal_id, {"items": [], "calories": 0, "protein_g": 0, "notes": ""})
     plan["weekly_plan"][day][meal_id]["items"] = new_items
     if new_note:
         plan["weekly_plan"][day][meal_id]["notes"] = new_note
@@ -615,12 +634,15 @@ def analyze_food_image(image_path: str, meal_id: str, extra_context: str = "", _
 
     analysis = json.loads(json_match.group())
 
-    # Auto-log the meal
+    # Auto-log the meal including macros
     items_names = [f"{i['name']} ({i.get('amount_g', '?')}g)" for i in analysis.get("items", [])]
     log_meal(
         meal_id=meal_id,
         items=items_names,
         calories_estimate=analysis.get("total_calories", 0),
+        protein_g=analysis.get("total_protein_g", 0),
+        carbs_g=analysis.get("total_carbs_g", 0),
+        fat_g=analysis.get("total_fat_g", 0),
         felt_bloated=False
     )
 
@@ -669,14 +691,40 @@ def save_note(note: str, category: str) -> str:
     return f"✅ הערה נשמרה בקטגוריה '{category}'"
 
 
+def log_exercise(activity: str, duration_min: int, calories: int) -> str:
+    """Log a physical activity and calorie burn to progress data."""
+    import uuid as _uuid
+    from datetime import timezone, timedelta
+    tz_uk = timezone(timedelta(hours=1))
+    today_iso = datetime.now(tz_uk).strftime("%Y-%m-%d")
+    time_str = datetime.now(tz_uk).strftime("%H:%M")
+    progress = load_json(PROGRESS_FILE)
+    burn_log = progress.setdefault("burn_log", [])
+    entry = {
+        "id": str(_uuid.uuid4())[:8],
+        "date": today_iso,
+        "time": time_str,
+        "activity": activity,
+        "calories": max(0, int(calories)),
+        "duration_min": max(0, int(duration_min))
+    }
+    burn_log.append(entry)
+    save_json(PROGRESS_FILE, progress)
+    today_burn = sum(e["calories"] for e in burn_log if e.get("date") == today_iso)
+    return f"✅ {activity} {duration_min} דק' — {calories} קל נשרפו | סה\"כ היום: {today_burn} קל"
+
+
 def log_water(glasses: int = 1) -> str:
-    today_iso = datetime.now().strftime("%Y-%m-%d")
+    from datetime import timezone, timedelta
+    tz_uk = timezone(timedelta(hours=1))
+    today_iso = datetime.now(tz_uk).strftime("%Y-%m-%d")
+    glasses = max(1, min(int(glasses), 20))  # cap between 1–20
     if _REDIS_URL and _REDIS_TOKEN and _current_user_id:
         try:
             water_key = f"{_current_user_id}:water:{today_iso}"
             current_raw = _redis_raw_get(water_key)
             current = int(current_raw) if current_raw else 0
-            new_val = current + glasses
+            new_val = min(current + glasses, 20)  # cap total at 20
             _redis_raw_set(water_key, str(new_val))
             return f"✅ {glasses} כוס מים נרשמה — סה\"כ היום: {new_val} כוסות"
         except Exception as e:
@@ -686,7 +734,7 @@ def log_water(glasses: int = 1) -> str:
         progress = load_json(PROGRESS_FILE)
         water_log = progress.setdefault("water_log", {})
         current = water_log.get(today_iso, 0)
-        new_val = current + glasses
+        new_val = min(current + glasses, 20)
         water_log[today_iso] = new_val
         save_json(PROGRESS_FILE, progress)
         return f"✅ {glasses} כוס מים נרשמה — סה\"כ היום: {new_val} כוסות"
@@ -740,6 +788,8 @@ def execute_tool(name: str, inputs: dict) -> str:
             return save_note(**inputs)
         elif name == "log_water":
             return log_water(**inputs)
+        elif name == "log_exercise":
+            return log_exercise(**inputs)
         elif name == "log_measurement":
             return log_measurement(**inputs)
         else:
@@ -915,14 +965,22 @@ def build_system_prompt() -> str:
 **חשוב:**
 - כשמשתמש מדווח נפיחות — שמור הערה וצמצם FODMAP בתפריט{notes_text}
 
-**טיפים ותובנות → דשבורד, לא צ'אט:**
-- כשיש לך תובנה, טיפ שבועי, תזכורת, מסקנה מהנתונים — קרא `save_note` עם category מתאים (tip/insight/weekly/bloating) ואל תכתוב אותה בצ'אט
-- בצ'אט: רק תשובה ישירה לשאלה שנשאלת — הכל השאר שמור בדשבורד
-- לאחר save_note: אל תאמר כלום בצ'אט על מה ששמרת
+**כלל: טיפים → דשבורד בלבד, לא בצ'אט:**
+- בצ'אט: רק תשובה ישירה לשאלה שנשאלת
+- כל שאר הנתונים (קלוריות, משקל, מים, ארוחות) — המשתמש רואה בדשבורד
 
 **שתיית מים:**
 - כשהמשתמש אומר "שתיתי מים", "כוס מים", "שתיתי", "מים" → קרא `log_water` עם מספר הכוסות שצוין (ברירת מחדל: 1)
 - לאחר log_water: "✅ [X] כוסות מים נרשמו" — רק זה, כלום אחר
+
+**פעילות גופנית:**
+- כשהמשתמש מדווח על ריצה, הליכה, חדר כושר, שחייה, אופניים, ספורט וכדומה → קרא `log_exercise`
+- הערכת קלוריות: הליכה≈5קל/דק, ריצה≈10קל/דק, חדר כושר≈8קל/דק, שחייה≈8קל/דק
+- לאחר log_exercise: "✅ [פעילות] [X] דק' — [Y] קל נשרפו" — רק זה
+
+**טיפים ותובנות:**
+- כשיש לך תובנה/טיפ → קרא `save_note` עם category מתאים: tip=טיפ כללי, insight=תובנה על הנתונים, weekly=סיכום שבועי, bloating=נפיחות, preference=העדפת אוכל, progress=התקדמות
+- לאחר save_note: אל תאמר כלום בצ'אט
 
 **טיפול בטעויות ותיקונים:**
 - כשהמשתמש אומר "טעות", "לא אכלתי את זה", "מחק", "בטל" → השתמש ב-`delete_meal` עם meal_id המתאים

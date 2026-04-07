@@ -400,7 +400,8 @@ def api_notes():
         return jsonify({"error": "not logged in"}), 401
     try:
         nutritionist._current_user_id = uid
-        memory = nutritionist.load_json(nutritionist.MEMORY_FILE) if nutritionist.MEMORY_FILE.exists() else {}
+        # Always use load_json (uses Redis when available, not filesystem check)
+        memory = nutritionist.load_json(nutritionist.MEMORY_FILE)
         notes = memory.get("notes", [])
         return jsonify({"notes": list(reversed(notes[-10:]))})
     except Exception as e:
@@ -562,8 +563,8 @@ def _strip_markdown_tables(text: str) -> str:
         if stripped.startswith('|'):
             skip_next_separator = False
             continue
-        # Skip standalone markdown headers (## or ###)
-        if stripped.startswith('## ') or stripped.startswith('### '):
+        # Skip standalone markdown headers (# / ## / ###)
+        if stripped.startswith('# ') or stripped.startswith('## ') or stripped.startswith('### '):
             continue
         cleaned.append(line)
     # Collapse 3+ consecutive blank lines into 1
@@ -1000,15 +1001,63 @@ def process_whatsapp_image(user_id: str, media_url: str, caption: str) -> str:
         history = load_history(user_id)
         history.append({"role": "user", "content": f"[WhatsApp תמונה] {prompt}"})
 
+        # Determine meal_id from caption or time of day
+        from datetime import datetime as _dt
+        hour = _dt.now().hour
+        meal_id = "other"
+        for m in ["breakfast", "snack", "lunch", "dinner"]:
+            if m in (caption or "").lower():
+                meal_id = m
+                break
+        if meal_id == "other":
+            if 6 <= hour < 10:    meal_id = "breakfast"
+            elif 10 <= hour < 12: meal_id = "snack"
+            elif 12 <= hour < 16: meal_id = "lunch"
+            else:                 meal_id = "dinner"
+
+        vision_prompt = f"""נתח את תמונת האוכל. ענה בפורמט JSON בלבד:
+{{
+  "items": [{{"name": "שם", "amount_g": 100, "calories": 200, "protein_g": 20}}],
+  "total_calories": 400,
+  "total_protein_g": 40,
+  "total_carbs_g": 30,
+  "total_fat_g": 15,
+  "description": "תיאור קצר"
+}}
+{f'הקשר: {caption}' if caption else ''}"""
+
         response = nutritionist._shared_client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=600,
             messages=[{"role": "user", "content": [
                 {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": image_b64}},
-                {"type": "text",  "text": prompt}
+                {"type": "text",  "text": vision_prompt}
             ]}]
         )
-        reply = response.content[0].text
+        raw_reply = response.content[0].text
+        # Try to parse JSON and log the meal automatically
+        try:
+            json_match = re.search(r'\{.*\}', raw_reply, re.DOTALL)
+            if json_match:
+                analysis = json.loads(json_match.group())
+                items_names = [f"{i['name']} ({i.get('amount_g','?')}g)" for i in analysis.get("items", [])]
+                nutritionist.log_meal(
+                    meal_id=meal_id,
+                    items=items_names,
+                    calories_estimate=analysis.get("total_calories", 0),
+                    protein_g=analysis.get("total_protein_g", 0),
+                    carbs_g=analysis.get("total_carbs_g", 0),
+                    fat_g=analysis.get("total_fat_g", 0),
+                )
+                desc = analysis.get("description", "")
+                total_cal = analysis.get("total_calories", 0)
+                total_prot = analysis.get("total_protein_g", 0)
+                reply = f"📸 {desc}\n✅ נרשם: {total_cal} קל | חלבון {total_prot}g"
+            else:
+                reply = raw_reply
+        except Exception:
+            reply = raw_reply
+
         history.append({"role": "assistant", "content": [{"type": "text", "text": reply}]})
         history = _safe_truncate(history, 40)
         save_history(user_id, history)
