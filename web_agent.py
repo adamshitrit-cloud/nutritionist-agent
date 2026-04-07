@@ -166,17 +166,19 @@ def _safe_truncate(history: list, max_len: int) -> list:
     if len(history) <= max_len:
         return history
     history = history[-max_len:]
-    # If first message is a user message with only tool_results, drop it (orphaned)
-    while history:
+    # Drop orphaned tool_result messages at the start (at most 2 to prevent emptying entire history)
+    pruned = 0
+    while history and pruned < 2:
         first = history[0]
         content = first.get("content", [])
         if isinstance(content, list) and content and all(
             isinstance(b, dict) and b.get("type") == "tool_result" for b in content
         ):
             history = history[1:]
+            pruned += 1
         else:
             break
-    return _clean_history(history)
+    return _clean_history(history) if history else []
 
 # ── Per-user conversation history ────────────────────────────────────────────
 
@@ -621,9 +623,10 @@ def chat():
 
         conversation_history.append({"role": "user", "content": content})
 
-        # Agentic loop
+        # Agentic loop (max 6 iterations)
         text_parts = []
-        for _ in range(6):
+        loop_completed = False
+        for loop_i in range(6):
             response = cl.messages.create(
                 model="claude-haiku-4-5-20251001",
                 max_tokens=4096,
@@ -638,6 +641,7 @@ def chat():
             tool_uses = [b for b in response.content if b.type == "tool_use"]
             if not tool_uses:
                 conversation_history.append({"role": "assistant", "content": response.content})
+                loop_completed = True
                 break
 
             tool_results = []
@@ -651,7 +655,12 @@ def chat():
             conversation_history.append({"role": "assistant", "content": response.content})
             conversation_history.append({"role": "user", "content": tool_results})
             if response.stop_reason == "end_turn":
+                loop_completed = True
                 break
+
+        # If loop hit limit without finishing, add a graceful fallback message
+        if not loop_completed and not text_parts:
+            text_parts.append("✅ הפעולה בוצעה.")
 
         raw_text = "".join(text_parts) if text_parts else "✅ פעולה בוצעה!"
         final_text = _strip_markdown_tables(raw_text)
@@ -1202,7 +1211,7 @@ def _generate_weekly_summary(user_id: str, user_name: str) -> str:
         avg_daily_calories = total_calories // 7 if total_calories else 0
 
         latest_weight = recent_weights[-1]["weight_kg"] if recent_weights else profile.get("current_weight_kg", "?")
-        target = profile.get("target_range", {}).get("max", 86)
+        target = profile.get("target_range", {}).get("max") or profile.get("target_weight_kg") or "לא הוגדר"
 
         msg = f"""📊 *סיכום שבועי — NutriAI*
 שלום {user_name}! הנה הסיכום שלך לשבוע:
@@ -1380,7 +1389,8 @@ def api_referral():
         return jsonify({"error": "not logged in"}), 401
     code = _get_or_create_referral_code(uid)
     referrals = int(_redis_raw_get(f"referral_count:{uid}") or 0)
-    link = f"https://nutritionist-agent-ouvp.onrender.com/landing?ref={code}"
+    base_url = os.environ.get("APP_BASE_URL", "https://nutritionist-agent-ouvp.onrender.com")
+    link = f"{base_url}/landing?ref={code}"
     return jsonify({"code": code, "link": link, "referrals": referrals})
 
 

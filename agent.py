@@ -297,9 +297,11 @@ TOOLS = [
 
 # ── Tool implementations ───────────────────────────────────────────────────
 def get_todays_meal_plan() -> str:
+    from datetime import timezone, timedelta
+    tz_uk = timezone(timedelta(hours=1))
     plan = load_json(MEAL_PLAN_FILE)
     days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-    today_name = days[datetime.now().weekday()]
+    today_name = days[datetime.now(tz_uk).weekday()]
     day_names_he = {
         "monday": "יום שני", "tuesday": "יום שלישי", "wednesday": "יום רביעי",
         "thursday": "יום חמישי", "friday": "יום שישי", "saturday": "שבת", "sunday": "יום ראשון"
@@ -331,7 +333,7 @@ def get_todays_meal_plan() -> str:
     anti_bloat = plan.get("anti_bloating_rules", [])
     if anti_bloat:
         result.append(f"\n\n🌿 **טיפ היום נגד נפיחות:**")
-        result.append(f"  {anti_bloat[datetime.now().day % len(anti_bloat)]}")
+        result.append(f"  {anti_bloat[datetime.now(tz_uk).day % len(anti_bloat)]}")
 
     return "\n".join(result)
 
@@ -490,7 +492,7 @@ def get_progress_summary() -> str:
         return "אין נתוני משקל עדיין. הוסף את המשקל הראשון שלך!"
 
     current_w = logs[-1]["weight_kg"]
-    start_w = logs[0]["weight_kg"] if len(logs) > 1 else profile.get("current_weight_kg", current_w)
+    start_w = logs[0]["weight_kg"] if len(logs) >= 1 else profile.get("current_weight_kg", current_w)
     target_min = profile.get("target_range", {}).get("min") or profile.get("target_weight_kg")
     target_max = profile.get("target_range", {}).get("max") or target_min
     target = (((target_min or current_w) + (target_max or current_w)) / 2)
@@ -499,15 +501,15 @@ def get_progress_summary() -> str:
     remaining = round(current_w - target, 1)
 
     # Calculate weekly rate
+    from datetime import timezone, timedelta
+    tz_uk = timezone(timedelta(hours=1))
     start_date = datetime.strptime(logs[0]["date"], "%Y-%m-%d")
-    weeks = max(1, (datetime.now() - start_date).days / 7)
+    weeks = max(1, (datetime.now(tz_uk).replace(tzinfo=None) - start_date).days / 7)
     weekly_rate = round(lost_total / weeks, 2) if lost_total > 0 else 0
 
     # Estimate weeks to goal
     weeks_left = round(remaining / max(weekly_rate, 0.3)) if remaining > 0 else 0
-    target_date = datetime.now()
-    from datetime import timedelta
-    eta = (datetime.now() + timedelta(weeks=weeks_left)).strftime("%d/%m/%Y")
+    eta = (datetime.now(tz_uk) + timedelta(weeks=weeks_left)).strftime("%d/%m/%Y")
 
     summary = f"""
 📊 **סיכום התקדמות**
@@ -681,9 +683,12 @@ def analyze_food_image(image_path: str, meal_id: str, extra_context: str = "", _
 
 
 def save_note(note: str, category: str) -> str:
-    memory = load_json(MEMORY_FILE) if MEMORY_FILE.exists() else {"notes": []}
+    from datetime import timezone, timedelta
+    tz_uk = timezone(timedelta(hours=1))
+    # Always use load_json — uses Redis when available, never bypasses with .exists() check
+    memory = load_json(MEMORY_FILE) or {}
     memory.setdefault("notes", []).append({
-        "date": datetime.now().strftime("%Y-%m-%d"),
+        "date": datetime.now(tz_uk).strftime("%Y-%m-%d"),
         "category": category,
         "note": note
     })
@@ -741,10 +746,13 @@ def log_water(glasses: int = 1) -> str:
 
 
 def log_measurement(waist_cm: float = None, chest_cm: float = None, hips_cm: float = None) -> str:
+    from datetime import timezone, timedelta
+    tz_uk = timezone(timedelta(hours=1))
+    _now = datetime.now(tz_uk)
     progress = load_json(PROGRESS_FILE)
     entry = {
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "time": datetime.now().strftime("%H:%M")
+        "date": _now.strftime("%Y-%m-%d"),
+        "time": _now.strftime("%H:%M")
     }
     if waist_cm: entry["waist_cm"] = waist_cm
     if chest_cm: entry["chest_cm"] = chest_cm
@@ -802,7 +810,7 @@ def execute_tool(name: str, inputs: dict) -> str:
 def build_system_prompt() -> str:
     from datetime import timezone, timedelta
     profile = load_json(PROFILE_FILE)
-    memory = load_json(MEMORY_FILE) if MEMORY_FILE.exists() else {}
+    memory = load_json(MEMORY_FILE) or {}  # Always use Redis — never bypass with .exists()
 
     # ── Time-awareness (UK timezone = UTC+1) ──
     HE_DAYS = ["שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת", "ראשון"]
@@ -817,9 +825,17 @@ def build_system_prompt() -> str:
     shabbat_note = " (שבת קודש)" if is_shabbat else ""
     today_iso = now.strftime("%Y-%m-%d")
 
-    # ── Today's meal log ──
+    # ── Today's meal log + water ──
     progress = load_json(PROGRESS_FILE)
     today_meals = [m for m in progress.get("meal_log", []) if m.get("date") == today_iso]
+    # Water from Redis (same key the dashboard reads)
+    water_today = 0
+    if _REDIS_URL and _REDIS_TOKEN and _current_user_id:
+        try:
+            _w_raw = _redis_raw_get(f"{_current_user_id}:water:{today_iso}")
+            water_today = int(_w_raw) if _w_raw else 0
+        except Exception:
+            water_today = 0
     if today_meals:
         meals_lines = []
         total_kcal = 0
@@ -918,6 +934,7 @@ def build_system_prompt() -> str:
 אתה "התזונאי החכם" - תזונאי AI אישי של המשתמש.
 
 ⏰ **עכשיו:** {date_str}{shabbat_note}, שעה {time_str} (UK)
+💧 **מים היום:** {water_today}/8 כוסות
 {today_food_section}
 
 **פרופיל המשתמש:**
