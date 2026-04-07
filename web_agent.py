@@ -393,6 +393,21 @@ def logout():
     session.clear()
     return redirect(url_for("landing"))
 
+@app.route("/api/notes")
+def api_notes():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    try:
+        nutritionist._current_user_id = uid
+        memory = nutritionist.load_json(nutritionist.MEMORY_FILE) if nutritionist.MEMORY_FILE.exists() else {}
+        notes = memory.get("notes", [])
+        return jsonify({"notes": list(reversed(notes[-10:]))})
+    except Exception as e:
+        return jsonify({"notes": []})
+    finally:
+        nutritionist._current_user_id = None
+
 @app.route("/api/stats")
 def api_stats():
     uid = current_user_id()

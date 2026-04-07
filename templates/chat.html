@@ -1105,6 +1105,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Tips & Notes from AI -->
+    <div class="db-card" id="db-notes-card" style="display:none;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">
+        <span style="font-size:15px;">📌</span>
+        <span class="db-card-lbl" style="margin-bottom:0;">{{ 'טיפים ותובנות מהתזונאי' if lang == 'he' else 'TIPS & INSIGHTS' }}</span>
+      </div>
+      <div id="db-notes-list" style="display:flex;flex-direction:column;gap:7px;"></div>
+    </div>
+
   </div>
 
   <!-- ── Chat View ── -->
@@ -1161,14 +1171,44 @@
   // ── Dashboard loader ──
   async function loadDashboard(){
     try{
-      const [dbRes, waterRes] = await Promise.all([
+      const [dbRes, waterRes, notesRes] = await Promise.all([
         fetch('/api/dashboard'),
-        fetch('/api/water')
+        fetch('/api/water'),
+        fetch('/api/notes')
       ]);
       const db = await dbRes.json();
       const wt = await waterRes.json();
+      const notesData = await notesRes.json();
       renderDashboard(db, wt.glasses||0);
+      renderNotes(notesData.notes||[]);
     }catch(e){ console.error('Dashboard load error', e); }
+  }
+
+  function renderNotes(notes){
+    const card = document.getElementById('db-notes-card');
+    const list = document.getElementById('db-notes-list');
+    if(!card||!list) return;
+    if(!notes||notes.length===0){ card.style.display='none'; return; }
+    const catColors = {
+      tip:'rgba(139,92,246,.12)', insight:'rgba(96,165,250,.1)',
+      weekly:'rgba(34,197,94,.08)', bloating:'rgba(251,191,36,.1)'
+    };
+    const catLabels = {
+      tip:'💡 טיפ', insight:'🔍 תובנה', weekly:'📅 שבועי',
+      bloating:'⚠️ נפיחות', default:'📌 הערה'
+    };
+    list.innerHTML = notes.map(n=>{
+      const bg = catColors[n.category]||'rgba(139,92,246,.06)';
+      const lbl = catLabels[n.category]||catLabels.default;
+      return `<div style="background:${bg};border:1px solid rgba(139,92,246,.13);border-radius:9px;padding:9px 11px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+          <span style="font-size:9px;font-weight:700;color:var(--em);text-transform:uppercase;letter-spacing:.6px;">${lbl}</span>
+          <span style="font-size:9px;color:var(--sub);">${n.date||''}</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--text);line-height:1.55;">${n.note}</div>
+      </div>`;
+    }).join('');
+    card.style.display='block';
   }
 
   function mealColorClass(cal){
