@@ -368,13 +368,26 @@ def log_meal(meal_id: str, items: list, calories_estimate: float = 0,
         "notified": False
     }
     meal_log = progress.setdefault("meal_log", [])
-    # Dedup: if same meal_id already logged today, update it instead of adding
+    # Accumulate: if same meal_id already logged today, merge items and sum macros
     existing_idx = next(
         (i for i, m in enumerate(meal_log)
          if m.get("date") == today and m.get("meal_id") == meal_id),
         None
     )
     if existing_idx is not None:
+        ex = meal_log[existing_idx]
+        # Merge item lists (preserve order, avoid exact duplicates)
+        merged_items = list(ex.get("items", []))
+        for item in items:
+            if item not in merged_items:
+                merged_items.append(item)
+        entry["items"] = merged_items
+        # Sum nutritional values
+        entry["calories_estimate"] = (ex.get("calories_estimate") or 0) + calories_estimate
+        entry["protein_g"]         = (ex.get("protein_g")         or 0) + protein_g
+        entry["carbs_g"]           = (ex.get("carbs_g")           or 0) + carbs_g
+        entry["fat_g"]             = (ex.get("fat_g")             or 0) + fat_g
+        entry["felt_bloated"]      = ex.get("felt_bloated", False) or felt_bloated
         meal_log[existing_idx] = entry
     else:
         meal_log.append(entry)
@@ -838,7 +851,7 @@ def build_system_prompt() -> str:
 
 **טיפול בטעויות ותיקונים:**
 - כשהמשתמש אומר "טעות", "לא אכלתי את זה", "מחק", "בטל" → השתמש ב-`delete_meal` עם meal_id המתאים
-- כשמוסיפים לאותה ארוחה (למשל "גם אכלתי קוטג'") → קרא `log_meal` עם כל הפריטים הישנים + החדשים ביחד (הלוג מחליף, לא מצטבר)
+- כשמוסיפים לאותה ארוחה (למשל "גם אכלתי ביצים") → קרא `log_meal` רק עם הפריטים החדשים — הבאקאנד מצרף אוטומטית לרישום הקיים
 - לאחר מחיקה: "✅ הוסר — הדשבורד מעודכן" — לא יותר ממשפט אחד
 
 **כלל ברזל מוחלט — צ'אט תמציתי בסגנון WhatsApp:**
