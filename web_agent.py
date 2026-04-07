@@ -549,6 +549,27 @@ def api_streak_shield():
     _redis_raw_set(shield_key, "1")
     return jsonify({"ok": True, "msg": "המגן הופעל — הרצף שלך מוגן להיום!"})
 
+# ── Response post-processor ─────────────────────────────────────────────────
+
+def _strip_markdown_tables(text: str) -> str:
+    """Remove markdown tables and excess headers from AI responses."""
+    lines = text.split('\n')
+    cleaned = []
+    skip_next_separator = False
+    for line in lines:
+        stripped = line.strip()
+        # Skip table rows (lines that start and end with |)
+        if stripped.startswith('|'):
+            skip_next_separator = False
+            continue
+        # Skip standalone markdown headers (## or ###)
+        if stripped.startswith('## ') or stripped.startswith('### '):
+            continue
+        cleaned.append(line)
+    # Collapse 3+ consecutive blank lines into 1
+    result = re.sub(r'\n{3,}', '\n\n', '\n'.join(cleaned))
+    return result.strip()
+
 # ── Chat endpoint ────────────────────────────────────────────────────────────
 
 @app.route("/chat", methods=["POST"])
@@ -631,7 +652,8 @@ def chat():
             if response.stop_reason == "end_turn":
                 break
 
-        final_text = "".join(text_parts) if text_parts else "✅ פעולה בוצעה!"
+        raw_text = "".join(text_parts) if text_parts else "✅ פעולה בוצעה!"
+        final_text = _strip_markdown_tables(raw_text)
 
         # Extract weight for stats update
         weight_update = None
