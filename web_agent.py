@@ -925,12 +925,17 @@ def api_diet_mode():
         return jsonify({"error": "not logged in"}), 401
     data = request.get_json()
     mode = data.get("mode", "balanced")  # balanced/keto/mediterranean/intermittent
+    clear_history = data.get("clear_history", True)  # clear conversation on mode switch
     try:
         nutritionist._current_user_id = uid
         profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
+        old_mode = profile.get("diet_mode", "balanced")
         profile["diet_mode"] = mode
         nutritionist.save_json(nutritionist.PROFILE_FILE, profile)
-        return jsonify({"ok": True, "mode": mode})
+        # Clear conversation history when switching modes to prevent context bleed
+        if clear_history and mode != old_mode:
+            nutritionist.save_json(nutritionist.HISTORY_FILE, [])
+        return jsonify({"ok": True, "mode": mode, "history_cleared": clear_history and mode != old_mode})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:

@@ -2171,6 +2171,14 @@ function setDietMode(mode) {
       const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'};
       const ds = document.getElementById('diet-status'); if(ds) ds.textContent = mode !== 'balanced' ? 'מצב פעיל: '+(labels[mode]||mode) : '';
       loadStats();
+      // If history was cleared, add a system note to chat and clear UI
+      if(d.history_cleared) {
+        const chat = document.getElementById('chat');
+        if(chat) {
+          chat.innerHTML = '';
+          addMsg('assistant', `🔄 עברת למצב <strong>${labels[mode]||mode}</strong> — ההיסטוריה אופסה כדי למנוע ערבוב כללים. בואו נתחיל מחדש! 💪`);
+        }
+      }
     }
   }).catch(()=>{});
 }
