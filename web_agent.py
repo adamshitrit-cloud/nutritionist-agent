@@ -252,12 +252,18 @@ def get_user_stats(user_id: str) -> dict:
         target_min = profile.get("target_range", {}).get("min", None)
         target_max = profile.get("target_range", {}).get("max", None)
 
-        # Calculate streak (consecutive days with at least 1 meal logged)
+        # Calculate streak (consecutive days with at least 1 meal logged, shields count)
         from datetime import date, timedelta
         meal_dates = set(m.get("date", "") for m in progress.get("meal_log", []))
+        month = str(date.today())[:7]
+        try:
+            raw_shields = _redis_raw_get(f"shields:{user_id}:{month}")
+            shield_dates = set(json.loads(raw_shields)) if raw_shields else set()
+        except Exception:
+            shield_dates = set()
         streak = 0
         check_date = date.today()
-        while str(check_date) in meal_dates:
+        while str(check_date) in meal_dates or str(check_date) in shield_dates:
             streak += 1
             check_date -= timedelta(days=1)
 
@@ -440,6 +446,52 @@ def api_dashboard():
         glasses = int(_redis_raw_get(water_key) or 0)
 
         base = get_user_stats(uid)
+        today_calories = base.get("today_calories", 0)
+        target_kcal    = profile.get("target_kcal", 2100)
+        protein_target = profile.get("target_protein_g", 0) or 0
+        meals_logged   = len(set(m.get("meal_id") for m in raw_meals))
+
+        # ── Nutrition Score (0–100, A–F) ──
+        protein_pct   = min((total_protein / protein_target * 100), 100) if protein_target > 0 else None
+        water_pct     = min((glasses / 8) * 100, 100)
+        cal_diff      = abs(today_calories - target_kcal) / max(target_kcal, 1) * 100
+        cal_adherence = max(0, 100 - cal_diff)
+        meal_score    = min(meals_logged / 3 * 100, 100)
+
+        if protein_pct is not None:
+            composite = protein_pct * 0.35 + water_pct * 0.25 + cal_adherence * 0.25 + meal_score * 0.15
+        else:
+            composite = water_pct * 0.35 + cal_adherence * 0.40 + meal_score * 0.25
+
+        grade = "A" if composite >= 90 else "B" if composite >= 75 else "C" if composite >= 60 else "D" if composite >= 45 else "F"
+        grade_color = {"A":"#22c55e","B":"#84cc16","C":"#f59e0b","D":"#f97316","F":"#ef4444"}[grade]
+
+        # ── AI Nudge (rule-based, protein-first) ──
+        from datetime import datetime as _dt
+        hour = _dt.now().hour
+        nudge = None
+        if protein_target > 0 and total_protein < protein_target * 0.6:
+            shortfall = round(protein_target - total_protein)
+            nudge = f"חסרים לך {shortfall}g חלבון להיום — גבינה לבנה 5%, ביצים, או טונה יפתרו את זה"
+        elif glasses < 4 and hour >= 14:
+            nudge = f"שתית רק {glasses} כוסות מים עד עכשיו — אחר הצהריים זה הזמן המושלם לדביק"
+        elif today_calories < target_kcal * 0.45 and hour >= 18:
+            nudge = f"אכלת רק {today_calories} קל מתוך {target_kcal} — אל תדלג על ארוחת ערב, זה פוגע בשריר"
+        elif today_calories > target_kcal * 1.15:
+            over = round(today_calories - target_kcal)
+            nudge = f"עברת את היעד ב-{over} קל — ארוחת ערב של חלבון+ירקות תאזן את היום"
+        elif base.get("streak", 0) >= 3 and hour >= 20 and not raw_meals:
+            nudge = f"🔥 {base.get('streak')} ימים ברצף — דווח על ארוחת הערב כדי לשמור עליו!"
+        elif composite >= 85:
+            nudge = f"יום מעולה! ציון {grade} — המשך ככה 💪"
+
+        # ── Weekly average weight ──
+        logs = base.get("weight_log", [])
+        from datetime import date as _date, timedelta as _td
+        cutoff = str(_date.today() - _td(days=7))
+        recent_w = [l["weight_kg"] for l in logs if l.get("date","") >= cutoff]
+        weekly_avg_weight = round(sum(recent_w)/len(recent_w), 1) if len(recent_w) >= 2 else None
+
         base.update({
             "today_meals": today_meals,
             "total_protein": round(total_protein, 1),
@@ -448,12 +500,39 @@ def api_dashboard():
             "weekly_calories": weekly,
             "water_glasses": glasses,
             "water_target": 8,
+            "target_protein_g": protein_target,
+            "nutrition_score": {"grade": grade, "color": grade_color, "composite": round(composite, 1)},
+            "ai_nudge": nudge,
+            "weekly_avg_weight": weekly_avg_weight,
         })
         return jsonify(base)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
         nutritionist._current_user_id = None
+
+@app.route("/api/streak-shield", methods=["GET","POST"])
+def api_streak_shield():
+    uid = current_user_id()
+    if not uid: return jsonify({"error": "not logged in"}), 401
+    from datetime import date as _date
+    month = str(_date.today())[:7]
+    shield_key = f"shield_used:{uid}:{month}"
+    if request.method == "GET":
+        used = bool(_redis_raw_get(shield_key))
+        return jsonify({"used": used, "month": month})
+    # POST — activate shield for today
+    if _redis_raw_get(shield_key):
+        return jsonify({"ok": False, "msg": "כבר השתמשת במגן החודש הזה"})
+    today = str(_date.today())
+    shields_key = f"shields:{uid}:{month}"
+    raw = _redis_raw_get(shields_key)
+    shield_dates = json.loads(raw) if raw else []
+    if today not in shield_dates:
+        shield_dates.append(today)
+    _redis_raw_set(shields_key, json.dumps(shield_dates))
+    _redis_raw_set(shield_key, "1")
+    return jsonify({"ok": True, "msg": "המגן הופעל — הרצף שלך מוגן להיום!"})
 
 # ── Chat endpoint ────────────────────────────────────────────────────────────
 

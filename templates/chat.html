@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="NutriAI">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -34,6 +34,9 @@
     .icon svg{width:100%;height:100%;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round;}
     .icon-18{width:18px;height:18px;}
     .icon-20{width:20px;height:20px;}
+    /* Hebrew font override */
+    :lang(he), [dir="rtl"], [dir="rtl"] *{font-family:'Heebo','Inter',system-ui,sans-serif;}
+
     body{
       font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
       -webkit-font-smoothing:antialiased;
@@ -259,6 +262,66 @@
     .weight-bar-wrap{flex:1;}
     .weight-bar-bg{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
     .weight-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--vi),var(--em));transition:width .8s cubic-bezier(.4,0,.2,1);}
+
+    /* ── AI Nudge Card ── */
+    .nudge-card{
+      background:linear-gradient(135deg,rgba(139,92,246,.13),rgba(107,92,231,.07));
+      border:1px solid rgba(139,92,246,.35);border-radius:14px;padding:14px 16px;
+      animation:nudgePulse 4s ease-in-out infinite;
+    }
+    @keyframes nudgePulse{
+      0%,100%{border-color:rgba(139,92,246,.35);box-shadow:none;}
+      50%{border-color:rgba(139,92,246,.65);box-shadow:0 0 16px rgba(139,92,246,.15);}
+    }
+    .nudge-icon{font-size:22px;flex-shrink:0;line-height:1;}
+    .nudge-lbl{font-size:9.5px;color:var(--em);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px;}
+    .nudge-text{font-size:13px;color:var(--text);line-height:1.65;font-weight:400;}
+
+    /* ── Nutrition Score ── */
+    .score-wrap{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px;}
+    .score-grade{font-size:42px;font-weight:900;line-height:1;transition:color .5s;}
+    .score-bar-outer{flex:1;max-width:90px;}
+    .score-bar-bg{height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;margin-bottom:4px;}
+    .score-bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+    .score-pct{font-size:10px;color:var(--sub);}
+
+    /* ── Protein primary card ── */
+    .protein-card{
+      background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.2);
+      border-radius:10px;padding:10px 12px;margin-bottom:6px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .protein-lbl{font-size:9px;color:rgba(96,165,250,.7);text-transform:uppercase;letter-spacing:1px;font-weight:600;}
+    .protein-val{font-size:22px;font-weight:800;color:#60a5fa;line-height:1;}
+    .protein-target{font-size:11px;color:rgba(96,165,250,.55);}
+
+    /* ── Streak fire animation ── */
+    @keyframes fireFlicker{
+      0%,100%{transform:scale(1) rotate(-2deg);}
+      25%{transform:scale(1.12) rotate(2deg);}
+      50%{transform:scale(.95) rotate(-1deg);}
+      75%{transform:scale(1.06) rotate(3deg);}
+    }
+    .streak-fire{display:inline-block;animation:fireFlicker .9s ease-in-out infinite;}
+    @keyframes streakBounce{0%{transform:scale(1)}50%{transform:scale(1.07)}100%{transform:scale(1)}}
+
+    /* ── Color-coded meals ── */
+    .meal-item{border-inline-start:3px solid transparent;}
+    .meal-green{border-inline-start-color:#22c55e;}
+    .meal-yellow{border-inline-start-color:#f59e0b;}
+    .meal-red{border-inline-start-color:#ef4444;}
+    .meal-neutral{border-inline-start-color:var(--border);}
+    .meal-color-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+    /* ── Shield button ── */
+    .shield-btn{
+      margin-top:6px;font-size:9px;
+      background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.28);
+      border-radius:6px;padding:3px 8px;color:#fbbf24;
+      cursor:pointer;font-family:'Heebo','Inter',sans-serif;
+      transition:all .2s;
+    }
+    .shield-btn:hover{background:rgba(251,191,36,.18);}
 
     /* Quick actions grid */
     .qa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
@@ -900,27 +963,69 @@
 
   <!-- ── Dashboard View ── -->
   <div id="dashboard">
-    <!-- Calorie Ring + Macros -->
+
+    <!-- AI Nudge Card -->
+    <div id="db-nudge-card" class="nudge-card" style="display:none;">
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div class="nudge-icon">💡</div>
+        <div>
+          <div class="nudge-lbl">{{ 'תובנה יומית' if lang == 'he' else 'Daily Insight' }}</div>
+          <div class="nudge-text" id="db-nudge-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calorie Ring + Nutrition Score + Macros -->
     <div class="db-card" style="text-align:center;">
-      <div class="db-card-lbl">{{ 'קלוריות היום' if lang == 'he' else "Today's Calories" }}</div>
-      <div class="calorie-ring-wrap">
-        <div class="ring-wrap">
-          <svg class="ring-svg" width="130" height="130" viewBox="0 0 130 130">
-            <circle cx="65" cy="65" r="55" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="12"/>
-            <circle id="db-ring" cx="65" cy="65" r="55" fill="none" stroke="url(#ringGrad)" stroke-width="12"
-              stroke-linecap="round" stroke-dasharray="345.4" stroke-dashoffset="345.4" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
-            <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6B5CE7"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs>
-          </svg>
-          <div class="ring-center">
-            <div class="ring-kcal" id="db-kcal-consumed">—</div>
-            <div class="ring-target" id="db-kcal-target">/ — קל</div>
+      <div style="display:flex;align-items:center;justify-content:space-around;gap:8px;">
+        <!-- Calorie Ring -->
+        <div>
+          <div class="db-card-lbl" style="margin-bottom:6px;">{{ 'קלוריות' if lang == 'he' else 'Calories' }}</div>
+          <div class="ring-wrap">
+            <svg class="ring-svg" width="110" height="110" viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="10"/>
+              <circle id="db-ring" cx="55" cy="55" r="46" fill="none" stroke="url(#ringGrad)" stroke-width="10"
+                stroke-linecap="round" stroke-dasharray="289.0" stroke-dashoffset="289.0" style="transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)"/>
+              <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6B5CE7"/><stop offset="100%" stop-color="#A78BFA"/></linearGradient></defs>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-kcal" id="db-kcal-consumed" style="font-size:19px;">—</div>
+              <div class="ring-target" id="db-kcal-target" style="font-size:9px;">/ — קל</div>
+            </div>
+          </div>
+        </div>
+        <!-- Nutrition Score -->
+        <div id="db-score-wrap" style="display:none;text-align:center;">
+          <div class="db-card-lbl" style="margin-bottom:6px;">{{ 'ציון יומי' if lang == 'he' else 'Daily Score' }}</div>
+          <div id="db-score-grade" class="score-grade">—</div>
+          <div class="score-bar-outer" style="margin-top:8px;">
+            <div class="score-bar-bg"><div id="db-score-bar" class="score-bar-fill" style="width:0%;"></div></div>
+            <div id="db-score-pct" class="score-pct"></div>
+          </div>
+        </div>
+        <!-- Protein Ring -->
+        <div id="db-protein-wrap" style="display:none;text-align:center;">
+          <div class="db-card-lbl" style="margin-bottom:6px;">{{ 'חלבון' if lang == 'he' else 'Protein' }}</div>
+          <div style="position:relative;display:inline-flex;align-items:center;justify-content:center;">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(96,165,250,.1)" stroke-width="8"/>
+              <circle id="db-protein-arc" cx="40" cy="40" r="32" fill="none" stroke="#60a5fa" stroke-width="8"
+                stroke-linecap="round" stroke-dasharray="201.1" stroke-dashoffset="201.1"
+                transform="rotate(-90 40 40)" style="transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)"/>
+            </svg>
+            <div style="position:absolute;text-align:center;">
+              <div id="db-protein" style="font-size:14px;font-weight:800;color:#60a5fa;line-height:1;">—</div>
+              <div id="db-protein-target" style="font-size:8px;color:rgba(96,165,250,.6);">/ —g</div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="macro-row" id="db-macros" style="display:none;">
-        <div class="macro-pill"><div class="macro-pill-val" id="db-protein" style="color:#60a5fa;">—</div><div class="macro-pill-lbl">{{ 'חלבון' if lang == 'he' else 'Protein' }}</div></div>
-        <div class="macro-pill"><div class="macro-pill-val" id="db-carbs" style="color:#f59e0b;">—</div><div class="macro-pill-lbl">{{ 'פחמימות' if lang == 'he' else 'Carbs' }}</div></div>
-        <div class="macro-pill"><div class="macro-pill-val" id="db-fat" style="color:#ec4899;">—</div><div class="macro-pill-lbl">{{ 'שומן' if lang == 'he' else 'Fat' }}</div></div>
+      <!-- Secondary macros -->
+      <div id="db-macros" style="display:none;margin-top:10px;">
+        <div class="macro-row">
+          <div class="macro-pill"><div class="macro-pill-val" id="db-carbs" style="color:#f59e0b;">—</div><div class="macro-pill-lbl">{{ 'פחמימות' if lang == 'he' else 'Carbs' }}</div></div>
+          <div class="macro-pill"><div class="macro-pill-val" id="db-fat" style="color:#ec4899;">—</div><div class="macro-pill-lbl">{{ 'שומן' if lang == 'he' else 'Fat' }}</div></div>
+        </div>
       </div>
     </div>
 
@@ -935,10 +1040,11 @@
           {% endfor %}
         </div>
       </div>
-      <div class="db-card" style="text-align:center;">
+      <div class="db-card" style="text-align:center;" id="db-streak-card">
         <div class="db-card-lbl">{{ 'רצף' if lang == 'he' else 'Streak' }}</div>
         <div class="db-card-val" id="db-streak">—</div>
         <div class="db-card-sub" id="db-streak-lbl">{{ 'ימים' if lang == 'he' else 'days' }}</div>
+        <button id="db-shield-btn" class="shield-btn" onclick="useStreakShield()" style="display:none;">🛡️ {{ 'הגן על הרצף' if lang == 'he' else 'Protect streak' }}</button>
       </div>
       <div class="db-card" style="text-align:center;">
         <div class="db-card-lbl">{{ 'משקל' if lang == 'he' else 'Weight' }}</div>
@@ -1054,26 +1160,69 @@
     }catch(e){ console.error('Dashboard load error', e); }
   }
 
+  function mealColorClass(cal){
+    if(!cal||cal===0) return 'meal-neutral';
+    if(cal<=400) return 'meal-green';
+    if(cal<=700) return 'meal-yellow';
+    return 'meal-red';
+  }
+
   function renderDashboard(db, glasses){
     const IS_HE = LANG==='he';
-    // Calorie ring
+
+    // ── AI Nudge Card ──
+    const nudgeCard = document.getElementById('db-nudge-card');
+    const nudgeText = document.getElementById('db-nudge-text');
+    if(db.ai_nudge && nudgeText){
+      nudgeText.textContent = db.ai_nudge;
+      nudgeCard.style.display='block';
+    } else if(nudgeCard){
+      nudgeCard.style.display='none';
+    }
+
+    // ── Calorie ring (r=46, circ=289.0) ──
     const consumed = db.today_calories||0;
     const target   = db.target_kcal||2000;
     const pct = Math.min(consumed/target, 1);
-    const circ = 2*Math.PI*55; // 345.4
+    const circ = 2*Math.PI*46;
     document.getElementById('db-ring').style.strokeDashoffset = circ*(1-pct);
     document.getElementById('db-kcal-consumed').textContent = consumed;
     document.getElementById('db-kcal-target').textContent = `/ ${target} ${IS_HE?'קל':'kcal'}`;
 
-    // Macros
-    if(db.total_protein||db.total_carbs||db.total_fat){
-      document.getElementById('db-macros').style.display='flex';
-      document.getElementById('db-protein').textContent = (db.total_protein||0)+'g';
-      document.getElementById('db-carbs').textContent   = (db.total_carbs||0)+'g';
-      document.getElementById('db-fat').textContent     = (db.total_fat||0)+'g';
+    // ── Nutrition Score ──
+    if(db.nutrition_score){
+      const sc = db.nutrition_score;
+      const scoreWrap = document.getElementById('db-score-wrap');
+      scoreWrap.style.display='block';
+      const gradeEl = document.getElementById('db-score-grade');
+      gradeEl.textContent = sc.grade;
+      gradeEl.style.color = sc.color;
+      document.getElementById('db-score-bar').style.width = sc.composite+'%';
+      document.getElementById('db-score-bar').style.background = sc.color;
+      document.getElementById('db-score-pct').textContent = Math.round(sc.composite)+'%';
     }
 
-    // Water
+    // ── Protein ring (primary metric) ──
+    const proteinTarget = db.target_protein_g||0;
+    const totalProtein  = db.total_protein||0;
+    if(proteinTarget > 0){
+      document.getElementById('db-protein-wrap').style.display='block';
+      document.getElementById('db-protein').textContent = totalProtein+'g';
+      document.getElementById('db-protein-target').textContent = '/ '+proteinTarget+'g';
+      const pArc = document.getElementById('db-protein-arc');
+      const pCirc = 2*Math.PI*32; // 201.1
+      const pPct = Math.min(totalProtein/proteinTarget, 1);
+      pArc.style.strokeDashoffset = pCirc*(1-pPct);
+    }
+
+    // ── Secondary macros ──
+    if(db.total_carbs||db.total_fat){
+      document.getElementById('db-macros').style.display='block';
+      document.getElementById('db-carbs').textContent = (db.total_carbs||0)+'g';
+      document.getElementById('db-fat').textContent   = (db.total_fat||0)+'g';
+    }
+
+    // ── Water ──
     const g = db.water_glasses!==undefined ? db.water_glasses : glasses;
     document.getElementById('db-water-val').textContent = g+'/8';
     for(let i=0;i<8;i++){
@@ -1081,31 +1230,55 @@
       if(el) el.classList.toggle('filled', i<g);
     }
 
-    // Streak
+    // ── Streak with fire animation ──
     const streak = db.streak||0;
-    document.getElementById('db-streak').textContent = streak;
+    const streakEl = document.getElementById('db-streak');
+    if(streak >= 3){
+      streakEl.innerHTML = `<span class="streak-fire">🔥</span>${streak}`;
+    } else {
+      streakEl.textContent = streak||'0';
+    }
     document.getElementById('db-streak-lbl').textContent = IS_HE?(streak===1?'יום':'ימים'):'days';
-
-    // Weight
-    if(db.current_weight){
-      document.getElementById('db-weight').textContent = db.current_weight+'kg';
-      const lost = db.lost;
-      if(lost>0) document.getElementById('db-weight-sub').textContent = IS_HE?`-${lost}kg מהתחלה`:`-${lost}kg lost`;
-      else if(db.target_min) document.getElementById('db-weight-sub').textContent = IS_HE?`יעד: ${db.target_min}kg`:`Goal: ${db.target_min}kg`;
+    // Bounce animation on streak increase
+    const prevStreak = parseInt(localStorage.getItem('prev_streak')||'0');
+    if(streak > prevStreak && streak > 0){
+      localStorage.setItem('prev_streak', streak);
+      const card = document.getElementById('db-streak-card');
+      if(card){ card.style.animation='none'; void card.offsetHeight; card.style.animation='streakBounce .5s cubic-bezier(.34,1.56,.64,1)'; }
+    }
+    // Shield button
+    const shieldBtn = document.getElementById('db-shield-btn');
+    if(shieldBtn){
+      const month = new Date().toISOString().slice(0,7);
+      const shieldUsed = localStorage.getItem('shield_used_'+month);
+      shieldBtn.style.display = (streak > 0 && !shieldUsed) ? 'inline-block' : 'none';
     }
 
-    // Weekly bars
+    // ── Weight (weekly average preferred) ──
+    const weightEl  = document.getElementById('db-weight');
+    const weightSub = document.getElementById('db-weight-sub');
+    if(db.weekly_avg_weight){
+      weightEl.textContent = db.weekly_avg_weight+'kg';
+      weightSub.textContent = IS_HE?'ממוצע 7 ימים':'7-day avg';
+    } else if(db.current_weight){
+      weightEl.textContent = db.current_weight+'kg';
+      const lost = db.lost;
+      if(lost>0) weightSub.textContent = IS_HE?`-${lost}kg מהתחלה`:`-${lost}kg lost`;
+      else if(db.target_min) weightSub.textContent = IS_HE?`יעד: ${db.target_min}kg`:`Goal: ${db.target_min}kg`;
+    }
+
+    // ── Weekly bars ──
     if(db.weekly_calories && db.weekly_calories.length){
       const bars = document.getElementById('db-weekly-bars');
       bars.innerHTML='';
       const days = IS_HE?['ש','א','ב','ג','ד','ה','ו']:['Su','Mo','Tu','We','Th','Fr','Sa'];
       const maxKcal = Math.max(...db.weekly_calories.map(d=>d.calories), 1);
-      const today = new Date().toISOString().slice(0,10);
+      const todayStr = new Date().toISOString().slice(0,10);
       let total=0,count=0;
-      db.weekly_calories.forEach((d,i)=>{
-        const h = Math.max((d.calories/maxKcal)*100, d.calories>0?6:0);
-        const isToday = d.date===today;
-        const dayDate = new Date(d.date);
+      db.weekly_calories.forEach(d=>{
+        const h = Math.max((d.calories/maxKcal)*100, d.calories>0?5:0);
+        const isToday = d.date===todayStr;
+        const dayDate = new Date(d.date+'T12:00:00');
         const dayLbl = days[dayDate.getDay()];
         if(d.calories>0){total+=d.calories;count++;}
         bars.innerHTML+=`<div class="weekly-bar-wrap">
@@ -1116,37 +1289,57 @@
       if(count>0) document.getElementById('db-week-avg').textContent = IS_HE?`ממוצע: ${Math.round(total/count)} קל`:`Avg: ${Math.round(total/count)}`;
     }
 
-    // Today's meals
+    // ── Today's meals (color-coded) ──
     const mealsList = document.getElementById('db-meals-list');
     if(db.today_meals && db.today_meals.length>0){
       const icons={'breakfast':'🌅','lunch':'☀️','dinner':'🌙','snack':'🍎','other':'🍽️'};
       mealsList.innerHTML = db.today_meals.map(m=>`
-        <div class="meal-item">
+        <div class="meal-item ${mealColorClass(m.calories)}">
           <div class="meal-icon">${icons[m.meal_id]||'🍽️'}</div>
           <div class="meal-info">
             <div class="meal-name">${m.name}</div>
             <div class="meal-items">${(m.items||[]).join(', ')||'—'}</div>
           </div>
-          <div style="text-align:end">
+          <div style="text-align:end;flex-shrink:0;">
             <div class="meal-kcal">${m.calories||0} ${IS_HE?'קל':'kcal'}</div>
+            ${m.protein>0?`<div style="font-size:9px;color:#60a5fa;">${m.protein}g ${IS_HE?'חלבון':'prot'}</div>`:''}
             <div class="meal-time">${m.time||''}</div>
           </div>
         </div>`).join('');
     } else {
-      mealsList.innerHTML=`<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">${IS_HE?'עדיין לא דווחו ארוחות היום':'No meals logged today'}</div>`;
+      mealsList.innerHTML=`<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">${IS_HE?'עדיין לא דווחו ארוחות היום — לחץ על 📸 לצלם':'No meals logged today — tap 📸 to log'}</div>`;
     }
 
     // Sync sidebar water too
     setWater(g);
   }
 
+  async function useStreakShield(){
+    const month = new Date().toISOString().slice(0,7);
+    const key = 'shield_used_'+month;
+    if(localStorage.getItem(key)){ alert(LANG==='he'?'כבר השתמשת במגן החודש הזה':'Already used shield this month'); return; }
+    try{
+      const r = await fetch('/api/streak-shield',{method:'POST'});
+      const d = await r.json();
+      if(d.ok){
+        localStorage.setItem(key,'1');
+        document.getElementById('db-shield-btn').style.display='none';
+        const msg = LANG==='he'?'🛡️ המגן הופעל! הרצף שלך מוגן להיום.':'🛡️ Shield activated! Your streak is protected today.';
+        // Brief toast
+        const t=document.createElement('div');
+        t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#fbbf24;color:#000;padding:10px 20px;border-radius:20px;font-weight:600;z-index:9999;font-size:13px;animation:msgIn .3s ease;';
+        t.textContent=msg; document.body.appendChild(t);
+        setTimeout(()=>t.remove(),3000);
+      } else { alert(d.msg||'שגיאה'); }
+    }catch(e){ console.error(e); }
+  }
+
   async function dbAddWater(){
     try{
       const r = await fetch('/api/water',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add'})});
       const d = await r.json();
-      setWater(d.glasses||0);
-      // update dashboard water drops
       const g = d.glasses||0;
+      setWater(g);
       document.getElementById('db-water-val').textContent = g+'/8';
       for(let i=0;i<8;i++){
         const el=document.getElementById('db-drop-'+i);

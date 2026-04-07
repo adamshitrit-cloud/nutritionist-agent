@@ -132,6 +132,9 @@ TOOLS = [
                     "description": "רשימת המזונות שנאכלו"
                 },
                 "calories_estimate": {"type": "number", "description": "הערכת קלוריות (אופציונלי)"},
+                "protein_g": {"type": "number", "description": "גרמי חלבון (אופציונלי) — חשוב! תמיד נסה להעריך"},
+                "carbs_g":   {"type": "number", "description": "גרמי פחמימות (אופציונלי)"},
+                "fat_g":     {"type": "number", "description": "גרמי שומן (אופציונלי)"},
                 "felt_bloated": {"type": "boolean", "description": "האם הרגשת נפיחות אחרי?"}
             },
             "required": ["meal_id", "items"]
@@ -332,7 +335,9 @@ def log_weight(weight_kg: float, note: str = "") -> str:
     return msg
 
 
-def log_meal(meal_id: str, items: list, calories_estimate: float = 0, felt_bloated: bool = False) -> str:
+def log_meal(meal_id: str, items: list, calories_estimate: float = 0,
+             protein_g: float = 0, carbs_g: float = 0, fat_g: float = 0,
+             felt_bloated: bool = False) -> str:
     progress = load_json(PROGRESS_FILE)
     today = datetime.now().strftime("%Y-%m-%d")
     entry = {
@@ -341,6 +346,9 @@ def log_meal(meal_id: str, items: list, calories_estimate: float = 0, felt_bloat
         "meal_id": meal_id,
         "items": items,
         "calories_estimate": calories_estimate,
+        "protein_g": protein_g,
+        "carbs_g": carbs_g,
+        "fat_g": fat_g,
         "felt_bloated": felt_bloated,
         "notified": False
     }
