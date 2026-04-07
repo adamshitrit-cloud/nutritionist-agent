@@ -1479,7 +1479,15 @@
     showTyping();
     try{
       const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      const d=await r.json();
+      let d;
+      const ct=r.headers.get('content-type')||'';
+      if(ct.includes('application/json')){
+        d=await r.json();
+      } else {
+        const txt=await r.text();
+        console.error('Non-JSON from /chat:',r.status,txt.slice(0,200));
+        d={error:`שרת החזיר ${r.status} — נסה שוב בעוד רגע 🔁`};
+      }
       hideTyping();
       if(d.error)addMsg('agent',`❌ ${d.error}`);
       else{
