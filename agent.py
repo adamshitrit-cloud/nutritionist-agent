@@ -218,6 +218,21 @@ TOOLS = [
         }
     },
     {
+        "name": "delete_meal",
+        "description": "מוחק רישום ארוחה של היום — להשתמש כשהמשתמש אומר 'טעות', 'לא אכלתי את זה', 'מחק את הארוחה', 'בטל לוג'",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "meal_id": {
+                    "type": "string",
+                    "enum": ["breakfast", "snack", "lunch", "dinner", "other"],
+                    "description": "סוג הארוחה למחיקה"
+                }
+            },
+            "required": ["meal_id"]
+        }
+    },
+    {
         "name": "log_measurement",
         "description": "מתעד מדידות גוף (היקף מותניים, חזה, ירכיים)",
         "input_schema": {
@@ -369,6 +384,22 @@ def log_meal(meal_id: str, items: list, calories_estimate: float = 0,
     if felt_bloated:
         response += "⚠️ אני אנתח מה מהרשימה יכול לגרום נפיחות ואעדכן בהמלצות."
     return response
+
+
+def delete_meal(meal_id: str) -> str:
+    progress = load_json(PROGRESS_FILE)
+    today = datetime.now().strftime("%Y-%m-%d")
+    meal_log = progress.get("meal_log", [])
+    before = len(meal_log)
+    progress["meal_log"] = [
+        m for m in meal_log
+        if not (m.get("date") == today and m.get("meal_id") == meal_id)
+    ]
+    after = len(progress["meal_log"])
+    if before == after:
+        return f"לא נמצאה ארוחת {meal_id} מהיום לביטול."
+    save_json(PROGRESS_FILE, progress)
+    return f"✅ ארוחת {meal_id} הוסרה מהרישום — הקלוריות עודכנו."
 
 
 def update_meal_plan(day: str, meal_id: str, new_items: list, new_note: str = "") -> str:
@@ -625,6 +656,8 @@ def execute_tool(name: str, inputs: dict) -> str:
             return log_weight(**inputs)
         elif name == "log_meal":
             return log_meal(**inputs)
+        elif name == "delete_meal":
+            return delete_meal(**inputs)
         elif name == "update_meal_plan":
             return update_meal_plan(**inputs)
         elif name == "get_progress_summary":
@@ -802,6 +835,11 @@ def build_system_prompt() -> str:
 **חשוב:**
 - תמיד הסבר את ה"למה" מאחורי כל המלצה
 - כשמשתמש מדווח נפיחות — שמור הערה וצמצם FODMAP בתפריט{notes_text}
+
+**טיפול בטעויות ותיקונים:**
+- כשהמשתמש אומר "טעות", "לא אכלתי את זה", "מחק", "בטל" → השתמש ב-`delete_meal` עם meal_id המתאים
+- כשמוסיפים לאותה ארוחה (למשל "גם אכלתי קוטג'") → קרא `log_meal` עם כל הפריטים הישנים + החדשים ביחד (הלוג מחליף, לא מצטבר)
+- לאחר מחיקה: "✅ הוסר — הדשבורד מעודכן" — לא יותר ממשפט אחד
 
 **כלל ברזל מוחלט — צ'אט תמציתי בסגנון WhatsApp:**
 - **מקסימום 3 משפטים תמיד** — גם כשנשאל על תפריט יומי מלא
