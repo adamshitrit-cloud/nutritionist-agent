@@ -59,6 +59,25 @@ def _redis_set(key: str, data: dict):
     with _urllib_req.urlopen(req, timeout=5) as resp:
         resp.read()
 
+def _redis_raw_get(full_key: str) -> str | None:
+    """Get a raw string value from Redis (not JSON-wrapped). full_key is NOT namespaced."""
+    url = f"{_REDIS_URL}/get/{full_key}"
+    req = _urllib_req.Request(url, headers={"Authorization": f"Bearer {_REDIS_TOKEN}"})
+    with _urllib_req.urlopen(req, timeout=5) as resp:
+        result = json.loads(resp.read()).get("result")
+    return result  # plain string or None
+
+def _redis_raw_set(full_key: str, value: str):
+    """Set a raw string value in Redis (not JSON-wrapped). full_key is NOT namespaced."""
+    body = json.dumps(["SET", full_key, value]).encode("utf-8")
+    req = _urllib_req.Request(
+        _REDIS_URL,
+        data=body,
+        headers={"Authorization": f"Bearer {_REDIS_TOKEN}", "Content-Type": "application/json"}
+    )
+    with _urllib_req.urlopen(req, timeout=5) as resp:
+        resp.read()
+
 # ── Load / save data (Redis when available, files as fallback) ──────────────
 def load_json(path: Path) -> dict:
     if _REDIS_URL and _REDIS_TOKEN:
@@ -230,6 +249,21 @@ TOOLS = [
                 }
             },
             "required": ["meal_id"]
+        }
+    },
+    {
+        "name": "log_water",
+        "description": "מתעד שתיית מים. קרא לזה בכל פעם שהמשתמש אומר 'שתיתי מים', 'כוס מים', 'שתיתי' וכדומה. מגדיל את מונה המים היומי.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "glasses": {
+                    "type": "integer",
+                    "description": "מספר כוסות מים שנשתו (ברירת מחדל: 1)",
+                    "default": 1
+                }
+            },
+            "required": []
         }
     },
     {
@@ -635,6 +669,29 @@ def save_note(note: str, category: str) -> str:
     return f"✅ הערה נשמרה בקטגוריה '{category}'"
 
 
+def log_water(glasses: int = 1) -> str:
+    today_iso = datetime.now().strftime("%Y-%m-%d")
+    if _REDIS_URL and _REDIS_TOKEN and _current_user_id:
+        try:
+            water_key = f"{_current_user_id}:water:{today_iso}"
+            current_raw = _redis_raw_get(water_key)
+            current = int(current_raw) if current_raw else 0
+            new_val = current + glasses
+            _redis_raw_set(water_key, str(new_val))
+            return f"✅ {glasses} כוס מים נרשמה — סה\"כ היום: {new_val} כוסות"
+        except Exception as e:
+            return f"❌ שגיאה בשמירת מים: {e}"
+    else:
+        # Fallback: store in progress JSON
+        progress = load_json(PROGRESS_FILE)
+        water_log = progress.setdefault("water_log", {})
+        current = water_log.get(today_iso, 0)
+        new_val = current + glasses
+        water_log[today_iso] = new_val
+        save_json(PROGRESS_FILE, progress)
+        return f"✅ {glasses} כוס מים נרשמה — סה\"כ היום: {new_val} כוסות"
+
+
 def log_measurement(waist_cm: float = None, chest_cm: float = None, hips_cm: float = None) -> str:
     progress = load_json(PROGRESS_FILE)
     entry = {
@@ -681,6 +738,8 @@ def execute_tool(name: str, inputs: dict) -> str:
             return analyze_food_image(**inputs, _client=_shared_client)
         elif name == "save_note":
             return save_note(**inputs)
+        elif name == "log_water":
+            return log_water(**inputs)
         elif name == "log_measurement":
             return log_measurement(**inputs)
         else:
@@ -860,6 +919,10 @@ def build_system_prompt() -> str:
 - כשיש לך תובנה, טיפ שבועי, תזכורת, מסקנה מהנתונים — קרא `save_note` עם category מתאים (tip/insight/weekly/bloating) ואל תכתוב אותה בצ'אט
 - בצ'אט: רק תשובה ישירה לשאלה שנשאלת — הכל השאר שמור בדשבורד
 - לאחר save_note: אל תאמר כלום בצ'אט על מה ששמרת
+
+**שתיית מים:**
+- כשהמשתמש אומר "שתיתי מים", "כוס מים", "שתיתי", "מים" → קרא `log_water` עם מספר הכוסות שצוין (ברירת מחדל: 1)
+- לאחר log_water: "✅ [X] כוסות מים נרשמו" — רק זה, כלום אחר
 
 **טיפול בטעויות ותיקונים:**
 - כשהמשתמש אומר "טעות", "לא אכלתי את זה", "מחק", "בטל" → השתמש ב-`delete_meal` עם meal_id המתאים
