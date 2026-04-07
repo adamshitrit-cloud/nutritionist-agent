@@ -3,7 +3,8 @@ services:
     name: nutritionist-agent
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn web_agent:app --bind 0.0.0.0:$PORT
+    startCommand: gunicorn web_agent:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --keep-alive 5 --log-level info
+    healthCheckPath: /ping
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false
@@ -13,3 +14,5 @@ services:
         sync: false
       - key: PYTHONUTF8
         value: "1"
+      - key: FLASK_SECRET_KEY
+        generateValue: true

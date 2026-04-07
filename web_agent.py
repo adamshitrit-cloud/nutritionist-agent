@@ -1300,7 +1300,13 @@ def api_referral():
 
 @app.route("/ping")
 def ping():
-    return "ok", 200
+    return jsonify({"status": "ok", "service": "nutritionist-agent"}), 200
+
+
+@app.route("/healthz")
+def healthz():
+    """Render health check endpoint"""
+    return jsonify({"healthy": True}), 200
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
