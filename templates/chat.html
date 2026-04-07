@@ -812,7 +812,7 @@
       <div id="blood-tests" style="font-size:11px;color:var(--sub);line-height:1.7;margin-bottom:10px;"></div>
 
       <!-- Forbidden foods quick check -->
-      <button onclick="qs('{{ 'האם ' if lang == 'he' else 'Can I eat ' }}' + prompt('{{ 'מה אכלת?' if lang == 'he' else 'What food?' }}') + '{{ ' בטוח לאכול בהריון?' if lang == 'he' else ' during pregnancy?' }}')"
+      <button onclick="(function(){ const food=prompt('{{ 'מה המזון לבדיקה?' if lang == 'he' else 'What food to check?' }}'); if(!food) return; if(pregnancyModeActive){ qs('האם ' + food + ' בטוח לאכול בהריון?'); } else { qs('האם ' + food + ' מתאים למצב התזונה שלי?'); } })()"
         style="width:100%;padding:7px;background:rgba(255,99,99,.06);border:1px solid rgba(255,99,99,.12);border-radius:var(--radius-sm);color:rgba(255,120,120,.8);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:background var(--t-fast);">
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         {{ 'בדוק: האם מותר לאכול?' if lang == 'he' else 'Check: Is this food safe?' }}

@@ -81,7 +81,7 @@
     <tr>
       <td>{{ day }}</td>
       <td>{{ {'breakfast':'בוקר','snack':'חטיף','lunch':'צהריים','dinner':'ערב'}.get(m.meal_id, m.meal_id) }}</td>
-      <td>{{ m.items | join(', ') }}</td>
+      <td>{{ m.description or m.get('name', '—') }}</td>
       <td>{{ m.calories_estimate or '—' }}</td>
     </tr>
     {% endfor %}
