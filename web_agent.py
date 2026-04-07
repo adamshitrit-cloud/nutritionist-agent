@@ -934,7 +934,7 @@ def api_diet_mode():
         nutritionist.save_json(nutritionist.PROFILE_FILE, profile)
         # Clear conversation history when switching modes to prevent context bleed
         if clear_history and mode != old_mode:
-            nutritionist.save_json(nutritionist.HISTORY_FILE, [])
+            save_history(uid, [])
         return jsonify({"ok": True, "mode": mode, "history_cleared": clear_history and mode != old_mode})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
