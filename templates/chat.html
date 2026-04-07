@@ -878,7 +878,7 @@
   <div class="sb-sec">
     <div class="sb-sec-title">{{ 'פעולות מהירות' if lang == 'he' else 'ACTIONS' }}</div>
     <div class="qa-list">
-      <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today\'s meal plan{% endif %}')">
+      <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today&#39;s meal plan{% endif %}')">
         <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span>{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</span>
       </button>
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את התפריט השבועי{% else %}Show me the weekly plan{% endif %}')">
@@ -1074,7 +1074,7 @@
     <div>
       <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">{{ 'פעולות מהירות' if lang == 'he' else 'Quick Actions' }}</div>
       <div class="qa-grid">
-        <div class="qa-card" onclick="switchView('chat');qs('{% if lang==\"he\" %}תראה לי את תפריט היום{% else %}Show me today\'s meal plan{% endif %}')">
+        <div class="qa-card" onclick="switchView('chat');qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today&#39;s meal plan{% endif %}')">
           <div class="qa-card-icon">📅</div><div class="qa-card-lbl">{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</div>
         </div>
         <div class="qa-card" onclick="document.getElementById('file-input').click()">
@@ -2013,7 +2013,7 @@
     loadReferral();
     loadBurnData();
     loadDashboard(); // pre-load dashboard data in background
-    qs(LANG==='he'?'שלום! תראה לי את תפריט היום ותסביר מה חשוב.':'Hello! Show me today\'s meal plan and what I should know.');
+    qs(LANG==='he'?'שלום! תראה לי את תפריט היום ותסביר מה חשוב.':'Hello! Show me today\u0027s meal plan and what I should know.');
   };
 
 // ── Calorie Burn Tracker ──
