@@ -637,6 +637,12 @@
     body.light-mode #topbar { background:rgba(237,232,255,.85); }
     body.light-mode #input-bar { background:rgba(245,240,255,.95); }
     body.light-mode #input-row { background:rgba(255,255,255,.7); }
+    body.light-mode .view-tabs { background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.15); }
+    body.light-mode .view-tab.active { background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(107,92,231,.12));color:var(--vi);box-shadow:0 1px 4px rgba(139,92,246,.15);border-color:rgba(139,92,246,.2); }
+    body.light-mode .view-tab:not(.active) { color:var(--sub); }
+    body.light-mode .view-tab:not(.active):hover { background:rgba(139,92,246,.06);color:var(--vi); }
+    body.light-mode .msg.agent .bubble { background:rgba(139,92,246,.07);border-color:rgba(139,92,246,.15); }
+    body.light-mode .msg.user .bubble { background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(107,92,231,.1));border-color:rgba(139,92,246,.25);color:#2D0B6B; }
   </style>
 </head>
 <body>
@@ -2018,7 +2024,7 @@
     loadReferral();
     loadBurnData();
     loadDashboard(); // pre-load dashboard data in background
-    qs(LANG==='he'?'שלום! תראה לי את תפריט היום ותסביר מה חשוב.':'Hello! Show me today\u0027s meal plan and what I should know.');
+    qs(LANG==='he'?'שלום!':'Hello!');
   };
 
 // ── Calorie Burn Tracker ──
