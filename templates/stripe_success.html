@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriAI — תשלום הצליח!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Heebo', sans-serif; background: #F0FDF4; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .card { background: #fff; border-radius: 24px; padding: 52px 40px; text-align: center; max-width: 460px; width: 100%; box-shadow: 0 8px 40px rgba(5,46,26,.10); }
+  .icon { font-size: 64px; margin-bottom: 20px; }
+  h1 { font-size: 28px; font-weight: 900; color: #052E1A; margin-bottom: 12px; }
+  p { font-size: 16px; color: #6B7280; line-height: 1.6; margin-bottom: 8px; }
+  .highlight { color: #10B981; font-weight: 700; }
+  .btn {
+    display: inline-block; margin-top: 32px; padding: 14px 36px;
+    background: #10B981; color: #fff; border-radius: 12px;
+    font-family: 'Heebo', sans-serif; font-size: 16px; font-weight: 700;
+    text-decoration: none; transition: background .2s;
+  }
+  .btn:hover { background: #047857; }
+  .sub-link { display: block; margin-top: 16px; font-size: 13px; color: #9CA3AF; text-decoration: none; }
+  .sub-link:hover { color: #052E1A; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">🎉</div>
+  <h1>ברוך הבא ל-NutriAI Plus!</h1>
+  <p>התשלום התקבל בהצלחה.</p>
+  <p>מעכשיו יש לך <span class="highlight">הודעות ללא הגבלה</span> וגישה לכל הפיצ'רים המתקדמים.</p>
+  <p style="margin-top:12px; font-size:14px; color:#9CA3AF;">אישור ישלח לאימייל שלך תוך מספר דקות.</p>
+  <a href="/app" class="btn">קדימה לאפליקציה ←</a>
+  <a href="/pricing" class="sub-link">צפה בפרטי המנוי שלך</a>
+</div>
+<script>
+  // Clear any cached subscription status
+  setTimeout(() => { window.location.href = '/app'; }, 5000);
+</script>
+</body>
+</html>

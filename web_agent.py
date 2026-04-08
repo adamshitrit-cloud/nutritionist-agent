@@ -20,7 +20,41 @@ HISTORY_FILE = DATA_DIR / "conversation_history.json"
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri=os.environ.get("UPSTASH_REDIS_REST_URL", "memory://"),
+)
+
 client = None
+
+# ── PostHog analytics ─────────────────────────────────────────────────────────
+def _track(event: str, uid: str = None, props: dict = None):
+    """Fire a PostHog event non-blocking. Silently ignores if key not set."""
+    ph_key = os.environ.get("POSTHOG_API_KEY")
+    if not ph_key:
+        return
+    try:
+        import threading
+        def _send():
+            import requests as _req
+            _req.post(
+                "https://app.posthog.com/capture/",
+                json={
+                    "api_key": ph_key,
+                    "event": event,
+                    "distinct_id": uid or "anonymous",
+                    "properties": props or {},
+                },
+                timeout=3,
+            )
+        threading.Thread(target=_send, daemon=True).start()
+    except Exception:
+        pass
 
 # ── Redis helpers ────────────────────────────────────────────────────────────
 
@@ -60,6 +94,34 @@ def _redis_raw_del(key: str):
                                           "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=5) as resp:
         resp.read()
+
+# ── Usage tracking ────────────────────────────────────────────────────────────
+FREE_MONTHLY_CAP = 50  # messages per month for free users
+
+def get_monthly_message_count(uid: str) -> int:
+    """Return how many messages this user sent this calendar month."""
+    key = f"msg_count:{uid}:{datetime.now().strftime('%Y-%m')}"
+    val = _redis_raw_get(key)
+    return int(val) if val else 0
+
+def increment_monthly_message_count(uid: str) -> int:
+    """Increment and return new count. Sets 35-day TTL on first write."""
+    import calendar
+    key = f"msg_count:{uid}:{datetime.now().strftime('%Y-%m')}"
+    val = _redis_raw_get(key)
+    new_count = (int(val) if val else 0) + 1
+    _redis_raw_set(key, str(new_count))
+    return new_count
+
+def is_paid_user(uid: str) -> bool:
+    """True if user has active Stripe subscription OR earned premium via referrals."""
+    # Check Stripe subscription status (will be set by webhook later)
+    stripe_status = _redis_raw_get(f"stripe_sub:{uid}")
+    if stripe_status == "active":
+        return True
+    # Legacy: referral-based premium
+    referral_count = _redis_raw_get(f"referral_count:{uid}")
+    return int(referral_count or 0) >= 3
 
 # ── User accounts (stored in Redis) ─────────────────────────────────────────
 
@@ -121,6 +183,7 @@ def register_user(name: str, email: str, password: str, lang: str = "he", phone:
     _save_user(user)
     if phone:
         _link_phone_to_user(phone, user["id"])
+    _track("user_registered", user["id"], {"lang": lang, "has_phone": bool(phone)})
     return {"ok": True, "user_id": user["id"], "name": user["name"], "lang": lang}
 
 def login_user(email: str, password: str) -> dict:
@@ -130,6 +193,7 @@ def login_user(email: str, password: str) -> dict:
         return {"error": "המייל לא נמצא" }
     if _hash_password(password, user["salt"]) != user["password_hash"]:
         return {"error": "סיסמה שגויה"}
+    _track("user_login", user["id"], {"lang": user.get("lang", "he")})
     return {"ok": True, "user_id": user["id"], "name": user["name"], "lang": user.get("lang", "he")}
 
 # ── History helpers ──────────────────────────────────────────────────────────
@@ -353,6 +417,7 @@ def app_page():
     return render_template("chat.html", lang=lang, user_name=name)
 
 @app.route("/register", methods=["POST"])
+@limiter.limit("5 per minute")
 def register():
     data = request.get_json()
     result = register_user(
@@ -380,6 +445,7 @@ def register():
     return jsonify(result)
 
 @app.route("/login", methods=["POST"])
+@limiter.limit("10 per minute")
 def login():
     data = request.get_json()
     result = login_user(data.get("email", ""), data.get("password", ""))
@@ -576,10 +642,28 @@ def _strip_markdown_tables(text: str) -> str:
 # ── Chat endpoint ────────────────────────────────────────────────────────────
 
 @app.route("/chat", methods=["POST"])
+@limiter.limit("30 per minute")
 def chat():
     uid = current_user_id()
     if not uid:
         return jsonify({"error": "not logged in"}), 401
+
+    # ── Free tier cap check ──────────────────────────────────────────────────
+    if not is_paid_user(uid):
+        count = get_monthly_message_count(uid)
+        if count >= FREE_MONTHLY_CAP:
+            _track("paywall_hit", uid, {"messages_used": count, "month": datetime.now().strftime("%Y-%m")})
+            return jsonify({
+                "error": "free_limit",
+                "message": f"הגעת למגבלת {FREE_MONTHLY_CAP} ההודעות החינמיות לחודש זה 🙏\nשדרג לפלוס כדי להמשיך ללא הגבלה.",
+                "upgrade_url": "/pricing"
+            }), 402
+
+    # ── Increment counter (before heavy LLM call) ────────────────────────────
+    if not is_paid_user(uid):
+        msg_num = increment_monthly_message_count(uid)
+        # Warn at 45/50
+        warn_at = FREE_MONTHLY_CAP - 5
 
     data       = request.get_json()
     user_text  = data.get("message", "").strip()
@@ -665,6 +749,11 @@ def chat():
         raw_text = "".join(text_parts) if text_parts else "✅ פעולה בוצעה!"
         final_text = _strip_markdown_tables(raw_text)
 
+        if not is_paid_user(uid):
+            remaining = FREE_MONTHLY_CAP - msg_num
+            if 0 < remaining <= 5:
+                final_text += f"\n\n⚠️ נותרו לך {remaining} הודעות חינמיות החודש. [שדרג לפלוס ←](/pricing)"
+
         # Extract weight for stats update
         weight_update = None
         progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
@@ -674,6 +763,11 @@ def chat():
 
         conversation_history = _safe_truncate(conversation_history, 40)
         save_history(uid, conversation_history)
+        _track("chat_message_sent", uid, {
+            "has_image": bool(image_b64),
+            "paid": is_paid_user(uid),
+            "month": datetime.now().strftime("%Y-%m"),
+        })
         return jsonify({"response": final_text, "weight": weight_update})
 
     except Exception as e:
@@ -1408,6 +1502,143 @@ def ping():
 def healthz():
     """Render health check endpoint"""
     return jsonify({"healthy": True}), 200
+
+
+# ── Stripe / Payments ─────────────────────────────────────────────────────────
+
+# Pricing tiers — price IDs are set via env vars (Stripe Dashboard)
+STRIPE_PLANS = {
+    "plus_monthly":  {"name": "Plus",   "price_env": "STRIPE_PRICE_PLUS_MONTHLY",  "amount": "$5.99/mo",  "tier": "plus"},
+    "plus_yearly":   {"name": "Plus",   "price_env": "STRIPE_PRICE_PLUS_YEARLY",   "amount": "$59.99/yr", "tier": "plus"},
+    "family_monthly":{"name": "Family", "price_env": "STRIPE_PRICE_FAMILY_MONTHLY","amount": "$14.99/mo", "tier": "family"},
+    "family_yearly": {"name": "Family", "price_env": "STRIPE_PRICE_FAMILY_YEARLY", "amount": "$179.99/yr","tier": "family"},
+}
+
+@app.route("/pricing")
+def pricing():
+    uid = current_user_id()
+    plan = _redis_raw_get(f"stripe_plan:{uid}") if uid else None
+    return render_template("pricing.html", current_plan=plan or "free")
+
+@app.route("/stripe/create-checkout-session", methods=["POST"])
+def stripe_create_checkout():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    try:
+        import stripe
+        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe.api_key:
+            return jsonify({"error": "Stripe not configured"}), 503
+
+        data      = request.get_json()
+        plan_key  = data.get("plan", "plus_monthly")
+        plan_info = STRIPE_PLANS.get(plan_key)
+        if not plan_info:
+            return jsonify({"error": "Invalid plan"}), 400
+
+        price_id = os.environ.get(plan_info["price_env"])
+        if not price_id:
+            return jsonify({"error": f"Price not configured for {plan_key}"}), 503
+
+        email = session.get("email", "")
+        base_url = request.host_url.rstrip("/")
+
+        # Retrieve or create Stripe customer
+        customer_id = _redis_raw_get(f"stripe_customer:{uid}")
+        if not customer_id:
+            customer = stripe.Customer.create(
+                email=email,
+                metadata={"uid": uid, "name": session.get("name", "")}
+            )
+            customer_id = customer.id
+            _redis_raw_set(f"stripe_customer:{uid}", customer_id)
+
+        checkout = stripe.checkout.Session.create(
+            customer=customer_id,
+            payment_method_types=["card"],
+            line_items=[{"price": price_id, "quantity": 1}],
+            mode="subscription",
+            success_url=f"{base_url}/stripe/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{base_url}/pricing?cancelled=1",
+            metadata={"uid": uid, "plan_key": plan_key, "tier": plan_info["tier"]},
+            subscription_data={"metadata": {"uid": uid, "tier": plan_info["tier"]}},
+            allow_promotion_codes=True,
+        )
+        _track("checkout_started", uid, {"plan": plan_key, "tier": plan_info["tier"]})
+        return jsonify({"checkout_url": checkout.url})
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/stripe/success")
+def stripe_success():
+    return render_template("stripe_success.html")
+
+@app.route("/stripe/webhook", methods=["POST"])
+def stripe_webhook():
+    import stripe
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+
+    payload = request.get_data()
+    sig_header = request.headers.get("Stripe-Signature")
+
+    try:
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+        else:
+            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+    ev_type = event["type"]
+
+    # Helper: extract uid from subscription metadata
+    def _uid_from_sub(sub):
+        return (sub.get("metadata") or {}).get("uid")
+
+    if ev_type in ("customer.subscription.created", "customer.subscription.updated"):
+        sub    = event["data"]["object"]
+        uid    = _uid_from_sub(sub)
+        status = sub.get("status")          # active, past_due, canceled, etc.
+        tier   = (sub.get("metadata") or {}).get("tier", "plus")
+        if uid:
+            _redis_raw_set(f"stripe_sub:{uid}", status)
+            _redis_raw_set(f"stripe_plan:{uid}", tier if status == "active" else "free")
+
+    elif ev_type == "customer.subscription.deleted":
+        sub = event["data"]["object"]
+        uid = _uid_from_sub(sub)
+        if uid:
+            _redis_raw_set(f"stripe_sub:{uid}", "canceled")
+            _redis_raw_set(f"stripe_plan:{uid}", "free")
+
+    elif ev_type == "invoice.payment_failed":
+        sub_id = event["data"]["object"].get("subscription")
+        if sub_id:
+            try:
+                sub = stripe.Subscription.retrieve(sub_id)
+                uid = _uid_from_sub(sub)
+                if uid:
+                    _redis_raw_set(f"stripe_sub:{uid}", "past_due")
+            except Exception:
+                pass
+
+    return jsonify({"received": True}), 200
+
+@app.route("/api/subscription-status")
+def api_subscription_status():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"plan": "free", "paid": False})
+    paid   = is_paid_user(uid)
+    plan   = _redis_raw_get(f"stripe_plan:{uid}") or ("plus" if paid else "free")
+    status = _redis_raw_get(f"stripe_sub:{uid}") or "none"
+    count  = get_monthly_message_count(uid)
+    remaining = max(0, FREE_MONTHLY_CAP - count) if not paid else None
+    return jsonify({"plan": plan, "paid": paid, "status": status,
+                    "messages_used": count, "messages_remaining": remaining})
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 

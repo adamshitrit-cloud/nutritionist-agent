@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriAI — בחר תוכנית</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #052E1A; --green: #10B981; --green2: #047857;
+    --mint: #6EE7B7; --pale: #D1FAE5; --cream: #F0FDF4;
+    --ink: #111827; --mute: #6B7280; --red: #EF4444;
+    --gold: #F59E0B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Heebo', sans-serif; background: var(--cream); color: var(--ink); }
+
+  /* HEADER */
+  .header { background: var(--forest); padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { color: #fff; font-size: 22px; font-weight: 800; text-decoration: none; }
+  .logo span { color: var(--mint); }
+  .back-btn { color: var(--mint); text-decoration: none; font-size: 14px; }
+
+  /* HERO */
+  .hero { text-align: center; padding: 56px 24px 32px; }
+  .hero h1 { font-size: 36px; font-weight: 900; color: var(--forest); }
+  .hero p { font-size: 17px; color: var(--mute); margin-top: 10px; }
+  .toggle-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 24px; font-size: 15px; font-weight: 600; }
+  .toggle { position: relative; width: 52px; height: 28px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: var(--green); border-radius: 28px; cursor: pointer; transition: .3s; }
+  .slider:before { content: ""; position: absolute; width: 22px; height: 22px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
+  input:checked + .slider:before { transform: translateX(24px); }
+  .save-badge { background: var(--gold); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+
+  /* CARDS */
+  .plans { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; padding: 24px 24px 64px; max-width: 1100px; margin: 0 auto; }
+  .card {
+    background: #fff; border-radius: 20px; padding: 36px 28px; width: 310px;
+    box-shadow: 0 4px 24px rgba(5,46,26,.08); border: 2px solid transparent;
+    position: relative; transition: transform .2s, box-shadow .2s;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(5,46,26,.13); }
+  .card.popular { border-color: var(--green); }
+  .badge-popular {
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    background: var(--green); color: #fff; font-size: 12px; font-weight: 700;
+    padding: 4px 16px; border-radius: 20px; white-space: nowrap;
+  }
+  .card-tier { font-size: 13px; font-weight: 700; color: var(--green2); text-transform: uppercase; letter-spacing: 1px; }
+  .card-name { font-size: 26px; font-weight: 900; color: var(--forest); margin: 6px 0 4px; }
+  .price-wrap { margin: 16px 0; }
+  .price-main { font-size: 40px; font-weight: 900; color: var(--forest); }
+  .price-period { font-size: 15px; color: var(--mute); }
+  .price-annual { font-size: 13px; color: var(--mute); margin-top: 2px; min-height: 18px; }
+  .features { list-style: none; margin: 20px 0 28px; display: flex; flex-direction: column; gap: 10px; }
+  .features li { display: flex; align-items: flex-start; gap: 8px; font-size: 15px; }
+  .features li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .features li.no::before { content: "✗"; color: #CBD5E1; }
+  .cta-btn {
+    display: block; width: 100%; padding: 14px; border-radius: 12px; border: none;
+    font-family: 'Heebo', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: background .2s, transform .1s; text-align: center; text-decoration: none;
+  }
+  .cta-btn:active { transform: scale(.98); }
+  .cta-primary { background: var(--green); color: #fff; }
+  .cta-primary:hover { background: var(--green2); }
+  .cta-outline { background: transparent; color: var(--forest); border: 2px solid var(--forest); }
+  .cta-outline:hover { background: var(--pale); }
+  .cta-current { background: var(--pale); color: var(--green2); cursor: default; }
+
+  /* GUARANTEE */
+  .guarantee { text-align: center; padding: 0 24px 48px; color: var(--mute); font-size: 14px; }
+  .guarantee strong { color: var(--forest); }
+
+  /* FAQ */
+  .faq-section { max-width: 680px; margin: 0 auto; padding: 0 24px 64px; }
+  .faq-section h2 { font-size: 22px; font-weight: 800; color: var(--forest); margin-bottom: 20px; text-align: center; }
+  .faq-item { border-bottom: 1px solid #E5E7EB; padding: 16px 0; }
+  .faq-q { font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .faq-a { font-size: 14px; color: var(--mute); margin-top: 8px; line-height: 1.6; display: none; }
+  .faq-item.open .faq-a { display: block; }
+  .faq-item.open .faq-q::after { content: "−"; }
+  .faq-q::after { content: "+"; font-size: 20px; color: var(--green); }
+
+  /* SPINNER */
+  .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--forest); color: #fff; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; transition: transform .3s; z-index: 999; }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="logo" href="/">Nutri<span>AI</span> 🥗</a>
+  <a class="back-btn" href="/app">← חזרה לאפליקציה</a>
+</div>
+
+<div class="hero">
+  <h1>בחר את התוכנית שלך</h1>
+  <p>התחל בחינם. שדרג כשמוכן. בטל בכל עת.</p>
+  <div class="toggle-wrap">
+    <span id="lbl-monthly">חודשי</span>
+    <label class="toggle">
+      <input type="checkbox" id="billing-toggle">
+      <span class="slider"></span>
+    </label>
+    <span id="lbl-yearly">שנתי <span class="save-badge">חסוך 17%</span></span>
+  </div>
+</div>
+
+<div class="plans">
+
+  <!-- FREE -->
+  <div class="card" id="card-free">
+    <div class="card-tier">בסיסי</div>
+    <div class="card-name">חינמי</div>
+    <div class="price-wrap">
+      <span class="price-main">$0</span>
+      <span class="price-period">/חודש</span>
+      <div class="price-annual"></div>
+    </div>
+    <ul class="features">
+      <li>50 הודעות בחודש</li>
+      <li>מעקב קלוריות ומאקרו</li>
+      <li>ניתוח תמונות אוכל</li>
+      <li class="no">ללא הגבלת הודעות</li>
+      <li class="no">דוחות שבועיים</li>
+      <li class="no">5 פרופילים משפחה</li>
+    </ul>
+    {% if current_plan == 'free' %}
+    <span class="cta-btn cta-current">התוכנית הנוכחית שלך</span>
+    {% else %}
+    <a href="/app" class="cta-btn cta-outline">המשך בחינמי</a>
+    {% endif %}
+  </div>
+
+  <!-- PLUS -->
+  <div class="card popular" id="card-plus">
+    <div class="badge-popular">הפופולרי ביותר ⭐</div>
+    <div class="card-tier">מומלץ</div>
+    <div class="card-name">Plus</div>
+    <div class="price-wrap">
+      <span class="price-main" id="plus-price">$5.99</span>
+      <span class="price-period" id="plus-period">/חודש</span>
+      <div class="price-annual" id="plus-annual"></div>
+    </div>
+    <ul class="features">
+      <li>הודעות ללא הגבלה</li>
+      <li>מעקב קלוריות ומאקרו</li>
+      <li>ניתוח תמונות אוכל</li>
+      <li>דוחות שבועיים מפורטים</li>
+      <li>כל מצבי הדיאטה (קטו, ים-תיכוני…)</li>
+      <li class="no">5 פרופילים משפחה</li>
+    </ul>
+    {% if current_plan == 'plus' %}
+    <span class="cta-btn cta-current">התוכנית הנוכחית שלך ✓</span>
+    {% else %}
+    <button class="cta-btn cta-primary" onclick="startCheckout('plus')">
+      <span class="btn-text">התחל עכשיו</span>
+      <div class="spinner"></div>
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- FAMILY -->
+  <div class="card" id="card-family">
+    <div class="card-tier">משפחה</div>
+    <div class="card-name">Family</div>
+    <div class="price-wrap">
+      <span class="price-main" id="family-price">$14.99</span>
+      <span class="price-period" id="family-period">/חודש</span>
+      <div class="price-annual" id="family-annual"></div>
+    </div>
+    <ul class="features">
+      <li>הכל ב-Plus</li>
+      <li>5 פרופילים במשפחה</li>
+      <li>תמיכה בהריון וילדים</li>
+      <li>לוח בקרה משפחתי</li>
+      <li>רשימות קניות משותפות</li>
+      <li>עדיפות תמיכה</li>
+    </ul>
+    {% if current_plan == 'family' %}
+    <span class="cta-btn cta-current">התוכנית הנוכחית שלך ✓</span>
+    {% else %}
+    <button class="cta-btn cta-primary" onclick="startCheckout('family')">
+      <span class="btn-text">התחל עכשיו</span>
+      <div class="spinner"></div>
+    </button>
+    {% endif %}
+  </div>
+
+</div>
+
+<div class="guarantee">
+  <strong>30 יום אחריות מלאה</strong> — לא מרוצה? קבל החזר מלא, ללא שאלות.
+</div>
+
+<div class="faq-section">
+  <h2>שאלות נפוצות</h2>
+  <div class="faq-item">
+    <div class="faq-q">אפשר לבטל בכל עת?</div>
+    <div class="faq-a">כן. ביטול מיידי דרך הגדרות החשבון. לא יחויב חודש נוסף.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">איך עובדת ה-50 הודעות החינמיות?</div>
+    <div class="faq-a">50 הודעות לחודש קלנדרי. מתאפס ב-1 לכל חודש. לא מצטבר.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">אילו אמצעי תשלום מתקבלים?</div>
+    <div class="faq-a">כרטיסי אשראי ודביט (Visa, Mastercard, Amex) דרך Stripe המאובטח. לא שומרים פרטי כרטיס.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">מה ההבדל בין Plus ל-Family?</div>
+    <div class="faq-a">Family מאפשר עד 5 פרופילים תחת חשבון אחד — אידיאלי לזוגות ומשפחות עם ילדים.</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const yearly = { plus: { price: '$59.99', period: '/שנה', note: 'חסוך $11.89 לעומת חודשי' }, family: { price: '$179.99', period: '/שנה', note: 'חסוך $19.89 לעומת חודשי' } };
+const monthly = { plus: { price: '$5.99', period: '/חודש', note: '' }, family: { price: '$14.99', period: '/חודש', note: '' } };
+let isYearly = false;
+
+document.getElementById('billing-toggle').addEventListener('change', function() {
+  isYearly = this.checked;
+  const d = isYearly ? yearly : monthly;
+  document.getElementById('plus-price').textContent = d.plus.price;
+  document.getElementById('plus-period').textContent = d.plus.period;
+  document.getElementById('plus-annual').textContent = d.plus.note;
+  document.getElementById('family-price').textContent = d.family.price;
+  document.getElementById('family-period').textContent = d.family.period;
+  document.getElementById('family-annual').textContent = d.family.note;
+});
+
+async function startCheckout(tier) {
+  const btn = document.querySelector(`#card-${tier} .cta-btn`);
+  const text = btn.querySelector('.btn-text');
+  const spin = btn.querySelector('.spinner');
+  text.style.display = 'none';
+  spin.style.display = 'block';
+  btn.disabled = true;
+
+  const planKey = tier + (isYearly ? '_yearly' : '_monthly');
+  try {
+    const r = await fetch('/stripe/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: planKey })
+    });
+    const data = await r.json();
+    if (data.checkout_url) {
+      window.location.href = data.checkout_url;
+    } else {
+      showToast(data.error || 'שגיאה, נסה שוב');
+      text.style.display = ''; spin.style.display = 'none'; btn.disabled = false;
+    }
+  } catch (e) {
+    showToast('שגיאת רשת, נסה שוב');
+    text.style.display = ''; spin.style.display = 'none'; btn.disabled = false;
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// FAQ accordion
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => q.parentElement.classList.toggle('open'));
+});
+
+// Show cancelled message
+if (new URLSearchParams(location.search).get('cancelled')) {
+  showToast('התשלום בוטל — אפשר לנסות שוב בכל עת');
+}
+</script>
+</body>
+</html>
