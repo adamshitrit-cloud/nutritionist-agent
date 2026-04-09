@@ -1,0 +1,11 @@
+services:
+  - type: worker
+    name: nutriai-telegram-bot
+    runtime: python
+    buildCommand: pip install -r telegram_bot/requirements.txt
+    startCommand: python telegram_bot/bot.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHANNEL_ID
+        sync: false
