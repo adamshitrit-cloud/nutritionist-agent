@@ -7,7 +7,23 @@ from flask import (Flask, render_template, request, jsonify,
 import anthropic
 import json, os, sys, base64, re, hashlib, secrets, uuid
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+# ── Timezone helpers ──────────────────────────────────────────────────────────
+# All date strings in Redis are stored by agent.py using UTC+2 (Israel / UK BST).
+# Web UI must use the same offset so "today" always refers to the same calendar day.
+_IL_TZ = timezone(timedelta(hours=2))   # Israel standard / UK BST
+
+def _now_il() -> datetime:
+    """Current datetime in Israel/IL timezone."""
+    return datetime.now(_IL_TZ)
+
+def _today() -> str:
+    """Today's date string in IL timezone — matches agent.py's log dates."""
+    return _now_il().strftime("%Y-%m-%d")
+
+def _today_minus(days: int) -> str:
+    return (_now_il() - timedelta(days=days)).strftime("%Y-%m-%d")
 
 sys.path.insert(0, str(Path(__file__).parent))
 import agent as nutritionist
@@ -329,20 +345,22 @@ def get_user_stats(user_id: str) -> dict:
         # Calculate streak (consecutive days with at least 1 meal logged, shields count)
         from datetime import date, timedelta
         meal_dates = set(m.get("date", "") for m in progress.get("meal_log", []))
-        month = str(date.today())[:7]
+        today_iso  = _today()
+        month = today_iso[:7]
         try:
             raw_shields = _redis_raw_get(f"shields:{user_id}:{month}")
             shield_dates = set(json.loads(raw_shields)) if raw_shields else set()
         except Exception:
             shield_dates = set()
         streak = 0
-        check_date = date.today()
-        while str(check_date) in meal_dates or str(check_date) in shield_dates:
+        check_date = today_iso
+        while check_date in meal_dates or check_date in shield_dates:
             streak += 1
-            check_date -= timedelta(days=1)
+            # step back one day using datetime arithmetic
+            check_dt = datetime.strptime(check_date, "%Y-%m-%d") - timedelta(days=1)
+            check_date = check_dt.strftime("%Y-%m-%d")
 
         # Calculate today's calories
-        today_iso = str(date.today())
         today_meals = [m for m in progress.get("meal_log", []) if m.get("date") == today_iso]
         today_calories = sum(m.get("calories_estimate", 0) for m in today_meals)
 
@@ -501,7 +519,7 @@ def api_dashboard():
     try:
         nutritionist._current_user_id = uid
         from datetime import date, timedelta
-        today_iso = str(date.today())
+        today_iso = _today()  # Israel timezone — matches agent.py log dates
 
         progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
         profile  = nutritionist.load_json(nutritionist.PROFILE_FILE)
@@ -525,10 +543,10 @@ def api_dashboard():
                 "protein": p, "carbs": c, "fat": f
             })
 
-        # Weekly calories (last 7 days)
+        # Weekly calories (last 7 days, IL timezone)
         weekly = []
         for i in range(6, -1, -1):
-            d = str(date.today() - timedelta(days=i))
+            d = _today_minus(i)
             day_meals = [m for m in progress.get("meal_log", []) if m.get("date") == d]
             kcal = sum(m.get("calories_estimate", 0) for m in day_meals)
             weekly.append({"date": d, "calories": kcal})
@@ -579,8 +597,8 @@ def api_dashboard():
 
         # ── Weekly average weight ──
         logs = base.get("weight_log", [])
-        from datetime import date as _date, timedelta as _td
-        cutoff = str(_date.today() - _td(days=7))
+        from datetime import timedelta as _td
+        cutoff = _today_minus(7)
         recent_w = [l["weight_kg"] for l in logs if l.get("date","") >= cutoff]
         weekly_avg_weight = round(sum(recent_w)/len(recent_w), 1) if len(recent_w) >= 2 else None
 
@@ -607,8 +625,7 @@ def api_dashboard():
 def api_streak_shield():
     uid = current_user_id()
     if not uid: return jsonify({"error": "not logged in"}), 401
-    from datetime import date as _date
-    month = str(_date.today())[:7]
+    month = _today()[:7]
     shield_key = f"shield_used:{uid}:{month}"
     if request.method == "GET":
         used = bool(_redis_raw_get(shield_key))
@@ -616,7 +633,7 @@ def api_streak_shield():
     # POST — activate shield for today
     if _redis_raw_get(shield_key):
         return jsonify({"ok": False, "msg": "כבר השתמשת במגן החודש הזה"})
-    today = str(_date.today())
+    today = _today()
     shields_key = f"shields:{uid}:{month}"
     raw = _redis_raw_get(shields_key)
     shield_dates = json.loads(raw) if raw else []
@@ -902,8 +919,7 @@ def api_water():
     if not uid:
         return jsonify({"error": "not logged in"}), 401
 
-    from datetime import date
-    today = str(date.today())
+    today = _today()
     water_key = f"{uid}:water:{today}"
 
     if request.method == "POST":
@@ -925,8 +941,8 @@ def api_calorie_burn():
     uid = current_user_id()
     if not uid:
         return jsonify({"error": "not logged in"}), 401
-    from datetime import date, timedelta
-    today = str(date.today())
+    from datetime import timedelta
+    today = _today()
     try:
         nutritionist._current_user_id = uid
         progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
@@ -942,7 +958,7 @@ def api_calorie_burn():
                 entry = {
                     "id": str(uuid.uuid4())[:8],
                     "date": today,
-                    "time": __import__('datetime').datetime.now().strftime("%H:%M"),
+                    "time": _now_il().strftime("%H:%M"),
                     "activity": activity,
                     "calories": calories,
                     "duration_min": duration_min
@@ -981,8 +997,8 @@ def api_calorie_burn():
         today_entries = [e for e in burn_log if e.get("date") == today]
         today_burn = sum(e["calories"] for e in today_entries)
         # This week
-        week_start = date.today() - timedelta(days=date.today().weekday())
-        week_entries = [e for e in burn_log if e.get("date", "") >= str(week_start)]
+        week_start = _today_minus(_now_il().weekday())
+        week_entries = [e for e in burn_log if e.get("date", "") >= week_start]
         week_burn = sum(e["calories"] for e in week_entries)
         # This month
         month_str = today[:7]
@@ -1086,7 +1102,7 @@ def api_setup_profile():
             # Only add entry if different from last logged weight
             last_w = logs[-1]["weight_kg"] if logs else None
             if last_w != new_weight_f:
-                logs.append({"date": str(date.today()), "weight_kg": new_weight_f, "note": "עדכון פרופיל"})
+                logs.append({"date": _today(), "weight_kg": new_weight_f, "note": "עדכון פרופיל"})
                 progress["weight_log"] = logs
                 nutritionist.save_json(nutritionist.PROGRESS_FILE, progress)
     finally:
@@ -1416,7 +1432,7 @@ def _generate_weekly_summary(user_id: str, user_name: str) -> str:
         profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
 
         # Last 7 days of data
-        seven_days_ago = str(date.today() - timedelta(days=7))
+        seven_days_ago = _today_minus(7)
         recent_meals = [m for m in progress.get("meal_log", []) if m.get("date", "") >= seven_days_ago]
         recent_weights = [w for w in progress.get("weight_log", []) if w.get("date", "") >= seven_days_ago]
 
@@ -1538,7 +1554,7 @@ def report():
         progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
         profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
 
-        seven_days_ago = str(date.today() - timedelta(days=7))
+        seven_days_ago = _today_minus(7)
         recent_meals = [m for m in progress.get("meal_log", []) if m.get("date","") >= seven_days_ago]
         weight_log = progress.get("weight_log", [])[-10:]
 
@@ -1565,7 +1581,7 @@ def report():
             latest_weight=latest_weight,
             start_weight=start_weight,
             name=session.get("name",""),
-            report_date=str(date.today())
+            report_date=_today()
         )
     finally:
         nutritionist._current_user_id = None

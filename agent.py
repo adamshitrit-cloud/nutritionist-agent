@@ -298,7 +298,7 @@ TOOLS = [
 # ── Tool implementations ───────────────────────────────────────────────────
 def get_todays_meal_plan() -> str:
     from datetime import timezone, timedelta
-    tz_uk = timezone(timedelta(hours=1))
+    tz_uk = timezone(timedelta(hours=2))  # Israel / UTC+2
     plan = load_json(MEAL_PLAN_FILE)
     days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
     today_name = days[datetime.now(tz_uk).weekday()]
@@ -358,7 +358,7 @@ def get_full_weekly_plan() -> str:
 
 def log_weight(weight_kg: float, note: str = "") -> str:
     from datetime import timezone, timedelta
-    tz_uk = timezone(timedelta(hours=1))
+    tz_uk = timezone(timedelta(hours=2))  # Israel / UTC+2
     progress = load_json(PROGRESS_FILE)
     profile = load_json(PROFILE_FILE)
 
@@ -405,7 +405,7 @@ def log_meal(meal_id: str, items: list, calories_estimate: float = 0,
              protein_g: float = 0, carbs_g: float = 0, fat_g: float = 0,
              felt_bloated: bool = False) -> str:
     from datetime import timezone, timedelta
-    tz_uk = timezone(timedelta(hours=1))
+    tz_uk = timezone(timedelta(hours=2))  # Israel / UTC+2
     _now = datetime.now(tz_uk)
     progress = load_json(PROGRESS_FILE)
     today = _now.strftime("%Y-%m-%d")
@@ -502,7 +502,7 @@ def get_progress_summary() -> str:
 
     # Calculate weekly rate
     from datetime import timezone, timedelta
-    tz_uk = timezone(timedelta(hours=1))
+    tz_uk = timezone(timedelta(hours=2))  # Israel / UTC+2
     start_date = datetime.strptime(logs[0]["date"], "%Y-%m-%d")
     weeks = max(1, (datetime.now(tz_uk).replace(tzinfo=None) - start_date).days / 7)
     weekly_rate = round(lost_total / weeks, 2) if lost_total > 0 else 0
@@ -684,7 +684,7 @@ def analyze_food_image(image_path: str, meal_id: str, extra_context: str = "", _
 
 def save_note(note: str, category: str) -> str:
     from datetime import timezone, timedelta
-    tz_uk = timezone(timedelta(hours=1))
+    tz_uk = timezone(timedelta(hours=2))  # Israel / UTC+2
     # Always use load_json — uses Redis when available, never bypasses with .exists() check
     memory = load_json(MEMORY_FILE) or {}
     memory.setdefault("notes", []).append({
@@ -700,7 +700,7 @@ def log_exercise(activity: str, duration_min: int, calories: int) -> str:
     """Log a physical activity and calorie burn to progress data."""
     import uuid as _uuid
     from datetime import timezone, timedelta
-    tz_uk = timezone(timedelta(hours=1))
+    tz_uk = timezone(timedelta(hours=2))  # Israel / UTC+2
     today_iso = datetime.now(tz_uk).strftime("%Y-%m-%d")
     time_str = datetime.now(tz_uk).strftime("%H:%M")
     progress = load_json(PROGRESS_FILE)
@@ -721,7 +721,7 @@ def log_exercise(activity: str, duration_min: int, calories: int) -> str:
 
 def log_water(glasses: int = 1) -> str:
     from datetime import timezone, timedelta
-    tz_uk = timezone(timedelta(hours=1))
+    tz_uk = timezone(timedelta(hours=2))  # Israel / UTC+2
     today_iso = datetime.now(tz_uk).strftime("%Y-%m-%d")
     glasses = max(1, min(int(glasses), 20))  # cap between 1–20
     if _REDIS_URL and _REDIS_TOKEN and _current_user_id:
@@ -747,7 +747,7 @@ def log_water(glasses: int = 1) -> str:
 
 def log_measurement(waist_cm: float = None, chest_cm: float = None, hips_cm: float = None) -> str:
     from datetime import timezone, timedelta
-    tz_uk = timezone(timedelta(hours=1))
+    tz_uk = timezone(timedelta(hours=2))  # Israel / UTC+2
     _now = datetime.now(tz_uk)
     progress = load_json(PROGRESS_FILE)
     entry = {
@@ -816,7 +816,7 @@ def build_system_prompt() -> str:
     HE_DAYS = ["שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת", "ראשון"]
     HE_MONTHS = ["", "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
                  "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"]
-    tz_uk = timezone(timedelta(hours=1))
+    tz_uk = timezone(timedelta(hours=2))  # Israel / UTC+2
     now = datetime.now(tz_uk)
     day_he = HE_DAYS[now.weekday()]
     is_shabbat = now.weekday() == 5
