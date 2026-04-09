@@ -32,6 +32,14 @@ limiter = Limiter(
 
 client = None
 
+# ── i18n ──────────────────────────────────────────────────────────────────────
+from i18n import t as _t
+
+@app.context_processor
+def inject_t():
+    lang = session.get("lang", "he")
+    return {"t": lambda key, **kw: _t(key, lang, **kw), "lang": lang}
+
 # ── PostHog analytics ─────────────────────────────────────────────────────────
 def _track(event: str, uid: str = None, props: dict = None):
     """Fire a PostHog event non-blocking. Silently ignores if key not set."""
@@ -1502,6 +1510,15 @@ def ping():
 def healthz():
     """Render health check endpoint"""
     return jsonify({"healthy": True}), 200
+
+
+@app.route("/api/lang", methods=["POST"])
+def set_language():
+    data = request.get_json()
+    lang = data.get("lang", "he")
+    if lang in ("he", "en"):
+        session["lang"] = lang
+    return jsonify({"ok": True, "lang": session.get("lang", "he")})
 
 
 # ── Stripe / Payments ─────────────────────────────────────────────────────────
