@@ -512,6 +512,26 @@
     .vit-name{font-size:11px;color:var(--text);font-weight:500;}
     .vit-dose{font-size:9.5px;color:var(--sub);}
 
+    /* ── Quick-reply chips (Photo Log v2) ── */
+    .chips-wrap{
+      display:flex;flex-wrap:wrap;gap:6px;
+      margin-top:8px;padding:0 2px;
+      animation:msgIn .3s cubic-bezier(.4,0,.2,1);
+    }
+    .chip{
+      background:rgba(139,92,246,.12);
+      border:1px solid rgba(139,92,246,.25);
+      border-radius:20px;padding:5px 12px;
+      font-size:12px;color:var(--em-l);font-weight:500;
+      cursor:pointer;
+      font-family:'Heebo','Inter',sans-serif;
+      transition:background var(--t-fast),border-color var(--t-fast),transform var(--t-bounce);
+      white-space:nowrap;letter-spacing:0.01em;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .chip:hover{background:rgba(139,92,246,.22);border-color:rgba(139,92,246,.5);transform:translateY(-1px);}
+    .chip:active{transform:scale(0.96);}
+
     /* Confetti */
     @keyframes confettiFall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
@@ -1449,6 +1469,44 @@
     chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
     return d;
   }
+  // ── Quick-reply chips (Photo Log v2) ──────────────────────────────────────
+  function addChips(chips){
+    // Remove any existing chips first
+    const prev=document.getElementById('active-chips');
+    if(prev)prev.remove();
+    const wrap=document.createElement('div');
+    wrap.className='chips-wrap';
+    wrap.id='active-chips';
+    chips.forEach(chip=>{
+      const btn=document.createElement('button');
+      btn.className='chip';
+      btn.textContent=chip.label;
+      btn.addEventListener('click',()=>{
+        wrap.remove();
+        if(chip.type==='view'&&chip.action==='dashboard'){
+          switchView('dashboard');
+        }else if(chip.type==='prefill'){
+          ta.value=chip.action;
+          ta.focus();
+          ta.dispatchEvent(new Event('input'));
+        }else{
+          // send directly
+          ta.value=chip.action;
+          send();
+        }
+      });
+      wrap.appendChild(btn);
+    });
+    // Append below the last agent message body
+    const msgs=document.querySelectorAll('#chat .msg.agent:not(.typing)');
+    if(msgs.length>0){
+      msgs[msgs.length-1].querySelector('.msg-body').appendChild(wrap);
+    }else{
+      document.getElementById('chat').appendChild(wrap);
+    }
+    document.getElementById('chat').scrollTop=9999;
+  }
+
   function showTyping(){
     const d=document.createElement('div');
     d.className='msg agent typing';d.id='typing';
@@ -1492,6 +1550,10 @@
       if(d.error)addMsg('agent',`❌ ${d.error}`);
       else{
         addMsg('agent',fmt(d.response),true);
+        // Photo Log v2: show quick-reply chips after food image
+        if(d.quick_replies&&d.quick_replies.length>0){
+          addChips(d.quick_replies);
+        }
         if(d.weight)refreshWeight(d.weight);
         loadStats();
         loadBurnData();

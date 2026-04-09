@@ -647,6 +647,101 @@ def _strip_markdown_tables(text: str) -> str:
     result = re.sub(r'\n{3,}', '\n\n', '\n'.join(cleaned))
     return result.strip()
 
+# ── Photo Log v2 helpers ─────────────────────────────────────────────────────
+
+def _detect_meal_id(user_text: str) -> str:
+    """Infer meal_id from user text keywords or current time."""
+    user_lower = (user_text or "").lower()
+    for m in ["breakfast", "snack", "lunch", "dinner"]:
+        if m in user_lower:
+            return m
+    hour = datetime.now().hour
+    if 6 <= hour < 10:    return "breakfast"
+    elif 10 <= hour < 12: return "snack"
+    elif 12 <= hour < 16: return "lunch"
+    else:                 return "dinner"
+
+
+def _fast_photo_log(uid: str, raw_b64: str, mime: str, meal_id: str,
+                    user_text: str, cl) -> dict:
+    """
+    Photo Log v2 — single Vision call, direct log_meal, no agentic loop.
+    Returns dict: {response, quick_replies, meal_id}
+    Target latency: <2.5 sec (vs 3-6 sec for agentic loop).
+    """
+    extra_ctx = f"\nהקשר נוסף: {user_text}" if user_text else ""
+    try:
+        vision_resp = cl.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=512,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {"type": "base64", "media_type": mime, "data": raw_b64}
+                    },
+                    {
+                        "type": "text",
+                        "text": (
+                            f"תזונאי מומחה — זהה את האוכל בתמונה והחזר JSON בלבד.{extra_ctx}\n\n"
+                            '{"items":[{"name":"שם","amount_g":100,"calories":200,"protein_g":15}],'
+                            '"total_calories":200,"total_protein_g":15,"total_carbs_g":20,"total_fat_g":8,'
+                            '"confidence":"high"}'
+                        )
+                    }
+                ]
+            }]
+        )
+
+        raw = vision_resp.content[0].text.strip()
+        json_match = re.search(r'\{.*\}', raw, re.DOTALL)
+        if not json_match:
+            return {"response": "❌ לא הצלחתי לנתח את התמונה. נסה שוב.", "quick_replies": []}
+
+        analysis = json.loads(json_match.group())
+
+        items_names = [
+            f"{i['name']} ({i.get('amount_g','?')}g)"
+            for i in analysis.get("items", [])
+        ]
+        # Set user context for Redis namespacing
+        nutritionist._current_user_id = uid
+        nutritionist.log_meal(
+            meal_id=meal_id,
+            items=items_names,
+            calories_estimate=analysis.get("total_calories", 0),
+            protein_g=analysis.get("total_protein_g", 0),
+            carbs_g=analysis.get("total_carbs_g", 0),
+            fat_g=analysis.get("total_fat_g", 0),
+        )
+
+        cal   = int(analysis.get("total_calories", 0))
+        prot  = int(analysis.get("total_protein_g", 0))
+        carbs = int(analysis.get("total_carbs_g", 0))
+        conf  = analysis.get("confidence", "medium")
+        conf_emoji = {"high": "🟢", "medium": "🟡", "low": "🔴"}.get(conf, "🟡")
+        meal_he = {"breakfast": "בוקר", "lunch": "צהריים",
+                   "dinner": "ערב", "snack": "חטיף", "other": "ארוחה"}.get(meal_id, "ארוחה")
+
+        response_text = (
+            f"✅ {meal_he} נרשמה {conf_emoji}\n"
+            f"🔥 {cal} קל | 💪 {prot}g חלבון | 🌾 {carbs}g פחמימות"
+        )
+
+        quick_replies = [
+            {"label": "➕ הוסף עוד",   "action": "הוסף לארוחה: ",       "type": "prefill"},
+            {"label": "✏️ תקן כמות",  "action": "תקן את הכמות של ",     "type": "prefill"},
+            {"label": "❌ מחק",        "action": f"מחק {meal_id}",        "type": "send"},
+            {"label": "📊 דשבורד",    "action": "dashboard",              "type": "view"},
+        ]
+        return {"response": response_text, "quick_replies": quick_replies, "meal_id": meal_id}
+
+    except Exception as exc:
+        import traceback; traceback.print_exc()
+        return {"response": f"❌ שגיאה בניתוח תמונה: {exc}", "quick_replies": []}
+
+
 # ── Chat endpoint ────────────────────────────────────────────────────────────
 
 @app.route("/chat", methods=["POST"])
@@ -688,34 +783,47 @@ def chat():
 
         conversation_history = load_history(uid)
 
-        # Build user content
+        # ── Photo Log v2 fast path ────────────────────────────────────────────
         if image_b64:
             if "," in image_b64:
                 header, raw = image_b64.split(",", 1)
                 mime = header.split(":")[1].split(";")[0]
             else:
                 raw, mime = image_b64, "image/jpeg"
-            meal_id = "other"
-            for m in ["breakfast", "snack", "lunch", "dinner"]:
-                if m in user_text.lower():
-                    meal_id = m
-                    break
-            hour = datetime.now().hour
-            if meal_id == "other":
-                if 6 <= hour < 10:    meal_id = "breakfast"
-                elif 10 <= hour < 12: meal_id = "snack"
-                elif 12 <= hour < 16: meal_id = "lunch"
-                else:                 meal_id = "dinner"
-            content = [
-                {"type": "image", "source": {"type": "base64", "media_type": mime, "data": raw}},
-                {"type": "text",  "text": user_text or f"נתח את תמונת האוכל הזו וספור קלוריות. ארוחה: {meal_id}"}
-            ]
-        else:
-            content = user_text
 
+            meal_id = _detect_meal_id(user_text)
+            result  = _fast_photo_log(uid, raw, mime, meal_id, user_text, cl)
+
+            # Save lean history entry (no giant base64 blob)
+            conversation_history.append({
+                "role": "user",
+                "content": f"[תמונת אוכל — {meal_id}] {user_text or ''}".strip()
+            })
+            conversation_history.append({
+                "role": "assistant",
+                "content": result["response"]
+            })
+            conversation_history = _safe_truncate(conversation_history, 40)
+            save_history(uid, conversation_history)
+            _track("chat_message_sent", uid, {
+                "has_image": True,
+                "paid": is_paid_user(uid),
+                "month": datetime.now().strftime("%Y-%m"),
+            })
+
+            if not is_paid_user(uid):
+                remaining = FREE_MONTHLY_CAP - msg_num
+                if 0 < remaining <= 5:
+                    result["response"] += (
+                        f"\n\n⚠️ נותרו לך {remaining} הודעות חינמיות החודש. "
+                        "[שדרג לפלוס ←](/pricing)"
+                    )
+            return jsonify(result)
+
+        # ── Text-only agentic loop ────────────────────────────────────────────
+        content = user_text
         conversation_history.append({"role": "user", "content": content})
 
-        # Agentic loop (max 6 iterations)
         text_parts = []
         loop_completed = False
         for loop_i in range(6):
@@ -750,11 +858,10 @@ def chat():
                 loop_completed = True
                 break
 
-        # If loop hit limit without finishing, add a graceful fallback message
         if not loop_completed and not text_parts:
             text_parts.append("✅ הפעולה בוצעה.")
 
-        raw_text = "".join(text_parts) if text_parts else "✅ פעולה בוצעה!"
+        raw_text   = "".join(text_parts) if text_parts else "✅ פעולה בוצעה!"
         final_text = _strip_markdown_tables(raw_text)
 
         if not is_paid_user(uid):
@@ -772,7 +879,7 @@ def chat():
         conversation_history = _safe_truncate(conversation_history, 40)
         save_history(uid, conversation_history)
         _track("chat_message_sent", uid, {
-            "has_image": bool(image_b64),
+            "has_image": False,
             "paid": is_paid_user(uid),
             "month": datetime.now().strftime("%Y-%m"),
         })
