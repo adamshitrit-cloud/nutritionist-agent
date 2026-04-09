@@ -746,13 +746,19 @@ def _fast_photo_log(uid: str, raw_b64: str, mime: str, meal_id: str,
             f"🔥 {cal} קל | 💪 {prot}g חלבון | 🌾 {carbs}g פחמימות"
         )
 
+        # Build meal name for template saving
+        items_short = ", ".join(i.get("name","") for i in analysis.get("items",[])[:2])
+        template_name = items_short[:20] if items_short else meal_he
+
         quick_replies = [
             {"label": "➕ הוסף עוד",   "action": "הוסף לארוחה: ",       "type": "prefill"},
             {"label": "✏️ תקן כמות",  "action": "תקן את הכמות של ",     "type": "prefill"},
+            {"label": "⭐ שמור תבנית", "action": f"שמור ארוחה זו בשם: {template_name}", "type": "prefill"},
             {"label": "❌ מחק",        "action": f"מחק {meal_id}",        "type": "send"},
             {"label": "📊 דשבורד",    "action": "dashboard",              "type": "view"},
         ]
-        return {"response": response_text, "quick_replies": quick_replies, "meal_id": meal_id}
+        return {"response": response_text, "quick_replies": quick_replies, "meal_id": meal_id,
+                "_analysis": analysis}
 
     except Exception as exc:
         import traceback; traceback.print_exc()
@@ -1304,6 +1310,41 @@ def process_whatsapp_image(user_id: str, media_url: str, caption: str) -> str:
     except Exception as e:
         return f"לא הצלחתי לקרוא את התמונה: {e}"
 
+def _check_streak_viral(user_id: str) -> str | None:
+    """
+    Returns a viral WhatsApp message when user hits a streak milestone (3/7/14/21/30 days).
+    Returns None when no milestone reached or already sent today.
+    """
+    MILESTONES = {3: "🔥", 7: "🏆", 14: "💎", 21: "🚀", 30: "👑"}
+    nutritionist._current_user_id = user_id
+    progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+    meal_dates = set(m.get("date", "") for m in progress.get("meal_log", []))
+    streak = 0
+    check = _today()
+    from datetime import timedelta
+    while check in meal_dates:
+        streak += 1
+        check = (datetime.strptime(check, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+
+    if streak not in MILESTONES:
+        return None
+
+    # Avoid sending twice on same day
+    sent_key = f"streak_viral:{user_id}:{streak}"
+    if _redis_raw_get(sent_key):
+        return None
+    _redis_raw_set(sent_key, "1")
+
+    emoji = MILESTONES[streak]
+    code = _get_or_create_referral_code(user_id)
+    base_url = os.environ.get("APP_BASE_URL", "https://nutritionist-agent-ouvp.onrender.com")
+    ref_url = f"{base_url}/landing?ref={code}"
+    return (
+        f"{emoji} *{streak} ימים ברצף!*\n"
+        f"הישג מדהים 💪 שתף/י עם חבר/ה שיכול/ה להצטרף:\n{ref_url}"
+    )
+
+
 def process_for_whatsapp(user_id: str, user_text: str) -> str:
     nutritionist._current_user_id = user_id
     try:
@@ -1348,6 +1389,15 @@ def process_for_whatsapp(user_id: str, user_text: str) -> str:
         reply = "".join(text_parts) if text_parts else "✅ בוצע!"
         reply = re.sub(r'\*\*(.+?)\*\*', r'*\1*', reply)
         reply = re.sub(r'#{1,3} (.+)', r'*\1*', reply)
+
+        # ── WhatsApp viral hook: streak milestones ──
+        try:
+            viral = _check_streak_viral(user_id)
+            if viral:
+                reply = reply + "\n\n" + viral
+        except Exception:
+            pass
+
         return reply
     finally:
         nutritionist._current_user_id = None
@@ -1458,7 +1508,11 @@ def _generate_weekly_summary(user_id: str, user_name: str) -> str:
         else:
             msg += "💪 השבוע הבא נתחיל מחדש — כל יום חשוב!\n"
 
-        msg += "\nהמשך עם הסוכן: https://nutritionist-agent-ouvp.onrender.com/app"
+        # Referral viral hook
+        code = _get_or_create_referral_code(user_id)
+        base_url = os.environ.get("APP_BASE_URL", "https://nutritionist-agent-ouvp.onrender.com")
+        referral_url = f"{base_url}/landing?ref={code}"
+        msg += f"\n📲 הזמן חבר/ה וקבל חודש פלוס בחינם:\n{referral_url}"
         return msg
     finally:
         nutritionist._current_user_id = None
@@ -1622,6 +1676,129 @@ def api_referral():
     base_url = os.environ.get("APP_BASE_URL", "https://nutritionist-agent-ouvp.onrender.com")
     link = f"{base_url}/landing?ref={code}"
     return jsonify({"code": code, "link": link, "referrals": referrals})
+
+
+# ── Meal Templates API ───────────────────────────────────────────────────────
+
+@app.route("/api/templates", methods=["GET"])
+def api_templates_list():
+    uid = current_user_id()
+    if not uid:
+        return jsonify([])
+    nutritionist._current_user_id = uid
+    memory = nutritionist.load_json(nutritionist.MEMORY_FILE)
+    templates = memory.get("meal_templates", [])
+    # Sort by use_count descending
+    templates.sort(key=lambda t: t.get("use_count", 0), reverse=True)
+    return jsonify(templates)
+
+
+@app.route("/api/templates/<template_id>/log", methods=["POST"])
+def api_log_template(template_id):
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    nutritionist._current_user_id = uid
+    memory = nutritionist.load_json(nutritionist.MEMORY_FILE)
+    templates = memory.get("meal_templates", [])
+    tmpl = next((t for t in templates if t["id"] == template_id), None)
+    if not tmpl:
+        return jsonify({"error": "template not found"}), 404
+
+    nutritionist.log_meal(
+        meal_id=tmpl["meal_id"],
+        items=tmpl["items"],
+        calories_estimate=tmpl.get("calories", 0),
+        protein_g=tmpl.get("protein_g", 0),
+        carbs_g=tmpl.get("carbs_g", 0),
+        fat_g=tmpl.get("fat_g", 0),
+    )
+    # Increment use count
+    idx = next((i for i, t in enumerate(templates) if t["id"] == template_id), None)
+    if idx is not None:
+        templates[idx]["use_count"] = templates[idx].get("use_count", 0) + 1
+        nutritionist.save_json(nutritionist.MEMORY_FILE, memory)
+
+    cal  = int(tmpl.get("calories", 0))
+    prot = int(tmpl.get("protein_g", 0))
+    meal_he = {"breakfast": "בוקר", "lunch": "צהריים", "dinner": "ערב",
+               "snack": "חטיף", "other": "ארוחה"}.get(tmpl["meal_id"], "ארוחה")
+    return jsonify({
+        "response": f"✅ {tmpl['name']} נרשמה — {cal} קל | {prot}g חלבון",
+        "quick_replies": [
+            {"label": "❌ מחק", "action": f"מחק {tmpl['meal_id']}", "type": "send"},
+            {"label": "📊 דשבורד", "action": "dashboard", "type": "view"},
+        ]
+    })
+
+
+@app.route("/api/templates/<template_id>", methods=["DELETE"])
+def api_delete_template(template_id):
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    nutritionist._current_user_id = uid
+    memory = nutritionist.load_json(nutritionist.MEMORY_FILE)
+    templates = memory.get("meal_templates", [])
+    memory["meal_templates"] = [t for t in templates if t["id"] != template_id]
+    nutritionist.save_json(nutritionist.MEMORY_FILE, memory)
+    return jsonify({"ok": True})
+
+
+# ── Weekly Story Share API ────────────────────────────────────────────────────
+
+@app.route("/api/story", methods=["GET"])
+def api_story():
+    """Generate a shareable weekly story summary (text for WhatsApp / social)."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    try:
+        nutritionist._current_user_id = uid
+        progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+        profile  = nutritionist.load_json(nutritionist.PROFILE_FILE)
+
+        seven_days_ago = _today_minus(7)
+        recent_meals   = [m for m in progress.get("meal_log", []) if m.get("date","") >= seven_days_ago]
+        days_logged    = len(set(m.get("date") for m in recent_meals))
+        avg_cal        = int(sum(m.get("calories_estimate",0) for m in recent_meals) / 7) if recent_meals else 0
+        avg_prot       = int(sum(m.get("protein_g",0) for m in recent_meals) / max(days_logged,1))
+
+        logs = progress.get("weight_log", [])
+        current_w = logs[-1]["weight_kg"] if logs else profile.get("current_weight_kg","?")
+        start_w   = logs[0]["weight_kg"]  if logs else current_w
+        lost      = round(float(start_w) - float(current_w), 1) if start_w and current_w else 0
+
+        # Streak
+        meal_dates = set(m.get("date","") for m in progress.get("meal_log",[]))
+        streak = 0
+        check  = _today()
+        from datetime import timedelta
+        while check in meal_dates:
+            streak += 1
+            check = (datetime.strptime(check, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+
+        name = profile.get("name","") or session.get("name","")
+        grade_emoji = "🏆" if days_logged >= 6 else "💪" if days_logged >= 4 else "📈"
+
+        story = (
+            f"{grade_emoji} *הסיכום השבועי שלי — NutriAI*\n\n"
+            f"👤 {name}\n"
+            f"🔥 רצף: {streak} ימים\n"
+            f"🍽️ ימי דיווח: {days_logged}/7\n"
+            f"⚡ ממוצע יומי: {avg_cal} קל | {avg_prot}g חלבון\n"
+            f"⚖️ ירידה כוללת: {lost} ק\"ג\n\n"
+            f"המאמן התזונתי שלי 👉 nutri-ai.app"
+        )
+        code    = _get_or_create_referral_code(uid)
+        base    = os.environ.get("APP_BASE_URL","https://nutritionist-agent-ouvp.onrender.com")
+        ref_url = f"{base}/landing?ref={code}"
+        story  += f"\n📲 {ref_url}"
+
+        return jsonify({"story": story, "streak": streak, "days_logged": days_logged,
+                        "avg_cal": avg_cal, "lost": lost})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/ping")

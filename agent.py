@@ -291,6 +291,40 @@ TOOLS = [
             },
             "required": []
         }
+    },
+    {
+        "name": "save_meal_template",
+        "description": "שומר ארוחה כתבנית/מועדפת לשימוש חוזר מהיר. קרא כשהמשתמש אומר 'שמור', 'הוסף למועדפים', 'ארוחה קבועה', 'תבנית'",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string", "description": "שם קצר לתבנית (למשל: 'קוטג׳ בוקר', 'חזה עוף צהריים')"},
+                "meal_id": {
+                    "type": "string",
+                    "enum": ["breakfast", "snack", "lunch", "dinner", "other"],
+                    "description": "סוג הארוחה"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "רשימת המזונות"
+                },
+                "calories": {"type": "number", "description": "קלוריות משוערות"},
+                "protein_g": {"type": "number", "description": "חלבון בגרמים"},
+                "carbs_g": {"type": "number", "description": "פחמימות בגרמים"},
+                "fat_g": {"type": "number", "description": "שומן בגרמים"}
+            },
+            "required": ["name", "meal_id", "items"]
+        }
+    },
+    {
+        "name": "get_meal_templates",
+        "description": "מחזיר את כל התבניות/מועדפות השמורות של המשתמש",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
     }
 ]
 
@@ -769,6 +803,56 @@ def log_measurement(waist_cm: float = None, chest_cm: float = None, hips_cm: flo
     return f"✅ מדידות נרשמו: {', '.join(parts)}"
 
 
+# ── Meal templates ─────────────────────────────────────────────────────────
+
+def save_meal_template(name: str, meal_id: str, items: list,
+                       calories: float = 0, protein_g: float = 0,
+                       carbs_g: float = 0, fat_g: float = 0) -> str:
+    """Save a meal as a reusable template/favourite."""
+    import uuid as _uuid
+    memory = load_json(MEMORY_FILE) or {}
+    templates = memory.setdefault("meal_templates", [])
+    # Upsert by name
+    existing_idx = next((i for i, t in enumerate(templates) if t.get("name") == name), None)
+    template = {
+        "id": (templates[existing_idx]["id"] if existing_idx is not None
+               else str(_uuid.uuid4())[:8]),
+        "name": name,
+        "meal_id": meal_id,
+        "items": items,
+        "calories": calories,
+        "protein_g": protein_g,
+        "carbs_g": carbs_g,
+        "fat_g": fat_g,
+        "use_count": (templates[existing_idx].get("use_count", 0)
+                      if existing_idx is not None else 0),
+        "created_at": datetime.now().isoformat(),
+    }
+    if existing_idx is not None:
+        templates[existing_idx] = template
+    else:
+        templates.append(template)
+    save_json(MEMORY_FILE, memory)
+    return f"⭐ '{name}' נשמרה כתבנית — תופיע בסרגל המהיר שלך"
+
+
+def get_meal_templates() -> str:
+    """Return all saved meal templates as a formatted list."""
+    memory = load_json(MEMORY_FILE) or {}
+    templates = memory.get("meal_templates", [])
+    if not templates:
+        return "אין תבניות שמורות עדיין. אמור 'שמור ארוחה זו' אחרי רישום ארוחה."
+    lines = ["📋 **תבניות שמורות:**\n"]
+    for t in templates:
+        use_count = t.get("use_count", 0)
+        cal = int(t.get("calories", 0))
+        lines.append(
+            f"• **{t['name']}** — {cal} קל | {int(t.get('protein_g',0))}g חלבון"
+            f"  (שומש {use_count}×)"
+        )
+    return "\n".join(lines)
+
+
 # ── Tool dispatcher ────────────────────────────────────────────────────────
 _shared_client = None  # Set at startup
 
@@ -800,6 +884,10 @@ def execute_tool(name: str, inputs: dict) -> str:
             return log_exercise(**inputs)
         elif name == "log_measurement":
             return log_measurement(**inputs)
+        elif name == "save_meal_template":
+            return save_meal_template(**inputs)
+        elif name == "get_meal_templates":
+            return get_meal_templates()
         else:
             return f"כלי לא מוכר: {name}"
     except Exception as e:
@@ -1013,6 +1101,11 @@ def build_system_prompt() -> str:
 **טיפים ותובנות:**
 - כשיש לך תובנה/טיפ → קרא `save_note` עם category מתאים: tip=טיפ כללי, insight=תובנה על הנתונים, weekly=סיכום שבועי, bloating=נפיחות, preference=העדפת אוכל, progress=התקדמות
 - לאחר save_note: אל תאמר כלום בצ'אט
+
+**תבניות ומועדפים:**
+- כשהמשתמש אומר "שמור ארוחה זו", "הוסף למועדפים", "ארוחה קבועה", "שמור כתבנית" → קרא `save_meal_template` עם שם קצר וכל הנתונים של הארוחה האחרונה שנרשמה
+- כשהמשתמש שואל "מה המועדפים שלי", "תבניות שמורות" → קרא `get_meal_templates`
+- לאחר save_meal_template: "⭐ '[שם]' נשמרה — תופיע בסרגל המהיר" — משפט אחד בלבד
 
 **טיפול בטעויות ותיקונים:**
 - כשהמשתמש אומר "טעות", "לא אכלתי את זה", "מחק", "בטל" → השתמש ב-`delete_meal` עם meal_id המתאים
