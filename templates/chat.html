@@ -1382,9 +1382,11 @@
     if(db.weekly_calories && db.weekly_calories.length){
       const bars = document.getElementById('db-weekly-bars');
       bars.innerHTML='';
-      const days = IS_HE?['ש','א','ב','ג','ד','ה','ו']:['Su','Mo','Tu','We','Th','Fr','Sa'];
+      // JS getDay(): Sun=0,Mon=1,Tue=2,Wed=3,Thu=4,Fri=5,Sat=6 — array must start at Sunday
+      const days = IS_HE?['א','ב','ג','ד','ה','ו','ש']:['Su','Mo','Tu','We','Th','Fr','Sa'];
       const maxKcal = Math.max(...db.weekly_calories.map(d=>d.calories), 1);
-      const todayStr = new Date().toISOString().slice(0,10);
+      // Use server-supplied today (IL timezone) to avoid UTC vs IL mismatch
+      const todayStr = db.today || (()=>{const n=new Date();n.setMinutes(n.getMinutes()-n.getTimezoneOffset());return n.toISOString().slice(0,10);})();
       let total=0,count=0;
       db.weekly_calories.forEach(d=>{
         const h = Math.max((d.calories/maxKcal)*100, d.calories>0?5:0);

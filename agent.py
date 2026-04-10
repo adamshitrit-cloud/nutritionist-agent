@@ -509,8 +509,10 @@ def log_meal(meal_id: str, items: list, calories_estimate: float = 0,
 
 
 def delete_meal(meal_id: str) -> str:
+    from datetime import timezone, timedelta
+    _tz_il = timezone(timedelta(hours=2))
     progress = load_json(PROGRESS_FILE)
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now(_tz_il).strftime("%Y-%m-%d")
     meal_log = progress.get("meal_log", [])
     before = len(meal_log)
     progress["meal_log"] = [
@@ -533,7 +535,8 @@ def update_meal_plan(day: str, meal_id: str, new_items: list, new_note: str = ""
     plan["weekly_plan"][day][meal_id]["items"] = new_items
     if new_note:
         plan["weekly_plan"][day][meal_id]["notes"] = new_note
-    plan["last_updated"] = datetime.now().strftime("%Y-%m-%d")
+    from datetime import timezone, timedelta
+    plan["last_updated"] = datetime.now(timezone(timedelta(hours=2))).strftime("%Y-%m-%d")
     save_json(MEAL_PLAN_FILE, plan)
     return f"✅ תפריט {day} - {meal_id} עודכן!"
 
@@ -847,7 +850,7 @@ def save_meal_template(name: str, meal_id: str, items: list,
         "fat_g": fat_g,
         "use_count": (templates[existing_idx].get("use_count", 0)
                       if existing_idx is not None else 0),
-        "created_at": datetime.now().isoformat(),
+        "created_at": datetime.now(timezone(timedelta(hours=2))).isoformat(),
     }
     if existing_idx is not None:
         templates[existing_idx] = template

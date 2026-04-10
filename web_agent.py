@@ -626,8 +626,7 @@ def api_dashboard():
         grade_color = {"A":"#22c55e","B":"#84cc16","C":"#f59e0b","D":"#f97316","F":"#ef4444"}[grade]
 
         # ── AI Nudge (rule-based, protein-first) ──
-        from datetime import datetime as _dt
-        hour = _dt.now().hour
+        hour = _now_il().hour
         nudge = None
         if protein_target > 0 and total_protein < protein_target * 0.6:
             shortfall = round(protein_target - total_protein)
@@ -647,11 +646,12 @@ def api_dashboard():
         # ── Weekly average weight ──
         logs = base.get("weight_log", [])
         from datetime import timedelta as _td
-        cutoff = _today_minus(7)
+        cutoff = _today_minus(6)  # 7 days inclusive (today + 6 days back)
         recent_w = [l["weight_kg"] for l in logs if l.get("date","") >= cutoff]
         weekly_avg_weight = round(sum(recent_w)/len(recent_w), 1) if len(recent_w) >= 2 else None
 
         base.update({
+            "today": today_iso,  # IL-timezone date string — used by frontend to highlight correct bar
             "today_meals": today_meals,
             "total_protein": round(total_protein, 1),
             "total_carbs": round(total_carbs, 1),
@@ -734,7 +734,7 @@ def _detect_meal_id(user_text: str) -> str:
     for m in ["breakfast", "snack", "lunch", "dinner"]:
         if m in user_lower:
             return m
-    hour = datetime.now().hour
+    hour = _now_il().hour
     if 6 <= hour < 10:    return "breakfast"
     elif 10 <= hour < 12: return "snack"
     elif 12 <= hour < 16: return "lunch"
@@ -1314,9 +1314,8 @@ def process_whatsapp_image(user_id: str, media_url: str, caption: str) -> str:
         history = load_history(user_id)
         history.append({"role": "user", "content": f"[WhatsApp תמונה] {prompt}"})
 
-        # Determine meal_id from caption or time of day
-        from datetime import datetime as _dt
-        hour = _dt.now().hour
+        # Determine meal_id from caption or time of day (IL timezone)
+        hour = _now_il().hour
         meal_id = "other"
         for m in ["breakfast", "snack", "lunch", "dinner"]:
             if m in (caption or "").lower():
