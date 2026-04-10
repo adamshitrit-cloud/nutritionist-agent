@@ -80,6 +80,9 @@ def _track(event: str, uid: str = None, props: dict = None):
     except Exception:
         pass
 
+# ── DB import (lazy — only used when DATABASE_URL is set) ────────────────────
+import database as _db_module
+
 # ── Redis helpers ────────────────────────────────────────────────────────────
 
 def _redis_raw_get(key: str):
@@ -124,14 +127,19 @@ FREE_MONTHLY_CAP = 50  # messages per month for free users
 
 def get_monthly_message_count(uid: str) -> int:
     """Return how many messages this user sent this calendar month."""
-    key = f"msg_count:{uid}:{datetime.now().strftime('%Y-%m')}"
+    month = datetime.now().strftime('%Y-%m')
+    if _db_module.is_available():
+        return _db_module.db_get_message_count(uid, month)
+    key = f"msg_count:{uid}:{month}"
     val = _redis_raw_get(key)
     return int(val) if val else 0
 
 def increment_monthly_message_count(uid: str) -> int:
-    """Increment and return new count. Sets 35-day TTL on first write."""
-    import calendar
-    key = f"msg_count:{uid}:{datetime.now().strftime('%Y-%m')}"
+    """Increment and return new count."""
+    month = datetime.now().strftime('%Y-%m')
+    if _db_module.is_available():
+        return _db_module.db_increment_message_count(uid, month)
+    key = f"msg_count:{uid}:{month}"
     val = _redis_raw_get(key)
     new_count = (int(val) if val else 0) + 1
     _redis_raw_set(key, str(new_count))
@@ -139,11 +147,16 @@ def increment_monthly_message_count(uid: str) -> int:
 
 def is_paid_user(uid: str) -> bool:
     """True if user has active Stripe subscription OR earned premium via referrals."""
-    # Check Stripe subscription status (will be set by webhook later)
+    if _db_module.is_available():
+        stripe_status = _db_module.db_get_stripe_status(uid)
+        if stripe_status == "active":
+            return True
+        referral_count = _db_module.db_get_referral_count(uid)
+        return referral_count >= 3
+    # Redis fallback
     stripe_status = _redis_raw_get(f"stripe_sub:{uid}")
     if stripe_status == "active":
         return True
-    # Legacy: referral-based premium
     referral_count = _redis_raw_get(f"referral_count:{uid}")
     return int(referral_count or 0) >= 3
 
@@ -153,6 +166,8 @@ def _hash_password(password: str, salt: str) -> str:
     return hashlib.sha256(f"{salt}{password}".encode()).hexdigest()
 
 def _get_user_by_email(email: str) -> dict:
+    if _db_module.is_available():
+        return _db_module.db_get_user_by_email(email)
     try:
         raw = _redis_raw_get(f"account:{email.lower()}")
         return json.loads(raw) if raw else None
@@ -160,6 +175,9 @@ def _get_user_by_email(email: str) -> dict:
         return None
 
 def _save_user(user: dict):
+    if _db_module.is_available():
+        _db_module.db_save_user(user)
+        return
     try:
         _redis_raw_set(f"account:{user['email'].lower()}", json.dumps(user, ensure_ascii=False))
     except Exception as e:
@@ -170,19 +188,25 @@ def _phone_digits(phone: str) -> str:
     return re.sub(r'\D', '', phone)
 
 def _link_phone_to_user(phone: str, user_id: str):
-    """Store phone→user_id mapping in Redis so WhatsApp messages find the right account."""
+    """Store phone→user_id mapping so WhatsApp messages find the right account."""
     digits = _phone_digits(phone)
-    if digits:
-        try:
-            _redis_raw_set(f"phone:{digits}", user_id)
-        except Exception as e:
-            print(f"[Auth] link_phone error: {e}")
+    if not digits:
+        return
+    if _db_module.is_available():
+        _db_module.db_link_phone(digits, user_id)
+        return
+    try:
+        _redis_raw_set(f"phone:{digits}", user_id)
+    except Exception as e:
+        print(f"[Auth] link_phone error: {e}")
 
 def _get_user_id_by_phone(phone: str) -> str | None:
     """Look up user_id from phone number digits. Returns None if not found."""
     digits = _phone_digits(phone)
     if not digits:
         return None
+    if _db_module.is_available():
+        return _db_module.db_get_user_id_by_phone(digits)
     try:
         return _redis_raw_get(f"phone:{digits}")
     except Exception:
@@ -274,12 +298,19 @@ def _history_key(user_id: str) -> str:
     return f"{user_id}:conversation_history"
 
 def load_history(user_id: str) -> list:
+    # 1. Postgres
+    if _db_module.is_available():
+        result = _db_module.db_load_history(user_id)
+        if result is not None:
+            return result
+    # 2. Redis
     try:
         raw = _redis_raw_get(_history_key(user_id))
         if raw is not None:
             return json.loads(raw) if raw else []
     except Exception as e:
         print(f"[Redis] load_history error: {e}")
+    # 3. File
     if HISTORY_FILE.exists():
         try:
             with open(HISTORY_FILE, "r", encoding="utf-8") as f:
@@ -294,11 +325,17 @@ def save_history(user_id: str, history: list):
             {"role": m["role"], "content": _serialize_content(m["content"])}
             for m in history
         ]
+        # 1. Postgres
+        if _db_module.is_available():
+            _db_module.db_save_history(user_id, serializable)
+            return
+        # 2. Redis
         try:
             _redis_raw_set(_history_key(user_id), json.dumps(serializable, ensure_ascii=False))
             return
         except Exception as e:
             print(f"[Redis] save_history error: {e}")
+        # 3. File
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(serializable, f, ensure_ascii=False, indent=2)
     except Exception:
@@ -348,8 +385,12 @@ def get_user_stats(user_id: str) -> dict:
         today_iso  = _today()
         month = today_iso[:7]
         try:
-            raw_shields = _redis_raw_get(f"shields:{user_id}:{month}")
-            shield_dates = set(json.loads(raw_shields)) if raw_shields else set()
+            if _db_module.is_available():
+                sh = _db_module.db_get_shields(user_id, month)
+                shield_dates = set(sh["dates"])
+            else:
+                raw_shields = _redis_raw_get(f"shields:{user_id}:{month}")
+                shield_dates = set(json.loads(raw_shields)) if raw_shields else set()
         except Exception:
             shield_dates = set()
         streak = 0
@@ -462,10 +503,15 @@ def register():
         ref_code = data.get("ref_code", "")
         if ref_code:
             try:
-                referrer_uid = _redis_raw_get(f"code_to_uid:{ref_code}")
-                if referrer_uid:
-                    count = int(_redis_raw_get(f"referral_count:{referrer_uid}") or 0)
-                    _redis_raw_set(f"referral_count:{referrer_uid}", str(count + 1))
+                if _db_module.is_available():
+                    referrer_uid = _db_module.db_get_user_id_by_code(ref_code)
+                    if referrer_uid:
+                        _db_module.db_increment_referral_count(referrer_uid)
+                else:
+                    referrer_uid = _redis_raw_get(f"code_to_uid:{ref_code}")
+                    if referrer_uid:
+                        count = int(_redis_raw_get(f"referral_count:{referrer_uid}") or 0)
+                        _redis_raw_set(f"referral_count:{referrer_uid}", str(count + 1))
             except Exception:
                 pass
     return jsonify(result)
@@ -552,8 +598,11 @@ def api_dashboard():
             weekly.append({"date": d, "calories": kcal})
 
         # Water today
-        water_key = f"{uid}:water:{today_iso}"
-        glasses = int(_redis_raw_get(water_key) or 0)
+        if _db_module.is_available():
+            glasses = _db_module.db_get_water(uid, today_iso)
+        else:
+            water_key = f"{uid}:water:{today_iso}"
+            glasses = int(_redis_raw_get(water_key) or 0)
 
         base = get_user_stats(uid)
         today_calories = base.get("today_calories", 0)
@@ -626,21 +675,34 @@ def api_streak_shield():
     uid = current_user_id()
     if not uid: return jsonify({"error": "not logged in"}), 401
     month = _today()[:7]
-    shield_key = f"shield_used:{uid}:{month}"
     if request.method == "GET":
-        used = bool(_redis_raw_get(shield_key))
+        if _db_module.is_available():
+            sh = _db_module.db_get_shields(uid, month)
+            used = sh["shield_used"]
+        else:
+            used = bool(_redis_raw_get(f"shield_used:{uid}:{month}"))
         return jsonify({"used": used, "month": month})
     # POST — activate shield for today
-    if _redis_raw_get(shield_key):
-        return jsonify({"ok": False, "msg": "כבר השתמשת במגן החודש הזה"})
     today = _today()
-    shields_key = f"shields:{uid}:{month}"
-    raw = _redis_raw_get(shields_key)
-    shield_dates = json.loads(raw) if raw else []
-    if today not in shield_dates:
-        shield_dates.append(today)
-    _redis_raw_set(shields_key, json.dumps(shield_dates))
-    _redis_raw_set(shield_key, "1")
+    if _db_module.is_available():
+        sh = _db_module.db_get_shields(uid, month)
+        if sh["shield_used"]:
+            return jsonify({"ok": False, "msg": "כבר השתמשת במגן החודש הזה"})
+        dates = sh["dates"]
+        if today not in dates:
+            dates.append(today)
+        _db_module.db_set_shield(uid, month, dates, True)
+    else:
+        shield_key = f"shield_used:{uid}:{month}"
+        if _redis_raw_get(shield_key):
+            return jsonify({"ok": False, "msg": "כבר השתמשת במגן החודש הזה"})
+        shields_key = f"shields:{uid}:{month}"
+        raw = _redis_raw_get(shields_key)
+        shield_dates = json.loads(raw) if raw else []
+        if today not in shield_dates:
+            shield_dates.append(today)
+        _redis_raw_set(shields_key, json.dumps(shield_dates))
+        _redis_raw_set(shield_key, "1")
     return jsonify({"ok": True, "msg": "המגן הופעל — הרצף שלך מוגן להיום!"})
 
 # ── Response post-processor ─────────────────────────────────────────────────
@@ -931,15 +993,21 @@ def api_water():
     if request.method == "POST":
         data = request.get_json()
         action = data.get("action", "add")  # "add" or "reset"
-        current = int(_redis_raw_get(water_key) or 0)
-        if action == "reset":
-            new_val = 0
+        if _db_module.is_available():
+            current = _db_module.db_get_water(uid, today)
         else:
-            new_val = current + 1
-        _redis_raw_set(water_key, str(new_val))
+            current = int(_redis_raw_get(water_key) or 0)
+        new_val = 0 if action == "reset" else current + 1
+        if _db_module.is_available():
+            _db_module.db_set_water(uid, today, new_val)
+        else:
+            _redis_raw_set(water_key, str(new_val))
         return jsonify({"glasses": new_val})
     else:
-        glasses = int(_redis_raw_get(water_key) or 0)
+        if _db_module.is_available():
+            glasses = _db_module.db_get_water(uid, today)
+        else:
+            glasses = int(_redis_raw_get(water_key) or 0)
         return jsonify({"glasses": glasses})
 
 @app.route("/api/calorie-burn", methods=["GET", "POST"])
@@ -1330,10 +1398,15 @@ def _check_streak_viral(user_id: str) -> str | None:
         return None
 
     # Avoid sending twice on same day
-    sent_key = f"streak_viral:{user_id}:{streak}"
-    if _redis_raw_get(sent_key):
-        return None
-    _redis_raw_set(sent_key, "1")
+    if _db_module.is_available():
+        if _db_module.db_viral_already_sent(user_id, streak):
+            return None
+        _db_module.db_mark_viral_sent(user_id, streak, _today())
+    else:
+        sent_key = f"streak_viral:{user_id}:{streak}"
+        if _redis_raw_get(sent_key):
+            return None
+        _redis_raw_set(sent_key, "1")
 
     emoji = MILESTONES[streak]
     code = _get_or_create_referral_code(user_id)
@@ -1524,31 +1597,34 @@ def weekly_summary():
     if secret != os.environ.get("CRON_SECRET", "nutriai-cron-2026"):
         return jsonify({"error": "unauthorized"}), 401
 
-    import urllib.request as ureq
-    url = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
-    token = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
-
-    # Scan for all account keys
-    scan_req = ureq.Request(f"{url}/scan/0/match/account:*/count/100",
-                            headers={"Authorization": f"Bearer {token}"})
-    with ureq.urlopen(scan_req, timeout=5) as resp:
-        keys = json.loads(resp.read())["result"][1]
-
     sent = 0
-    for key in keys:
-        raw = _redis_raw_get(key)
-        if not raw:
-            continue
-        user = json.loads(raw)
-        phone = user.get("phone", "")
-        if not phone:
-            continue
-
-        user_id = user.get("id")
-        name = user.get("name", "משתמש")
-        msg = _generate_weekly_summary(user_id, name)
-        if _send_whatsapp(phone, msg):
-            sent += 1
+    if _db_module.is_available():
+        users = _db_module.db_all_users_with_phones()
+        for u in users:
+            msg = _generate_weekly_summary(u["id"], u["name"])
+            if _send_whatsapp(u["phone"], msg):
+                sent += 1
+    else:
+        import urllib.request as ureq
+        url = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
+        token = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+        scan_req = ureq.Request(f"{url}/scan/0/match/account:*/count/100",
+                                headers={"Authorization": f"Bearer {token}"})
+        with ureq.urlopen(scan_req, timeout=5) as resp:
+            keys = json.loads(resp.read())["result"][1]
+        for key in keys:
+            raw = _redis_raw_get(key)
+            if not raw:
+                continue
+            user = json.loads(raw)
+            phone = user.get("phone", "")
+            if not phone:
+                continue
+            user_id = user.get("id")
+            name = user.get("name", "משתמש")
+            msg = _generate_weekly_summary(user_id, name)
+            if _send_whatsapp(phone, msg):
+                sent += 1
 
     return jsonify({"ok": True, "sent": sent})
 
@@ -1656,6 +1732,14 @@ def gallery():
 
 
 def _get_or_create_referral_code(uid: str) -> str:
+    if _db_module.is_available():
+        code = _db_module.db_get_referral_code(uid)
+        if not code:
+            import random, string
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            code = _db_module.db_create_referral_code(uid, code)
+        return code
+    # Redis fallback
     key = f"referral_code:{uid}"
     code = _redis_raw_get(key)
     if not code:
@@ -1672,7 +1756,10 @@ def api_referral():
     if not uid:
         return jsonify({"error": "not logged in"}), 401
     code = _get_or_create_referral_code(uid)
-    referrals = int(_redis_raw_get(f"referral_count:{uid}") or 0)
+    if _db_module.is_available():
+        referrals = _db_module.db_get_referral_count(uid)
+    else:
+        referrals = int(_redis_raw_get(f"referral_count:{uid}") or 0)
     base_url = os.environ.get("APP_BASE_URL", "https://nutritionist-agent-ouvp.onrender.com")
     link = f"{base_url}/landing?ref={code}"
     return jsonify({"code": code, "link": link, "referrals": referrals})

@@ -80,23 +80,44 @@ def _redis_raw_set(full_key: str, value: str):
 
 # ── Load / save data (Redis when available, files as fallback) ──────────────
 def load_json(path: Path) -> dict:
+    # 1. Postgres (primary)
+    try:
+        import database as _db
+        if _db.is_available() and _current_user_id:
+            result = _db.db_get_json(_current_user_id, path.stem)
+            if result:
+                return result
+    except Exception as e:
+        print(f"[DB] load_json fallback for {path.stem}: {e}")
+    # 2. Redis (secondary)
     if _REDIS_URL and _REDIS_TOKEN:
         try:
             return _redis_get(path.stem)
         except Exception as e:
             print(f"[Redis] load error for {path.stem}: {e}")
+    # 3. File (local dev)
     if path.exists():
         with open(path, encoding="utf-8") as f:
             return json.load(f)
     return {}
 
 def save_json(path: Path, data: dict):
+    # 1. Postgres (primary)
+    try:
+        import database as _db
+        if _db.is_available() and _current_user_id:
+            _db.db_save_json(_current_user_id, path.stem, data)
+            return
+    except Exception as e:
+        print(f"[DB] save_json fallback for {path.stem}: {e}")
+    # 2. Redis (secondary)
     if _REDIS_URL and _REDIS_TOKEN:
         try:
             _redis_set(path.stem, data)
             return
         except Exception as e:
             print(f"[Redis] save error for {path.stem}: {e}")
+    # 3. File (local dev)
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
