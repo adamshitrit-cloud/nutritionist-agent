@@ -45,7 +45,6 @@ def _get_pool():
                 maxconn=10,
                 dsn=DATABASE_URL,
                 connect_timeout=5,
-                options="-c statement_timeout=8000",  # 8-sec per query max
             )
             print("[DB] Postgres connection pool created")
             _ensure_schema()
