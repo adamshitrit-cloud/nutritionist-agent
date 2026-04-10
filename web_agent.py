@@ -1591,6 +1591,143 @@ def _generate_weekly_summary(user_id: str, user_name: str) -> str:
         nutritionist._current_user_id = None
 
 
+@app.route("/api/migrate-redis-to-pg", methods=["POST"])
+def api_migrate_redis_to_pg():
+    """One-time migration: copy all Redis data to Postgres. Protected by CRON_SECRET."""
+    secret = request.headers.get("X-Cron-Secret", "")
+    if secret != os.environ.get("CRON_SECRET", "nutriai-cron-2026"):
+        return jsonify({"error": "unauthorized"}), 401
+    if not _db_module.is_available():
+        return jsonify({"error": "DATABASE_URL not configured"}), 500
+
+    import urllib.request as ureq
+    redis_url   = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
+    redis_token = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+    if not redis_url or not redis_token:
+        return jsonify({"error": "Redis env vars not set"}), 500
+
+    def r_get(key):
+        try:
+            req = ureq.Request(f"{redis_url}/get/{key}", headers={"Authorization": f"Bearer {redis_token}"})
+            with ureq.urlopen(req, timeout=8) as resp:
+                return json.loads(resp.read()).get("result")
+        except Exception:
+            return None
+
+    def r_scan(pattern):
+        keys = []
+        cursor = 0
+        while True:
+            try:
+                req = ureq.Request(f"{redis_url}/scan/{cursor}/match/{pattern}/count/100",
+                                   headers={"Authorization": f"Bearer {redis_token}"})
+                with ureq.urlopen(req, timeout=8) as resp:
+                    result = json.loads(resp.read())["result"]
+                cursor = int(result[0])
+                keys.extend(result[1])
+                if cursor == 0:
+                    break
+            except Exception:
+                break
+        return keys
+
+    stats = {"users": 0, "histories": 0, "blobs": 0, "water": 0, "shields": 0, "referrals": 0, "counts": 0, "errors": []}
+    user_ids = []
+
+    # Migrate user accounts
+    for key in r_scan("account:*"):
+        raw = r_get(key)
+        if not raw:
+            continue
+        try:
+            user = json.loads(raw)
+            _db_module.db_save_user(user)
+            uid = user.get("id")
+            if uid:
+                user_ids.append(uid)
+            stats["users"] += 1
+        except Exception as e:
+            stats["errors"].append(f"user {key}: {e}")
+
+    # Migrate per-user data
+    DATA_KEYS = ["progress", "user_profile", "agent_memory", "meal_plan"]
+    for uid in user_ids:
+        # Conversation history
+        raw = r_get(f"{uid}:conversation_history")
+        if raw:
+            try:
+                _db_module.db_save_history(uid, json.loads(raw))
+                stats["histories"] += 1
+            except Exception as e:
+                stats["errors"].append(f"history {uid}: {e}")
+        # JSONB blobs
+        for blob_key in DATA_KEYS:
+            raw = r_get(f"{uid}:{blob_key}")
+            if raw:
+                try:
+                    _db_module.db_save_json(uid, blob_key, json.loads(raw))
+                    stats["blobs"] += 1
+                except Exception as e:
+                    stats["errors"].append(f"blob {uid}:{blob_key}: {e}")
+        # Referrals
+        code = r_get(f"referral_code:{uid}")
+        if code:
+            try:
+                _db_module.db_create_referral_code(uid, code)
+                count_raw = r_get(f"referral_count:{uid}")
+                if count_raw and int(count_raw) > 0:
+                    _db_module._exec("UPDATE referrals SET count=%s WHERE user_id=%s", (int(count_raw), uid))
+                stats["referrals"] += 1
+            except Exception as e:
+                stats["errors"].append(f"referral {uid}: {e}")
+        # Message counts
+        for key in r_scan(f"msg_count:{uid}:*"):
+            parts = key.split(":")
+            if len(parts) == 3:
+                month = parts[2]
+                raw = r_get(key)
+                if raw:
+                    try:
+                        _db_module._exec("INSERT INTO message_counts(user_id,month,count) VALUES(%s,%s,%s) ON CONFLICT(user_id,month) DO UPDATE SET count=EXCLUDED.count", (uid, month, int(raw)))
+                        stats["counts"] += 1
+                    except Exception as e:
+                        stats["errors"].append(f"count {key}: {e}")
+        # Water logs
+        for key in r_scan(f"{uid}:water:*"):
+            parts = key.split(":")
+            if len(parts) == 3:
+                date_str = parts[2]
+                raw = r_get(key)
+                if raw:
+                    try:
+                        _db_module.db_set_water(uid, date_str, int(raw))
+                        stats["water"] += 1
+                    except Exception as e:
+                        stats["errors"].append(f"water {key}: {e}")
+        # Shields
+        for key in r_scan(f"shields:{uid}:*"):
+            parts = key.replace("shields:", "").split(":")
+            if len(parts) == 2:
+                month = parts[1]
+                raw = r_get(key)
+                used_raw = r_get(f"shield_used:{uid}:{month}")
+                if raw:
+                    try:
+                        _db_module.db_set_shield(uid, month, json.loads(raw), bool(used_raw))
+                        stats["shields"] += 1
+                    except Exception as e:
+                        stats["errors"].append(f"shield {key}: {e}")
+        # Stripe
+        status = r_get(f"stripe_sub:{uid}")
+        if status:
+            try:
+                _db_module.db_set_stripe_status(uid, status)
+            except Exception as e:
+                stats["errors"].append(f"stripe {uid}: {e}")
+
+    return jsonify({"ok": True, "stats": stats})
+
+
 @app.route("/api/weekly-summary", methods=["POST"])
 def weekly_summary():
     secret = request.headers.get("X-Cron-Secret", "")
