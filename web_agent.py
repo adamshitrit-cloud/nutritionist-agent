@@ -1591,141 +1591,168 @@ def _generate_weekly_summary(user_id: str, user_name: str) -> str:
         nutritionist._current_user_id = None
 
 
+_migration_status = {"running": False, "done": False, "stats": {}}
+
 @app.route("/api/migrate-redis-to-pg", methods=["POST"])
 def api_migrate_redis_to_pg():
-    """One-time migration: copy all Redis data to Postgres. Protected by CRON_SECRET."""
+    """One-time migration: copy all Redis data to Postgres. Runs in background thread."""
     secret = request.headers.get("X-Cron-Secret", "")
     if secret != os.environ.get("CRON_SECRET", "nutriai-cron-2026"):
         return jsonify({"error": "unauthorized"}), 401
     if not _db_module.is_available():
         return jsonify({"error": "DATABASE_URL not configured"}), 500
 
-    import urllib.request as ureq
     redis_url   = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
     redis_token = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
     if not redis_url or not redis_token:
         return jsonify({"error": "Redis env vars not set"}), 500
 
-    def r_get(key):
-        try:
-            req = ureq.Request(f"{redis_url}/get/{key}", headers={"Authorization": f"Bearer {redis_token}"})
-            with ureq.urlopen(req, timeout=8) as resp:
-                return json.loads(resp.read()).get("result")
-        except Exception:
-            return None
+    if _migration_status["running"]:
+        return jsonify({"status": "already_running", "stats": _migration_status["stats"]})
+    if _migration_status["done"]:
+        return jsonify({"status": "already_done", "stats": _migration_status["stats"]})
 
-    def r_scan(pattern):
-        keys = []
-        cursor = 0
-        while True:
+    def _run_migration():
+        import urllib.request as ureq
+        _migration_status["running"] = True
+        stats = {"users": 0, "histories": 0, "blobs": 0, "water": 0,
+                 "shields": 0, "referrals": 0, "counts": 0, "errors": []}
+
+        def r_get(key):
             try:
-                req = ureq.Request(f"{redis_url}/scan/{cursor}/match/{pattern}/count/100",
+                req = ureq.Request(f"{redis_url}/get/{key}",
                                    headers={"Authorization": f"Bearer {redis_token}"})
-                with ureq.urlopen(req, timeout=8) as resp:
-                    result = json.loads(resp.read())["result"]
-                cursor = int(result[0])
-                keys.extend(result[1])
-                if cursor == 0:
-                    break
+                with ureq.urlopen(req, timeout=6) as resp:
+                    return json.loads(resp.read()).get("result")
             except Exception:
-                break
-        return keys
+                return None
 
-    stats = {"users": 0, "histories": 0, "blobs": 0, "water": 0, "shields": 0, "referrals": 0, "counts": 0, "errors": []}
-    user_ids = []
-
-    # Migrate user accounts
-    for key in r_scan("account:*"):
-        raw = r_get(key)
-        if not raw:
-            continue
-        try:
-            user = json.loads(raw)
-            _db_module.db_save_user(user)
-            uid = user.get("id")
-            if uid:
-                user_ids.append(uid)
-            stats["users"] += 1
-        except Exception as e:
-            stats["errors"].append(f"user {key}: {e}")
-
-    # Migrate per-user data
-    DATA_KEYS = ["progress", "user_profile", "agent_memory", "meal_plan"]
-    for uid in user_ids:
-        # Conversation history
-        raw = r_get(f"{uid}:conversation_history")
-        if raw:
-            try:
-                _db_module.db_save_history(uid, json.loads(raw))
-                stats["histories"] += 1
-            except Exception as e:
-                stats["errors"].append(f"history {uid}: {e}")
-        # JSONB blobs
-        for blob_key in DATA_KEYS:
-            raw = r_get(f"{uid}:{blob_key}")
-            if raw:
+        def r_scan(pattern):
+            keys = []
+            cursor = 0
+            while True:
                 try:
-                    _db_module.db_save_json(uid, blob_key, json.loads(raw))
-                    stats["blobs"] += 1
-                except Exception as e:
-                    stats["errors"].append(f"blob {uid}:{blob_key}: {e}")
-        # Referrals
-        code = r_get(f"referral_code:{uid}")
-        if code:
-            try:
-                _db_module.db_create_referral_code(uid, code)
-                count_raw = r_get(f"referral_count:{uid}")
-                if count_raw and int(count_raw) > 0:
-                    _db_module._exec("UPDATE referrals SET count=%s WHERE user_id=%s", (int(count_raw), uid))
-                stats["referrals"] += 1
-            except Exception as e:
-                stats["errors"].append(f"referral {uid}: {e}")
-        # Message counts
-        for key in r_scan(f"msg_count:{uid}:*"):
-            parts = key.split(":")
-            if len(parts) == 3:
-                month = parts[2]
+                    req = ureq.Request(
+                        f"{redis_url}/scan/{cursor}/match/{pattern}/count/100",
+                        headers={"Authorization": f"Bearer {redis_token}"}
+                    )
+                    with ureq.urlopen(req, timeout=6) as resp:
+                        result = json.loads(resp.read())["result"]
+                    cursor = int(result[0])
+                    keys.extend(result[1])
+                    if cursor == 0:
+                        break
+                except Exception:
+                    break
+            return keys
+
+        user_ids = []
+        DATA_KEYS = ["progress", "user_profile", "agent_memory", "meal_plan"]
+
+        try:
+            # 1. Users
+            for key in r_scan("account:*"):
                 raw = r_get(key)
+                if not raw:
+                    continue
+                try:
+                    user = json.loads(raw)
+                    _db_module.db_save_user(user)
+                    uid = user.get("id")
+                    if uid:
+                        user_ids.append(uid)
+                    stats["users"] += 1
+                except Exception as e:
+                    stats["errors"].append(f"user {key}: {e}")
+
+            # 2. Per-user data
+            for uid in user_ids:
+                # History
+                raw = r_get(f"{uid}:conversation_history")
                 if raw:
                     try:
-                        _db_module._exec("INSERT INTO message_counts(user_id,month,count) VALUES(%s,%s,%s) ON CONFLICT(user_id,month) DO UPDATE SET count=EXCLUDED.count", (uid, month, int(raw)))
+                        _db_module.db_save_history(uid, json.loads(raw))
+                        stats["histories"] += 1
+                    except Exception as e:
+                        stats["errors"].append(f"hist {uid}: {e}")
+                # JSON blobs
+                for blob_key in DATA_KEYS:
+                    raw = r_get(f"{uid}:{blob_key}")
+                    if raw:
+                        try:
+                            _db_module.db_save_json(uid, blob_key, json.loads(raw))
+                            stats["blobs"] += 1
+                        except Exception as e:
+                            stats["errors"].append(f"blob {uid}:{blob_key}: {e}")
+                # Referral
+                code = r_get(f"referral_code:{uid}")
+                if code:
+                    try:
+                        _db_module.db_create_referral_code(uid, code)
+                        count_raw = r_get(f"referral_count:{uid}")
+                        if count_raw and int(count_raw) > 0:
+                            _db_module._exec("UPDATE referrals SET count=%s WHERE user_id=%s",
+                                             (int(count_raw), uid))
+                        stats["referrals"] += 1
+                    except Exception as e:
+                        stats["errors"].append(f"ref {uid}: {e}")
+                # Stripe
+                status = r_get(f"stripe_sub:{uid}")
+                if status:
+                    try:
+                        _db_module.db_set_stripe_status(uid, status)
+                    except Exception as e:
+                        stats["errors"].append(f"stripe {uid}: {e}")
+                # Msg counts (current month only)
+                month = datetime.now().strftime("%Y-%m")
+                count_raw = r_get(f"msg_count:{uid}:{month}")
+                if count_raw:
+                    try:
+                        _db_module._exec(
+                            "INSERT INTO message_counts(user_id,month,count) VALUES(%s,%s,%s) "
+                            "ON CONFLICT(user_id,month) DO UPDATE SET count=EXCLUDED.count",
+                            (uid, month, int(count_raw))
+                        )
                         stats["counts"] += 1
                     except Exception as e:
-                        stats["errors"].append(f"count {key}: {e}")
-        # Water logs
-        for key in r_scan(f"{uid}:water:*"):
-            parts = key.split(":")
-            if len(parts) == 3:
-                date_str = parts[2]
-                raw = r_get(key)
-                if raw:
+                        stats["errors"].append(f"count {uid}: {e}")
+                # Water (today only)
+                from datetime import date as _date
+                today_str = _today()
+                water_raw = r_get(f"{uid}:water:{today_str}")
+                if water_raw:
                     try:
-                        _db_module.db_set_water(uid, date_str, int(raw))
+                        _db_module.db_set_water(uid, today_str, int(water_raw))
                         stats["water"] += 1
                     except Exception as e:
-                        stats["errors"].append(f"water {key}: {e}")
-        # Shields
-        for key in r_scan(f"shields:{uid}:*"):
-            parts = key.replace("shields:", "").split(":")
-            if len(parts) == 2:
-                month = parts[1]
-                raw = r_get(key)
-                used_raw = r_get(f"shield_used:{uid}:{month}")
-                if raw:
+                        stats["errors"].append(f"water {uid}: {e}")
+                # Shields (current month)
+                shields_raw = r_get(f"shields:{uid}:{month}")
+                if shields_raw:
                     try:
-                        _db_module.db_set_shield(uid, month, json.loads(raw), bool(used_raw))
+                        used = bool(r_get(f"shield_used:{uid}:{month}"))
+                        _db_module.db_set_shield(uid, month, json.loads(shields_raw), used)
                         stats["shields"] += 1
                     except Exception as e:
-                        stats["errors"].append(f"shield {key}: {e}")
-        # Stripe
-        status = r_get(f"stripe_sub:{uid}")
-        if status:
-            try:
-                _db_module.db_set_stripe_status(uid, status)
-            except Exception as e:
-                stats["errors"].append(f"stripe {uid}: {e}")
+                        stats["errors"].append(f"shield {uid}: {e}")
 
-    return jsonify({"ok": True, "stats": stats})
+        except Exception as e:
+            stats["errors"].append(f"fatal: {e}")
+
+        _migration_status["running"] = False
+        _migration_status["done"] = True
+        _migration_status["stats"] = stats
+        print(f"[Migration] complete: {stats}")
+
+    import threading
+    threading.Thread(target=_run_migration, daemon=True).start()
+    return jsonify({"status": "started", "message": "Migration running in background. Poll /api/migrate-status to check."})
+
+
+@app.route("/api/migrate-status", methods=["GET"])
+def api_migrate_status():
+    """Check migration progress."""
+    return jsonify(_migration_status)
 
 
 @app.route("/api/weekly-summary", methods=["POST"])
