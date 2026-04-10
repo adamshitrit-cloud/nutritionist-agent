@@ -43,7 +43,7 @@ limiter = Limiter(
     app=app,
     key_func=get_remote_address,
     default_limits=["200 per day", "50 per hour"],
-    storage_uri=os.environ.get("UPSTASH_REDIS_REST_URL", "memory://"),
+    storage_uri="memory://",  # REST-based Upstash URL is not compatible with flask-limiter
 )
 
 client = None
