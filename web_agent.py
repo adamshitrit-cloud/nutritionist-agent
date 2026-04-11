@@ -1995,6 +1995,84 @@ def api_delete_template(template_id):
     return jsonify({"ok": True})
 
 
+# ── Day Log API — meals/macros for any past date ────────────────────────────
+
+@app.route("/api/day-log", methods=["GET"])
+def api_day_log():
+    """Return meals and macros for a specific date (YYYY-MM-DD). Defaults to today."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not logged in"}), 401
+    date_str = request.args.get("date", _today())
+    # Validate format
+    import re as _re
+    if not _re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
+        return jsonify({"error": "invalid date format"}), 400
+    try:
+        nutritionist._current_user_id = uid
+        progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
+        profile  = nutritionist.load_json(nutritionist.PROFILE_FILE)
+
+        meal_names = {"breakfast": "ארוחת בוקר", "snack": "חטיף",
+                      "lunch": "ארוחת צהריים", "dinner": "ארוחת ערב"}
+        raw_meals = [m for m in progress.get("meal_log", []) if m.get("date") == date_str]
+        meals = []
+        total_cal = total_prot = total_carbs = total_fat = 0
+        for m in raw_meals:
+            p = m.get("protein_g", 0) or 0
+            c = m.get("carbs_g", 0) or 0
+            f = m.get("fat_g", 0) or 0
+            cal = m.get("calories_estimate", 0) or 0
+            total_cal += cal; total_prot += p; total_carbs += c; total_fat += f
+            meals.append({
+                "meal_id": m.get("meal_id", "other"),
+                "name": meal_names.get(m.get("meal_id", ""), "ארוחה"),
+                "time": m.get("time", ""),
+                "items": m.get("items", []),
+                "calories": cal,
+                "protein": p, "carbs": c, "fat": f
+            })
+
+        # Weight log for this date
+        weight_entry = next(
+            (w for w in reversed(progress.get("weight_log", [])) if w.get("date") == date_str),
+            None
+        )
+
+        # Water for this date
+        if _db_module.is_available():
+            water = _db_module.db_get_water(uid, date_str)
+        else:
+            water = int(_redis_raw_get(f"{uid}:water:{date_str}") or 0)
+
+        # Burn log for this date
+        burn_entries = [e for e in progress.get("burn_log", []) if e.get("date") == date_str]
+        total_burn = sum(e.get("calories", 0) for e in burn_entries)
+
+        target_kcal = profile.get("target_kcal", 2100)
+        target_prot = profile.get("target_protein_g", 0) or 0
+
+        return jsonify({
+            "date": date_str,
+            "meals": meals,
+            "total_calories": round(total_cal),
+            "total_protein": round(total_prot, 1),
+            "total_carbs": round(total_carbs, 1),
+            "total_fat": round(total_fat, 1),
+            "water_glasses": water,
+            "total_burn": total_burn,
+            "burn_entries": burn_entries,
+            "weight": weight_entry,
+            "target_kcal": target_kcal,
+            "target_protein_g": target_prot,
+            "is_today": date_str == _today(),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        nutritionist._current_user_id = None
+
+
 # ── Weekly Story Share API ────────────────────────────────────────────────────
 
 @app.route("/api/story", methods=["GET"])
