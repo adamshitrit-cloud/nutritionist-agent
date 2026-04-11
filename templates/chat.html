@@ -1482,14 +1482,14 @@
 
     // Format date title
     const d = new Date(dateStr+'T12:00:00');
-    const dayName = IS_HE ? DAY_NAMES_HE[d.getDay()] : DAY_NAMES_EN[d.getDay()];
-    const dateLbl = IS_HE
+    const _isHe = (LANG==='he');
+    const dayName = _isHe ? DAY_NAMES_HE[d.getDay()] : DAY_NAMES_EN[d.getDay()];
+    const dateLbl = _isHe
       ? `${dayName}, ${d.getDate()} ${MONTH_HE[d.getMonth()]}`
       : `${dayName}, ${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
-    const todayStr2 = document.querySelector('[data-date].selected-wrap') ? dateStr : dateStr;
     const isToday = dateStr === (window._dashboardData?.today || '');
     document.getElementById('day-detail-title').textContent = isToday
-      ? (IS_HE ? `📅 היום — ${dateLbl}` : `📅 Today — ${dateLbl}`)
+      ? (_isHe ? `📅 היום — ${dateLbl}` : `📅 Today — ${dateLbl}`)
       : `📅 ${dateLbl}`;
 
     // Fetch day data
@@ -1521,20 +1521,20 @@
               <div class="meal-items">${(m.items||[]).join(', ')||'—'}</div>
             </div>
             <div style="text-align:end;flex-shrink:0;">
-              <div class="meal-kcal">${m.calories||0} ${IS_HE?'קל':'kcal'}</div>
-              ${m.protein>0?`<div style="font-size:9px;color:#60a5fa;">${m.protein}g ${IS_HE?'חלבון':'prot'}</div>`:''}
+              <div class="meal-kcal">${m.calories||0} ${_isHe?'קל':'kcal'}</div>
+              ${m.protein>0?`<div style="font-size:9px;color:#60a5fa;">${m.protein}g ${_isHe?'חלבון':'prot'}</div>`:''}
               <div class="meal-time">${m.time||''}</div>
             </div>
           </div>`).join('');
         // Burn entries
         if(data.burn_entries && data.burn_entries.length>0){
-          mList.innerHTML += `<div style="font-size:10px;color:var(--sub);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">🏃 ${IS_HE?'פעילות גופנית':'Exercise'}: ${data.burn_entries.map(e=>e.activity+' ('+e.calories+' קל)').join(', ')}</div>`;
+          mList.innerHTML += `<div style="font-size:10px;color:var(--sub);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">🏃 ${_isHe?'פעילות גופנית':'Exercise'}: ${data.burn_entries.map(e=>e.activity+' ('+e.calories+' קל)').join(', ')}</div>`;
         }
         if(data.weight){
-          mList.innerHTML += `<div style="font-size:10px;color:var(--sub);margin-top:4px;">⚖️ ${IS_HE?'משקל':'Weight'}: ${data.weight.weight_kg} kg</div>`;
+          mList.innerHTML += `<div style="font-size:10px;color:var(--sub);margin-top:4px;">⚖️ ${_isHe?'משקל':'Weight'}: ${data.weight.weight_kg} kg</div>`;
         }
       } else {
-        mList.innerHTML = `<div style="text-align:center;padding:14px;color:var(--sub);font-size:12px;">${IS_HE?'לא דווחו ארוחות ביום זה':'No meals logged this day'}</div>`;
+        mList.innerHTML = `<div style="text-align:center;padding:14px;color:var(--sub);font-size:12px;">${_isHe?'לא דווחו ארוחות ביום זה':'No meals logged this day'}</div>`;
       }
     } catch(e){ console.error('day-log fetch error',e); }
   }
