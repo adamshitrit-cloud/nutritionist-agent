@@ -176,6 +176,18 @@
     /* Footer */
     .page-footer{text-align:center;margin-top:24px;font-size:12px;color:var(--muted);}
 
+    /* Social icons */
+    .social-row{display:flex;gap:12px;justify-content:center;margin-top:14px;}
+    .social-ico{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:40px;height:40px;border-radius:50%;
+      background:var(--glass);border:1px solid var(--glass-border);
+      backdrop-filter:blur(12px);
+      color:var(--cyan);text-decoration:none;transition:all .2s;
+    }
+    .social-ico:hover{background:var(--cyan-dim);border-color:rgba(0,212,255,.4);transform:translateY(-2px);}
+    .social-ico svg{width:20px;height:20px;}
+
     /* LTR for English */
     body.ltr{direction:ltr;}
     body.ltr h1,body.ltr .tagline,body.ltr .auth-card{text-align:left;}
@@ -272,6 +284,16 @@
   </div>
 
   <div class="page-footer" id="footer-txt">NutriAI Longevity © 2026 · Powered by Claude AI</div>
+
+  {% if telegram_url %}
+  <div class="social-row">
+    <a class="social-ico" href="{{ telegram_url }}" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram channel">
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+      </svg>
+    </a>
+  </div>
+  {% endif %}
 </div>
 
 <script>
@@ -280,10 +302,12 @@
   const T = {
     he:{badge:'LONGEVITY OS · 2026',h1a:'הסוכן התזונתי',h1b:'החכם שלך',
         tag:'ניווט מטבולי מבוסס AI — הסוכן האישי שלך לבריאות ואריכות ימים.',
-        p1:'⚡ Metabolic Tracking',p2:'🧬 Precision Nutrition',p3:'📸 Food Analysis AI',p4:'💬 Always Available',p5:'🔒 Private & Secure',
+        p1:'⚡ מעקב מטבולי',p2:'🧬 תזונה מדויקת',p3:'📸 ניתוח מזון AI',p4:'💬 זמין תמיד',p5:'🔒 פרטי ומאובטח',
         tabL:'כניסה',tabR:'הרשמה',lEmail:'אימייל',lPass:'סיסמה',
         rName:'שם מלא',rEmail:'אימייל',rPass:'סיסמה',rPhone:'מספר WhatsApp (אופציונלי)',rLang:'שפה מועדפת',
         loginBtn:'כניסה →',regBtn:'צור חשבון →',
+        phName:'ישראל ישראלי',phEmail:'you@example.com',phPass6:'לפחות 6 תווים',phPhone:'05X-XXXXXXX',phPassLogin:'••••••••',
+        optHe:'🇮🇱 עברית',optEn:'🇺🇸 English',
         footer:'NutriAI Longevity © 2026 · Powered by Claude AI'},
     en:{badge:'LONGEVITY OS · 2026',h1a:'Your Personal',h1b:'Longevity AI',
         tag:'Metabolic navigation powered by AI — your personal agent for health and longevity.',
@@ -291,20 +315,26 @@
         tabL:'Login',tabR:'Register',lEmail:'Email',lPass:'Password',
         rName:'Full Name',rEmail:'Email',rPass:'Password',rPhone:'WhatsApp Number (optional)',rLang:'Preferred Language',
         loginBtn:'Login →',regBtn:'Create Account →',
+        phName:'John Doe',phEmail:'you@example.com',phPass6:'At least 6 characters',phPhone:'+1 555 123 4567',phPassLogin:'••••••••',
+        optHe:'🇮🇱 Hebrew',optEn:'🇺🇸 English',
         footer:'NutriAI Longevity © 2026 · Powered by Claude AI'},
     ar:{badge:'LONGEVITY OS · 2026',h1a:'مساعدك الشخصي',h1b:'للتغذية الذكية',
         tag:'تغذية ذكية بالذكاء الاصطناعي — خطط وجبات، تتبع الوزن، تحليل صور الطعام.',
-        p1:'تتبع الوزن',p2:'خطة أسبوعية',p3:'تحليل الصور',p4:'واتساب + ويب',p5:'خاص وآمن',
+        p1:'⚡ تتبع الأيض',p2:'🧬 تغذية دقيقة',p3:'📸 تحليل الطعام',p4:'💬 متاح دائماً',p5:'🔒 خاص وآمن',
         tabL:'دخول',tabR:'تسجيل',lEmail:'البريد الإلكتروني',lPass:'كلمة المرور',
         rName:'الاسم الكامل',rEmail:'البريد الإلكتروني',rPass:'كلمة المرور',rPhone:'رقم واتساب (اختياري)',rLang:'اللغة المفضلة',
         loginBtn:'دخول →',regBtn:'إنشاء حساب →',
+        phName:'محمد أحمد',phEmail:'you@example.com',phPass6:'6 أحرف على الأقل',phPhone:'05X-XXXXXXX',phPassLogin:'••••••••',
+        optHe:'🇮🇱 عبرية',optEn:'🇺🇸 إنجليزية',
         footer:'NutriAI Longevity © 2026 · Powered by Claude AI'},
     ru:{badge:'LONGEVITY OS · 2026',h1a:'Ваш личный',h1b:'диетолог на ИИ',
         tag:'Персональное сопровождение на основе ИИ — меню, контроль веса, анализ фото еды.',
-        p1:'Умный контроль веса',p2:'Персональное меню',p3:'Анализ фото еды',p4:'WhatsApp + Web',p5:'Приватно и безопасно',
+        p1:'⚡ Метаболический трекинг',p2:'🧬 Точное питание',p3:'📸 Анализ еды AI',p4:'💬 Всегда на связи',p5:'🔒 Приватно и безопасно',
         tabL:'Войти',tabR:'Регистрация',lEmail:'Email',lPass:'Пароль',
         rName:'Полное имя',rEmail:'Email',rPass:'Пароль',rPhone:'Номер WhatsApp (необязательно)',rLang:'Язык',
         loginBtn:'Войти →',regBtn:'Создать аккаунт →',
+        phName:'Иван Иванов',phEmail:'you@example.com',phPass6:'Не менее 6 символов',phPhone:'+7 999 123 4567',phPassLogin:'••••••••',
+        optHe:'🇮🇱 Иврит',optEn:'🇺🇸 Английский',
         footer:'NutriAI Longevity © 2026 · Powered by Claude AI'}
   };
 
@@ -335,6 +365,16 @@
     document.getElementById('login-btn').textContent=t.loginBtn;
     document.getElementById('reg-btn').textContent=t.regBtn;
     document.getElementById('footer-txt').textContent=t.footer;
+    // Placeholders
+    document.getElementById('login-email').placeholder = t.phEmail;
+    document.getElementById('login-pass').placeholder  = t.phPassLogin;
+    document.getElementById('reg-name').placeholder    = t.phName;
+    document.getElementById('reg-email').placeholder   = t.phEmail;
+    document.getElementById('reg-pass').placeholder    = t.phPass6;
+    document.getElementById('reg-phone').placeholder   = t.phPhone;
+    // Language option buttons inside the register form
+    document.getElementById('opt-he').textContent = t.optHe;
+    document.getElementById('opt-en').textContent = t.optEn;
   }
 
   function switchTab(t){

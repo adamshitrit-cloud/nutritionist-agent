@@ -241,6 +241,42 @@ def register_user(name: str, email: str, password: str, lang: str = "he", phone:
     _save_user(user)
     if phone:
         _link_phone_to_user(phone, user["id"])
+        # Best-effort WhatsApp welcome message — non-blocking, silent failure.
+        # Requires Twilio creds (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN) and the recipient
+        # must have opted into the Twilio sandbox (or we're on an approved WA Business number).
+        try:
+            first_name = (name or "").strip().split()[0] if (name or "").strip() else ""
+            if lang == "he":
+                welcome = (
+                    f"שלום {first_name}! 🥗\n"
+                    f"נרשמת ל-NutriAI — הסוכן התזונתי האישי שלך.\n\n"
+                    f"שלח/י לי תמונה של ארוחה, משקל, או שאלה תזונתית ואני כאן לעזור.\n"
+                    f"לגישה לאפליקציה: {request.url_root.rstrip('/')}/app"
+                )
+            elif lang == "ar":
+                welcome = (
+                    f"مرحباً {first_name}! 🥗\n"
+                    f"سجلت في NutriAI — مساعدك التغذوي الشخصي.\n\n"
+                    f"أرسل صورة لوجبة، وزنك، أو سؤال تغذوي وأنا هنا للمساعدة.\n"
+                    f"للوصول للتطبيق: {request.url_root.rstrip('/')}/app"
+                )
+            elif lang == "ru":
+                welcome = (
+                    f"Здравствуйте, {first_name}! 🥗\n"
+                    f"Вы зарегистрированы в NutriAI — ваш персональный ИИ-диетолог.\n\n"
+                    f"Отправьте фото еды, свой вес или вопрос о питании — я здесь, чтобы помочь.\n"
+                    f"Веб-приложение: {request.url_root.rstrip('/')}/app"
+                )
+            else:
+                welcome = (
+                    f"Hi {first_name}! 🥗\n"
+                    f"You're signed up to NutriAI — your personal nutrition AI.\n\n"
+                    f"Send me a meal photo, your weight, or any nutrition question and I'll help.\n"
+                    f"Web app: {request.url_root.rstrip('/')}/app"
+                )
+            _send_whatsapp(phone, welcome)
+        except Exception as e:
+            print(f"[register] welcome WhatsApp failed: {e}")
     _track("user_registered", user["id"], {"lang": lang, "has_phone": bool(phone)})
     return {"ok": True, "user_id": user["id"], "name": user["name"], "lang": lang}
 
@@ -488,7 +524,10 @@ def index():
 
 @app.route("/landing")
 def landing():
-    return render_template("landing.html")
+    return render_template(
+        "landing.html",
+        telegram_url=os.environ.get("TELEGRAM_CHANNEL_URL", ""),
+    )
 
 @app.route("/app")
 def app_page():
