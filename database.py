@@ -74,8 +74,9 @@ def _exec(sql: str, params=None, fetch: str = None):
     fetch: None | 'one' | 'all'
     Returns fetched rows or None.
     """
-    conn = _conn()
+    conn = None
     try:
+        conn = _conn()
         with conn:
             with conn.cursor() as cur:
                 cur.execute(sql, params)
@@ -84,7 +85,8 @@ def _exec(sql: str, params=None, fetch: str = None):
                 if fetch == "all":
                     return cur.fetchall()
     finally:
-        _put(conn)
+        if conn is not None:
+            _put(conn)
 
 
 def is_available() -> bool:
@@ -206,18 +208,33 @@ def db_get_user_by_email(email: str) -> Optional[dict]:
 def db_save_user(user: dict):
     """Upsert user record."""
     try:
-        _exec("""
-            INSERT INTO users (id, name, email, password_hash, salt, lang, phone, created_at)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-            ON CONFLICT (email) DO UPDATE SET
-                name=EXCLUDED.name, password_hash=EXCLUDED.password_hash,
-                salt=EXCLUDED.salt, lang=EXCLUDED.lang, phone=EXCLUDED.phone
-        """, (
-            user["id"], user.get("name",""), user["email"].lower(),
-            user.get("password_hash",""), user.get("salt",""),
-            user.get("lang","he"), user.get("phone",""),
-            user.get("created_at", "NOW()")
-        ))
+        # Handle created_at: if "NOW()" literal or missing, use SQL NOW(); otherwise pass as parameter
+        created = user.get("created_at")
+        if not created or created == "NOW()":
+            _exec("""
+                INSERT INTO users (id, name, email, password_hash, salt, lang, phone, created_at)
+                VALUES (%s,%s,%s,%s,%s,%s,%s, NOW())
+                ON CONFLICT (email) DO UPDATE SET
+                    name=EXCLUDED.name, password_hash=EXCLUDED.password_hash,
+                    salt=EXCLUDED.salt, lang=EXCLUDED.lang, phone=EXCLUDED.phone
+            """, (
+                user["id"], user.get("name",""), user["email"].lower(),
+                user.get("password_hash",""), user.get("salt",""),
+                user.get("lang","he"), user.get("phone",""),
+            ))
+        else:
+            _exec("""
+                INSERT INTO users (id, name, email, password_hash, salt, lang, phone, created_at)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                ON CONFLICT (email) DO UPDATE SET
+                    name=EXCLUDED.name, password_hash=EXCLUDED.password_hash,
+                    salt=EXCLUDED.salt, lang=EXCLUDED.lang, phone=EXCLUDED.phone
+            """, (
+                user["id"], user.get("name",""), user["email"].lower(),
+                user.get("password_hash",""), user.get("salt",""),
+                user.get("lang","he"), user.get("phone",""),
+                created
+            ))
     except Exception as e:
         print(f"[DB] save_user error: {e}")
 

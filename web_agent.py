@@ -214,7 +214,17 @@ def _get_user_id_by_phone(phone: str) -> str | None:
 
 def register_user(name: str, email: str, password: str, lang: str = "he", phone: str = "") -> dict:
     """Returns {'ok': True, 'user_id': ...} or {'error': '...'}"""
-    email = email.lower().strip()
+    email = (email or "").lower().strip()
+    # Basic email validation — must be non-empty with @ and a dot after
+    import re as _re
+    if not email or not _re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+        return {"error": "כתובת מייל לא תקינה" if lang == "he" else "Invalid email address"}
+    # Password must be at least 6 chars
+    if not password or len(password) < 6:
+        return {"error": "סיסמה חייבת להכיל לפחות 6 תווים" if lang == "he" else "Password must be at least 6 characters"}
+    # Name must be non-empty
+    if not name or not name.strip():
+        return {"error": "שם הוא שדה חובה" if lang == "he" else "Name is required"}
     if _get_user_by_email(email):
         return {"error": "כתובת המייל כבר רשומה" if lang == "he" else "Email already registered"}
     salt = secrets.token_hex(16)
@@ -236,9 +246,15 @@ def register_user(name: str, email: str, password: str, lang: str = "he", phone:
 
 def login_user(email: str, password: str) -> dict:
     """Returns {'ok': True, 'user_id': ...} or {'error': '...'}"""
-    user = _get_user_by_email(email.lower().strip())
+    email = (email or "").lower().strip()
+    if not email or not password:
+        return {"error": "מייל וסיסמה חובה"}
+    user = _get_user_by_email(email)
     if not user:
-        return {"error": "המייל לא נמצא" }
+        return {"error": "המייל לא נמצא"}
+    # Reject legacy orphan users with empty password_hash (created before validation)
+    if not user.get("password_hash") or not user.get("salt"):
+        return {"error": "המייל לא נמצא"}
     if _hash_password(password, user["salt"]) != user["password_hash"]:
         return {"error": "סיסמה שגויה"}
     _track("user_login", user["id"], {"lang": user.get("lang", "he")})
@@ -991,8 +1007,10 @@ def api_water():
     water_key = f"{uid}:water:{today}"
 
     if request.method == "POST":
-        data = request.get_json()
+        data = request.get_json() or {}
         action = data.get("action", "add")  # "add" or "reset"
+        if action not in ("add", "reset"):
+            return jsonify({"error": "invalid action; must be 'add' or 'reset'"}), 400
         if _db_module.is_available():
             current = _db_module.db_get_water(uid, today)
         else:
@@ -1023,12 +1041,21 @@ def api_calorie_burn():
         burn_log = progress.setdefault("burn_log", [])
 
         if request.method == "POST":
-            data = request.get_json()
+            data = request.get_json() or {}
             action = data.get("action", "add")
+            if action not in ("add", "delete"):
+                return jsonify({"error": "invalid action; must be 'add' or 'delete'"}), 400
             if action == "add":
-                activity = data.get("activity", "אחר")
-                calories = int(data.get("calories", 0))
-                duration_min = int(data.get("duration_min", 0))
+                activity = (data.get("activity") or "אחר").strip() or "אחר"
+                try:
+                    calories = int(data.get("calories", 0))
+                    duration_min = int(data.get("duration_min", 0))
+                except (ValueError, TypeError):
+                    return jsonify({"error": "calories and duration_min must be integers"}), 400
+                if calories <= 0 or calories > 10000:
+                    return jsonify({"error": "calories must be between 1 and 10000"}), 400
+                if duration_min < 0 or duration_min > 1440:
+                    return jsonify({"error": "duration_min must be between 0 and 1440"}), 400
                 entry = {
                     "id": str(uuid.uuid4())[:8],
                     "date": today,
@@ -1222,8 +1249,11 @@ def api_diet_mode():
     uid = current_user_id()
     if not uid:
         return jsonify({"error": "not logged in"}), 401
-    data = request.get_json()
+    data = request.get_json() or {}
     mode = data.get("mode", "balanced")  # balanced/keto/mediterranean/intermittent
+    valid_modes = ("balanced", "keto", "mediterranean", "intermittent")
+    if mode not in valid_modes:
+        return jsonify({"error": f"invalid mode; must be one of {valid_modes}"}), 400
     clear_history = data.get("clear_history", True)  # clear conversation on mode switch
     try:
         nutritionist._current_user_id = uid
@@ -1245,9 +1275,14 @@ def api_pregnancy_mode():
     uid = current_user_id()
     if not uid:
         return jsonify({"error": "not logged in"}), 401
-    data = request.get_json()
-    enabled = data.get("enabled", False)
-    week = int(data.get("week", 0))
+    data = request.get_json() or {}
+    enabled = bool(data.get("enabled", False))
+    try:
+        week = int(data.get("week", 0))
+    except (ValueError, TypeError):
+        return jsonify({"error": "week must be an integer"}), 400
+    if not (0 <= week <= 42):
+        return jsonify({"error": "week must be between 0 and 42"}), 400
     try:
         nutritionist._current_user_id = uid
         profile = nutritionist.load_json(nutritionist.PROFILE_FILE)
@@ -1476,6 +1511,21 @@ def process_for_whatsapp(user_id: str, user_text: str) -> str:
 
 @app.route("/whatsapp", methods=["POST"])
 def whatsapp_webhook():
+    # Verify Twilio signature to prevent forged webhooks
+    twilio_auth = os.environ.get("TWILIO_AUTH_TOKEN", "")
+    if twilio_auth:
+        try:
+            from twilio.request_validator import RequestValidator
+            validator = RequestValidator(twilio_auth)
+            sig = request.headers.get("X-Twilio-Signature", "")
+            if not validator.validate(request.url, request.form, sig):
+                return Response("Forbidden", status=403)
+        except ImportError:
+            # twilio package not installed — skip verification but log
+            print("[WhatsApp] WARN: twilio package not installed, skipping signature verification")
+        except Exception as e:
+            print(f"[WhatsApp] signature verification error: {e}")
+            return Response("Forbidden", status=403)
     try:
         incoming_msg = request.values.get("Body", "").strip()
         from_number  = request.values.get("From", "unknown")
@@ -1756,8 +1806,11 @@ def api_migrate_status():
 
 @app.route("/api/weekly-summary", methods=["POST"])
 def weekly_summary():
+    import hmac as _hmac
     secret = request.headers.get("X-Cron-Secret", "")
-    if secret != os.environ.get("CRON_SECRET", "nutriai-cron-2026"):
+    expected = os.environ.get("CRON_SECRET", "")
+    # Fail closed: if CRON_SECRET not set in env, reject all requests
+    if not expected or not secret or not _hmac.compare_digest(secret, expected):
         return jsonify({"error": "unauthorized"}), 401
 
     sent = 0
@@ -2004,10 +2057,14 @@ def api_day_log():
     if not uid:
         return jsonify({"error": "not logged in"}), 401
     date_str = request.args.get("date", _today())
-    # Validate format
+    # Validate format AND semantic validity
     import re as _re
     if not _re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
         return jsonify({"error": "invalid date format"}), 400
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        return jsonify({"error": "invalid date"}), 400
     try:
         nutritionist._current_user_id = uid
         progress = nutritionist.load_json(nutritionist.PROGRESS_FILE)
@@ -2093,9 +2150,17 @@ def api_story():
         avg_prot       = int(sum(m.get("protein_g",0) for m in recent_meals) / max(days_logged,1))
 
         logs = progress.get("weight_log", [])
-        current_w = logs[-1]["weight_kg"] if logs else profile.get("current_weight_kg","?")
-        start_w   = logs[0]["weight_kg"]  if logs else current_w
-        lost      = round(float(start_w) - float(current_w), 1) if start_w and current_w else 0
+        # Only compute weight delta if we have valid numeric weight data
+        def _as_num(v):
+            try:
+                return float(v) if v not in (None, "", "?") else None
+            except (ValueError, TypeError):
+                return None
+        current_w = _as_num(logs[-1].get("weight_kg")) if logs else _as_num(profile.get("current_weight_kg"))
+        start_w   = _as_num(logs[0].get("weight_kg"))  if logs else current_w
+        lost      = round(start_w - current_w, 1) if (start_w is not None and current_w is not None) else 0
+        # Display values (use "?" only for rendering)
+        current_w_disp = current_w if current_w is not None else "?"
 
         # Streak
         meal_dates = set(m.get("date","") for m in progress.get("meal_log",[]))
@@ -2142,11 +2207,12 @@ def healthz():
 
 @app.route("/api/lang", methods=["POST"])
 def set_language():
-    data = request.get_json()
+    data = request.get_json() or {}
     lang = data.get("lang", "he")
-    if lang in ("he", "en"):
-        session["lang"] = lang
-    return jsonify({"ok": True, "lang": session.get("lang", "he")})
+    if lang not in ("he", "en"):
+        return jsonify({"error": "invalid lang; must be 'he' or 'en'"}), 400
+    session["lang"] = lang
+    return jsonify({"ok": True, "lang": session["lang"]})
 
 
 # ── Stripe / Payments ─────────────────────────────────────────────────────────
@@ -2226,14 +2292,15 @@ def stripe_webhook():
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
     webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
+    # Fail closed: require webhook secret to be configured
+    if not webhook_secret:
+        return jsonify({"error": "webhook secret not configured"}), 500
+
     payload = request.get_data()
-    sig_header = request.headers.get("Stripe-Signature")
+    sig_header = request.headers.get("Stripe-Signature", "")
 
     try:
-        if webhook_secret:
-            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
-        else:
-            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 

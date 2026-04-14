@@ -1478,6 +1478,7 @@
     wrapEl.querySelector('.weekly-bar')?.classList.add('selected');
 
     const panel = document.getElementById('day-detail-panel');
+    if (!panel) return;
     panel.style.display='block';
 
     // Format date title
@@ -1486,7 +1487,7 @@
     const dayName = _isHe ? DAY_NAMES_HE[d.getDay()] : DAY_NAMES_EN[d.getDay()];
     const dateLbl = _isHe
       ? `${dayName}, ${d.getDate()} ${MONTH_HE[d.getMonth()]}`
-      : `${dayName}, ${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+      : `${dayName}, ${d.toLocaleDateString(_isHe?'he-IL':'en-US',{month:'short',day:'numeric'})}`;
     const isToday = dateStr === (window._dashboardData?.today || '');
     document.getElementById('day-detail-title').textContent = isToday
       ? (_isHe ? `📅 היום — ${dateLbl}` : `📅 Today — ${dateLbl}`)
@@ -2097,7 +2098,12 @@
     checkAndFireReminders(reminders);
   }
 
+  // Track reminder timeouts so we don't accumulate nested timers
+  window._reminderTimeouts = window._reminderTimeouts || [];
   function checkAndFireReminders(reminders) {
+    // Clear any previously scheduled timeouts to prevent leaks
+    (window._reminderTimeouts || []).forEach(t => clearTimeout(t));
+    window._reminderTimeouts = [];
     if (localStorage.getItem('notif_enabled') !== '1') return;
     const now = new Date();
     reminders.forEach(r => {
@@ -2105,12 +2111,15 @@
       target.setHours(r.hour, r.min, 0, 0);
       if (target < now) target.setDate(target.getDate() + 1);
       const delay = target - now;
-      setTimeout(() => {
+      const t = setTimeout(() => {
         if (Notification.permission === 'granted') {
           new Notification('🥗 NutriAI', {body: r.msg, dir: 'rtl'});
         }
-        setTimeout(() => checkAndFireReminders(reminders), 60000);
+        // Reschedule once per 24h — single recurring re-schedule, not nested stacking
+        const t2 = setTimeout(() => checkAndFireReminders(reminders), 60000);
+        window._reminderTimeouts.push(t2);
       }, delay);
+      window._reminderTimeouts.push(t);
     });
   }
 
@@ -2469,17 +2478,28 @@ function showAddBurnModal() {
 }
 
 async function saveBurnActivity() {
-  const activity = document.getElementById('burn-activity-type').value;
-  const duration = parseInt(document.getElementById('burn-duration').value) || 30;
-  const calories = parseInt(document.getElementById('burn-calories').value) || 300;
+  const activityEl = document.getElementById('burn-activity-type');
+  const durEl = document.getElementById('burn-duration');
+  const calEl = document.getElementById('burn-calories');
+  if(!activityEl || !durEl || !calEl) return;
+  const activity = (activityEl.value || '').trim();
+  const duration = parseInt(durEl.value) || 30;
+  const calories = parseInt(calEl.value) || 300;
+  // Basic client-side validation (mirrors server)
+  if(!activity) { alert(LANG==='he'?'נא לבחור פעילות':'Please select an activity'); return; }
+  if(calories < 1 || calories > 10000) { alert(LANG==='he'?'קלוריות חייבות להיות בין 1 ל-10000':'Calories must be 1–10000'); return; }
+  if(duration < 0 || duration > 1440) { alert(LANG==='he'?'משך חייב להיות בין 0 ל-1440 דקות':'Duration must be 0–1440 min'); return; }
   try {
-    const d = await (await fetch('/api/calorie-burn', {
+    const r = await fetch('/api/calorie-burn', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({action: 'add', activity, duration_min: duration, calories})
-    })).json();
+    });
+    if(!r.ok){ console.log('burn save failed', r.status); return; }
+    const d = await r.json();
     if(d.ok) {
-      document.getElementById('burn-modal').style.display = 'none';
+      const modal = document.getElementById('burn-modal');
+      if(modal) modal.style.display = 'none';
       loadBurnData();
       loadStats();
     }
@@ -2544,8 +2564,10 @@ function updateDietButtons(mode) {
 
 function togglePregnancyMode() {
   const check = document.getElementById('preg-toggle-check');
+  if(!check) return;
   pregnancyModeActive = check.checked;
   const panel = document.getElementById('preg-panel');
+  if(!panel) return;
   panel.style.display = pregnancyModeActive ? 'block' : 'none';
   if(!pregnancyModeActive) {
     fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:false,week:0})})
@@ -2556,13 +2578,17 @@ function togglePregnancyMode() {
 }
 
 function savePregnancyWeek() {
-  const week = parseInt(document.getElementById('preg-week-input').value) || 0;
+  const input = document.getElementById('preg-week-input');
+  if(!input) return;
+  const week = parseInt(input.value) || 0;
   if(week < 1 || week > 42) return;
   const trimester = week<=13?1:(week<=26?2:3);
   const badge = document.getElementById('preg-trimester-badge');
   const trimesterNames = {1: LANG==='he'?'טרימסטר ראשון (שבועות 1-13)':'Trimester 1 (weeks 1–13)', 2: LANG==='he'?'טרימסטר שני (שבועות 14-26)':'Trimester 2 (weeks 14–26)', 3: LANG==='he'?'טרימסטר שלישי (שבועות 27-42)':'Trimester 3 (weeks 27–42)'};
-  badge.textContent = `שבוע ${week} · ${trimesterNames[trimester]}`;
-  badge.style.display = 'block';
+  if(badge){
+    badge.textContent = `שבוע ${week} · ${trimesterNames[trimester]}`;
+    badge.style.display = 'block';
+  }
   // Update blood tests section
   updateBloodTests(week, trimester);
   fetch('/api/pregnancy-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:true,week})})

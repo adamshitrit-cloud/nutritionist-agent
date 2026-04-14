@@ -692,7 +692,10 @@ def analyze_food_image(image_path: str, meal_id: str, extra_context: str = "", _
     if not json_match:
         return f"❌ לא הצלחתי לנתח את התמונה: {raw[:200]}"
 
-    analysis = json.loads(json_match.group())
+    try:
+        analysis = json.loads(json_match.group())
+    except json.JSONDecodeError as e:
+        return f"❌ ניתוח התמונה לא התקבל בפורמט תקין: {e}. תנסה שוב."
 
     # Auto-log the meal including macros
     items_names = [f"{i['name']} ({i.get('amount_g', '?')}g)" for i in analysis.get("items", [])]
