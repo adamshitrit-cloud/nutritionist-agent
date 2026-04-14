@@ -3,199 +3,299 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NutriAI Longevity — Precision Metabolic AI</title>
+  <title>NutriAI — Your Personal AI Nutritionist</title>
+  <meta name="description" content="Personal AI nutritionist on WhatsApp. Snap a photo of any meal, get instant macro analysis and longevity-aligned coaching. Free to start.">
+  <meta property="og:title" content="NutriAI — Your Personal AI Nutritionist">
+  <meta property="og:description" content="Snap a meal. Get instant analysis. Hit your goals — without the spreadsheets.">
+  <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
       --cyan:#00D4FF;--cyan-l:#33DDFF;--cyan-dim:rgba(0,212,255,.10);
-      --emerald:#00D4FF;--emerald-light:#33DDFF;--emerald-dim:rgba(0,212,255,.10);
-      --violet:#6B5CE7;--violet-light:#a78bfa;--violet-dim:rgba(107,92,231,.12);
-      --gold:#C9A960;--rose:#FF6B6B;
-      --bg:#070B12;--glass:rgba(255,255,255,.04);--glass-border:rgba(100,140,255,.12);
-      --text:#E8F0FE;--sub:#7A8BA8;--muted:#2A3A52;
+      --emerald:#10F4B1;--emerald-dim:rgba(16,244,177,.10);
+      --violet:#6B5CE7;--violet-l:#a78bfa;--violet-dim:rgba(107,92,231,.12);
+      --gold:#FFD166;--gold-dim:rgba(255,209,102,.12);
+      --rose:#FF6B8A;
+      --bg:#050811;--bg-2:#0A0F1C;
+      --glass:rgba(255,255,255,.035);--glass-b:rgba(255,255,255,.06);
+      --glass-border:rgba(140,170,255,.10);--glass-border-h:rgba(0,212,255,.25);
+      --text:#ECF2FF;--sub:#8899B8;--muted:#3A4A66;
+      --radius-sm:10px;--radius:14px;--radius-lg:20px;--radius-xl:28px;
     }
+    html,body{scroll-behavior:smooth;}
     body{
-      font-family:'Inter',sans-serif;
+      font-family:'Inter',system-ui,-apple-system,sans-serif;
       background:var(--bg);color:var(--text);
-      min-height:100vh;display:flex;flex-direction:column;
-      direction:rtl;overflow-x:hidden;
+      min-height:100vh;direction:rtl;overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
     }
+
     /* ── Animated background ── */
     .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
-    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:drift 12s ease-in-out infinite;}
-    .orb1{width:500px;height:500px;background:radial-gradient(circle,#00D4FF,transparent);top:-100px;right:-100px;animation-delay:0s;}
-    .orb2{width:400px;height:400px;background:radial-gradient(circle,#6B5CE7,transparent);bottom:-80px;left:-80px;animation-delay:-4s;}
-    .orb3{width:300px;height:300px;background:radial-gradient(circle,#C9A960,transparent);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-8s;opacity:.15;}
-    @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
+    .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.35;animation:drift 14s ease-in-out infinite;}
+    .orb1{width:520px;height:520px;background:radial-gradient(circle,#00D4FF,transparent 70%);top:-140px;right:-120px;}
+    .orb2{width:440px;height:440px;background:radial-gradient(circle,#6B5CE7,transparent 70%);top:40%;left:-120px;animation-delay:-4s;}
+    .orb3{width:360px;height:360px;background:radial-gradient(circle,#10F4B1,transparent 70%);bottom:-100px;right:20%;animation-delay:-8s;opacity:.22;}
+    @keyframes drift{
+      0%,100%{transform:translate(0,0) scale(1)}
+      33%{transform:translate(40px,-30px) scale(1.06)}
+      66%{transform:translate(-30px,40px) scale(.94)}
+    }
+    .grid-bg{
+      position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:
+        linear-gradient(rgba(140,170,255,.035) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(140,170,255,.035) 1px,transparent 1px);
+      background-size:64px 64px;
+      mask-image:radial-gradient(ellipse at center,#000 30%,transparent 70%);
+    }
 
     /* ── Language switcher ── */
-    .lang-bar{position:fixed;top:16px;left:16px;display:flex;gap:5px;z-index:100;flex-wrap:wrap;max-width:calc(100vw - 32px);}
+    .lang-bar{position:fixed;top:18px;left:18px;display:flex;gap:6px;z-index:100;flex-wrap:wrap;max-width:calc(100vw - 36px);}
     .lang-btn{
-      background:var(--glass);border:1px solid var(--glass-border);
-      backdrop-filter:blur(12px);color:var(--sub);
-      padding:5px 10px;border-radius:20px;font-size:11px;
-      font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap;
+      background:var(--glass-b);border:1px solid var(--glass-border);
+      backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+      color:var(--sub);padding:6px 12px;border-radius:999px;
+      font-size:12px;font-weight:500;font-family:inherit;
+      cursor:pointer;transition:all .2s;white-space:nowrap;
     }
+    .lang-btn:hover{border-color:var(--glass-border-h);color:var(--text);}
     .lang-btn.active{
-      background:var(--cyan-dim);border-color:rgba(0,212,255,.3);
-      color:var(--cyan);font-weight:600;
+      background:linear-gradient(135deg,var(--cyan-dim),var(--violet-dim));
+      border-color:rgba(0,212,255,.35);color:var(--cyan);font-weight:600;
+      box-shadow:0 0 0 3px rgba(0,212,255,.08);
     }
 
-    /* ── Main layout ── */
-    .page{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;min-height:100vh;}
-
-    /* ── Mobile ── */
-    @media(max-width:480px){
-      .lang-bar{top:10px;left:10px;gap:4px;}
-      .lang-btn{padding:4px 8px;font-size:10px;}
-      .page{padding:80px 16px 32px;}
-      .auth-card{padding:22px 16px;}
-      h1{font-size:clamp(26px,8vw,42px);}
-      .pills{gap:6px;}
-      .pill{font-size:12px;padding:5px 10px;}
-      .hero{margin-bottom:28px;}
-      .logo-wrap{width:64px;height:64px;font-size:32px;}
-      .orb1{width:min(300px,75vw);height:min(300px,75vw);}
-      .orb2{width:min(250px,65vw);height:min(250px,65vw);}
-      .field input{font-size:16px;}
-      .submit-btn{min-height:48px;}
-    }
+    /* ── Container ── */
+    .page{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+      padding:64px 20px 40px;min-height:100vh;max-width:1160px;margin:0 auto;}
 
     /* ── Hero ── */
-    .hero{text-align:center;margin-bottom:48px;}
-    .logo-wrap{
+    .hero{text-align:center;margin-bottom:56px;max-width:780px;}
+    .brand-mark{
       display:inline-flex;align-items:center;justify-content:center;
-      width:80px;height:80px;border-radius:24px;
-      background:linear-gradient(135deg,var(--cyan-dim),var(--violet-dim));
-      border:1px solid var(--glass-border);backdrop-filter:blur(12px);
-      font-size:40px;margin-bottom:24px;
-      animation:float 4s ease-in-out infinite;
+      width:72px;height:72px;border-radius:22px;
+      background:linear-gradient(135deg,#00D4FF,#6B5CE7 60%,#10F4B1);
+      box-shadow:0 10px 40px rgba(0,212,255,.35),inset 0 1px 0 rgba(255,255,255,.25);
+      margin-bottom:22px;animation:float 5s ease-in-out infinite;position:relative;
     }
-    @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+    .brand-mark svg{width:40px;height:40px;color:#fff;}
+    .brand-mark::after{
+      content:'';position:absolute;inset:-2px;border-radius:24px;
+      background:linear-gradient(135deg,#00D4FF,#6B5CE7,#10F4B1);
+      z-index:-1;filter:blur(18px);opacity:.55;
+    }
+    @keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-10px) rotate(4deg)}}
 
     .badge{
-      display:inline-flex;align-items:center;gap:6px;
-      background:var(--cyan-dim);border:1px solid rgba(0,212,255,.3);
-      border-radius:20px;padding:5px 14px;font-size:12px;
-      color:var(--cyan);margin-bottom:20px;font-weight:500;
+      display:inline-flex;align-items:center;gap:8px;
+      background:var(--glass-b);border:1px solid var(--glass-border);
+      backdrop-filter:blur(14px);border-radius:999px;
+      padding:6px 14px;font-size:12px;font-weight:500;
+      color:var(--sub);margin-bottom:22px;
     }
-    .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink 2s infinite;}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .badge-dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);
+      box-shadow:0 0 0 3px rgba(16,244,177,.2);animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:.5}}
 
     h1{
-      font-size:clamp(32px,6vw,56px);font-weight:800;line-height:1.1;
-      margin-bottom:14px;letter-spacing:-1px;
+      font-family:'Manrope','Inter',sans-serif;
+      font-size:clamp(34px,6.2vw,64px);font-weight:800;line-height:1.05;
+      margin-bottom:18px;letter-spacing:-1.5px;
     }
     h1 .grad{
-      background:linear-gradient(135deg,var(--cyan-l),#a78bfa);
+      background:linear-gradient(135deg,#33DDFF 0%,#a78bfa 50%,#10F4B1 100%);
       -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
     }
-    .tagline{font-size:clamp(15px,2.5vw,18px);color:var(--sub);max-width:500px;margin:0 auto 32px;line-height:1.6;font-weight:300;}
+    .tagline{font-size:clamp(16px,2.3vw,19px);color:var(--sub);
+      max-width:560px;margin:0 auto 30px;line-height:1.55;font-weight:400;}
 
-    /* Feature pills */
-    .pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:40px;}
-    .pill{
-      display:flex;align-items:center;gap:6px;
-      background:var(--glass);border:1px solid var(--glass-border);
-      backdrop-filter:blur(8px);border-radius:20px;
-      padding:6px 14px;font-size:13px;color:var(--sub);
+    /* ── Hero CTA ── */
+    .hero-cta{display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:22px;}
+    .btn-primary{
+      display:inline-flex;align-items:center;gap:8px;
+      background:linear-gradient(135deg,#00D4FF,#6B5CE7);
+      color:#fff;font-weight:700;font-size:15px;
+      padding:13px 26px;border-radius:999px;border:none;
+      cursor:pointer;text-decoration:none;
+      box-shadow:0 10px 32px rgba(0,212,255,.3),inset 0 1px 0 rgba(255,255,255,.2);
       transition:all .2s;
     }
-    .pill:hover{border-color:var(--cyan);color:var(--cyan-l);}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(0,212,255,.45);}
+    .btn-ghost{
+      display:inline-flex;align-items:center;gap:8px;
+      background:var(--glass-b);border:1px solid var(--glass-border);
+      backdrop-filter:blur(12px);color:var(--text);
+      font-weight:500;font-size:15px;padding:13px 22px;border-radius:999px;
+      cursor:pointer;text-decoration:none;transition:all .2s;
+    }
+    .btn-ghost:hover{border-color:var(--glass-border-h);color:var(--cyan);}
+
+    .trust{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;color:var(--muted);font-size:12px;}
+    .trust span{display:inline-flex;align-items:center;gap:4px;}
+
+    /* ── Feature cards ── */
+    .features{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:18px;width:100%;max-width:1000px;margin:0 auto 64px;
+    }
+    .feat{
+      background:var(--glass);backdrop-filter:blur(18px);
+      border:1px solid var(--glass-border);border-radius:var(--radius-lg);
+      padding:26px;text-align:right;position:relative;overflow:hidden;
+      transition:all .3s;
+    }
+    body.ltr .feat{text-align:left;}
+    .feat::before{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,transparent 40%,rgba(0,212,255,.08));
+      opacity:0;transition:opacity .3s;
+    }
+    .feat:hover{border-color:var(--glass-border-h);transform:translateY(-4px);}
+    .feat:hover::before{opacity:1;}
+    .feat-ico{
+      width:52px;height:52px;border-radius:14px;
+      display:inline-flex;align-items:center;justify-content:center;
+      margin-bottom:16px;position:relative;
+    }
+    .feat-ico.cyan{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(0,212,255,.25);}
+    .feat-ico.violet{background:var(--violet-dim);color:var(--violet-l);border:1px solid rgba(167,139,250,.25);}
+    .feat-ico.emerald{background:var(--emerald-dim);color:var(--emerald);border:1px solid rgba(16,244,177,.25);}
+    .feat-ico svg{width:26px;height:26px;}
+    .feat h3{font-size:17px;font-weight:700;margin-bottom:6px;letter-spacing:-.3px;}
+    .feat p{font-size:14px;color:var(--sub);line-height:1.55;}
+
+    /* ── How it works ── */
+    .how{width:100%;max-width:1000px;margin:0 auto 64px;}
+    .section-title{
+      font-family:'Manrope','Inter',sans-serif;
+      font-size:clamp(24px,4vw,34px);font-weight:800;text-align:center;
+      margin-bottom:10px;letter-spacing:-.8px;
+    }
+    .section-sub{text-align:center;color:var(--sub);font-size:15px;margin-bottom:34px;}
+    .steps{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;
+    }
+    .step{
+      background:var(--glass);backdrop-filter:blur(18px);
+      border:1px solid var(--glass-border);border-radius:var(--radius-lg);
+      padding:22px;text-align:right;position:relative;
+    }
+    body.ltr .step{text-align:left;}
+    .step-n{
+      font-family:'Manrope',sans-serif;font-size:54px;font-weight:800;
+      background:linear-gradient(135deg,var(--cyan),var(--violet-l));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      line-height:1;margin-bottom:8px;opacity:.7;
+    }
+    .step h4{font-size:17px;font-weight:700;margin-bottom:6px;}
+    .step p{font-size:14px;color:var(--sub);line-height:1.55;}
 
     /* ── Auth card ── */
-    .auth-card{
-      width:100%;max-width:420px;
-      background:var(--glass);border:1px solid var(--glass-border);
-      backdrop-filter:blur(24px);
-      border-radius:24px;padding:32px;
-      box-shadow:0 32px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
+    .auth-shell{
+      width:100%;max-width:440px;margin:0 auto 32px;scroll-margin-top:20px;
     }
+    .auth-card{
+      background:var(--glass);border:1px solid var(--glass-border);
+      backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+      border-radius:var(--radius-xl);padding:34px;
+      box-shadow:0 32px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .auth-title{text-align:center;margin-bottom:24px;}
+    .auth-title h2{font-size:22px;font-weight:700;letter-spacing:-.4px;margin-bottom:4px;}
+    .auth-title p{font-size:13px;color:var(--sub);}
 
-    /* Tabs */
-    .tabs{display:flex;margin-bottom:28px;background:rgba(0,0,0,.2);border-radius:12px;padding:4px;}
+    .tabs{display:flex;margin-bottom:22px;background:rgba(0,0,0,.25);border-radius:12px;padding:4px;}
     .tab{
-      flex:1;padding:9px;text-align:center;cursor:pointer;
+      flex:1;padding:10px;text-align:center;cursor:pointer;
       font-size:14px;font-weight:500;color:var(--sub);
-      border-radius:8px;transition:all .2s;font-family:'Inter',sans-serif;
+      border-radius:9px;transition:all .2s;font-family:inherit;
       border:none;background:none;
     }
-    .tab.active{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(0,212,255,.3);}
+    .tab.active{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(0,212,255,.25);}
 
-    .form{display:none;flex-direction:column;gap:16px;}
+    .form{display:none;flex-direction:column;gap:14px;}
     .form.active{display:flex;}
 
-    /* Fields */
     .field label{display:block;font-size:12px;color:var(--sub);margin-bottom:6px;font-weight:500;letter-spacing:.3px;}
     .field input{
-      width:100%;padding:12px 16px;
-      background:rgba(0,0,0,.3);
+      width:100%;padding:13px 16px;
+      background:rgba(0,0,0,.35);
       border:1px solid var(--glass-border);border-radius:12px;
-      color:var(--text);font-size:14px;font-family:'Inter',sans-serif;
+      color:var(--text);font-size:15px;font-family:inherit;
       outline:none;transition:all .2s;
     }
     .field input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px var(--cyan-dim);}
     .field input::placeholder{color:var(--muted);}
 
-    /* Language selector */
     .lang-sel{display:flex;gap:8px;}
     .lang-opt{
-      flex:1;padding:9px;border:1px solid var(--glass-border);border-radius:10px;
-      background:rgba(0,0,0,.2);color:var(--sub);cursor:pointer;
-      font-size:13px;text-align:center;transition:all .2s;font-family:'Inter',sans-serif;
+      flex:1;padding:10px;border:1px solid var(--glass-border);border-radius:10px;
+      background:rgba(0,0,0,.25);color:var(--sub);cursor:pointer;
+      font-size:13px;text-align:center;transition:all .2s;font-family:inherit;
     }
+    .lang-opt:hover{color:var(--text);border-color:var(--glass-border-h);}
     .lang-opt.selected{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-dim);}
 
-    /* Submit button */
     .submit-btn{
-      width:100%;padding:13px;
-      background:linear-gradient(135deg,var(--cyan),#0099BB);
-      border:none;border-radius:12px;color:#000;
-      font-size:15px;font-weight:700;cursor:pointer;
-      font-family:'Inter',sans-serif;
+      width:100%;padding:14px;
+      background:linear-gradient(135deg,#00D4FF,#6B5CE7);
+      border:none;border-radius:12px;color:#fff;
+      font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
       transition:all .2s;margin-top:4px;
-      box-shadow:0 4px 20px rgba(0,212,255,.3);
+      box-shadow:0 8px 28px rgba(0,212,255,.3);
       position:relative;overflow:hidden;
     }
-    .submit-btn::after{
-      content:'';position:absolute;inset:0;
-      background:linear-gradient(135deg,transparent,rgba(255,255,255,.1));
-    }
-    .submit-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,212,255,.4);}
+    .submit-btn:hover{transform:translateY(-1px);box-shadow:0 12px 36px rgba(0,212,255,.45);}
     .submit-btn:active{transform:translateY(0);}
+    .submit-btn:disabled{opacity:.7;cursor:not-allowed;transform:none;}
 
-    .err{color:#fb7185;font-size:12px;text-align:center;display:none;margin-top:4px;}
+    .err{color:#FF6B8A;font-size:13px;text-align:center;display:none;margin-top:4px;}
 
-    /* Divider */
-    .divider-text{text-align:center;color:var(--muted);font-size:12px;position:relative;}
-    .divider-text::before,.divider-text::after{content:'';position:absolute;top:50%;width:38%;height:1px;background:var(--glass-border);}
-    .divider-text::before{right:0;} .divider-text::after{left:0;}
-
-    /* Footer */
-    .page-footer{text-align:center;margin-top:24px;font-size:12px;color:var(--muted);}
-
-    /* Social icons */
-    .social-row{display:flex;gap:12px;justify-content:center;margin-top:14px;}
+    /* ── Footer ── */
+    .footer{width:100%;max-width:1000px;margin:0 auto;padding:24px 0 32px;text-align:center;}
+    .social-row{display:flex;gap:10px;justify-content:center;margin-bottom:14px;}
     .social-ico{
       display:inline-flex;align-items:center;justify-content:center;
-      width:40px;height:40px;border-radius:50%;
-      background:var(--glass);border:1px solid var(--glass-border);
-      backdrop-filter:blur(12px);
-      color:var(--cyan);text-decoration:none;transition:all .2s;
+      width:42px;height:42px;border-radius:50%;
+      background:var(--glass-b);border:1px solid var(--glass-border);
+      backdrop-filter:blur(12px);color:var(--cyan);
+      text-decoration:none;transition:all .2s;
     }
-    .social-ico:hover{background:var(--cyan-dim);border-color:rgba(0,212,255,.4);transform:translateY(-2px);}
+    .social-ico:hover{background:var(--cyan-dim);border-color:rgba(0,212,255,.35);transform:translateY(-2px);}
     .social-ico svg{width:20px;height:20px;}
+    .footer-txt{color:var(--muted);font-size:12px;}
 
-    /* LTR for English */
+    /* LTR for English + Russian */
     body.ltr{direction:ltr;}
-    body.ltr h1,body.ltr .tagline,body.ltr .auth-card{text-align:left;}
-    body.ltr .lang-bar{left:20px;right:auto;}
+    body.ltr h1,body.ltr .tagline,body.ltr .section-title,body.ltr .section-sub{text-align:center;}
+    body.ltr .lang-bar{right:18px;left:auto;}
+
+    /* Mobile */
+    @media(max-width:520px){
+      .lang-bar{top:12px;left:12px;gap:4px;}
+      .lang-btn{padding:5px 10px;font-size:11px;}
+      body.ltr .lang-bar{right:12px;left:auto;}
+      .page{padding:76px 14px 24px;}
+      .hero{margin-bottom:44px;}
+      .brand-mark{width:64px;height:64px;border-radius:18px;}
+      .brand-mark svg{width:34px;height:34px;}
+      .auth-card{padding:24px 18px;}
+      .field input{font-size:16px;}
+      .submit-btn{min-height:48px;}
+      .features{gap:14px;margin-bottom:48px;}
+      .feat{padding:22px;}
+      .how{margin-bottom:48px;}
+    }
   </style>
 </head>
 <body>
 
+<div class="grid-bg"></div>
 <div class="bg-orbs">
   <div class="orb orb1"></div>
   <div class="orb orb2"></div>
@@ -210,171 +310,302 @@
 </div>
 
 <div class="page">
+
+  <!-- ── HERO ── -->
   <div class="hero">
-    <div class="logo-wrap">🥗</div>
+    <div class="brand-mark">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M16 3c-4.5 0-9 2.5-9 8.5C7 17 11 21 16 25c5-4 9-8 9-13.5C25 5.5 20.5 3 16 3z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M16 25V11M11 15c1.5.5 3 1 5 1s3.5-.5 5-1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
 
     <div class="badge">
       <span class="badge-dot"></span>
-      <span id="badge-txt">LONGEVITY OS · 2026</span>
+      <span id="badge-txt">Beta · נפתח למצטרפים חדשים</span>
     </div>
 
     <h1>
-      <span id="h1-a">הסוכן התזונתי</span><br>
-      <span class="grad" id="h1-b">החכם שלך</span>
+      <span id="h1-a">הגוף שלך יודע.</span><br>
+      <span class="grad" id="h1-b">אנחנו נעזור לו להקשיב.</span>
     </h1>
-    <p class="tagline" id="tagline">ניווט מטבולי מבוסס AI — הסוכן האישי שלך לבריאות ואריכות ימים.</p>
+    <p class="tagline" id="tagline">תזונאי AI אישי ב-WhatsApp — מצלם ארוחה, מקבל ניתוח מלא, ומוביל אותך לבריאות לטווח ארוך. בלי טבלאות. בלי שיפוטיות.</p>
 
-    <div class="pills">
-      <div class="pill"><span>⚡</span><span id="p1">Metabolic Tracking</span></div>
-      <div class="pill"><span>🧬</span><span id="p2">Precision Nutrition</span></div>
-      <div class="pill"><span>📸</span><span id="p3">Food Analysis AI</span></div>
-      <div class="pill"><span>💬</span><span id="p4">Always Available</span></div>
-      <div class="pill"><span>🔒</span><span id="p5">Private & Secure</span></div>
+    <div class="hero-cta">
+      <a href="#auth" class="btn-primary" id="cta-primary">
+        <span id="cta-primary-txt">הצטרף חינם</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#how" class="btn-ghost" id="cta-ghost">
+        <span id="cta-ghost-txt">איך זה עובד</span>
+      </a>
+    </div>
+
+    <div class="trust">
+      <span id="trust1">⚡ רישום בדקה</span>
+      <span>·</span>
+      <span id="trust2">🔒 פרטי ומאובטח</span>
+      <span>·</span>
+      <span id="trust3">💳 ללא כרטיס אשראי</span>
     </div>
   </div>
 
-  <div class="auth-card">
-    <div class="tabs">
-      <button class="tab active" id="tab-login" onclick="switchTab('login')">כניסה</button>
-      <button class="tab" id="tab-reg" onclick="switchTab('reg')">הרשמה</button>
+  <!-- ── FEATURES ── -->
+  <div class="features">
+    <div class="feat">
+      <div class="feat-ico cyan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <h3 id="f1-t">צלם. דע. עקוב.</h3>
+      <p id="f1-d">תמונה אחת של הצלחת — וה-AI מזהה מרכיבים, מנות, קלוריות ומאקרו. ללא ניחושים.</p>
     </div>
+    <div class="feat">
+      <div class="feat-ico violet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <h3 id="f2-t">כבר ב-WhatsApp שלך</h3>
+      <p id="f2-d">בלי אפליקציה להוריד. שיחה טבעית כמו עם חבר תזונאי — זמין 24/7, בכל שפה.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-ico emerald">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <h3 id="f3-t">מבוסס מדע אריכות ימים</h3>
+      <p id="f3-d">תכנית אישית לפי ראיות — לא טרנדים. מבוסס מחקרי longevity ומטבוליזם.</p>
+    </div>
+  </div>
 
-    <!-- Login -->
-    <form class="form active" id="form-login" onsubmit="doLogin(event)">
-      <div class="field">
-        <label id="l-email">אימייל</label>
-        <input type="email" id="login-email" required autocomplete="email" placeholder="you@example.com">
+  <!-- ── HOW IT WORKS ── -->
+  <div class="how" id="how">
+    <h2 class="section-title" id="how-title">שלושה צעדים. אפס דרמה.</h2>
+    <p class="section-sub" id="how-sub">מ-0 ל-ניתוח תזונתי מדויק ב-60 שניות.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">01</div>
+        <h4 id="s1-t">הרשמה בדקה</h4>
+        <p id="s1-d">אימייל, סיסמה, טלפון (אופציונלי ל-WhatsApp). זהו.</p>
       </div>
-      <div class="field">
-        <label id="l-pass">סיסמה</label>
-        <input type="password" id="login-pass" required autocomplete="current-password" placeholder="••••••••">
+      <div class="step">
+        <div class="step-n">02</div>
+        <h4 id="s2-t">שלח תמונה</h4>
+        <p id="s2-d">מהאפליקציה או מ-WhatsApp. הארוחה שלך, לא משנה מאיפה.</p>
       </div>
-      <div class="err" id="login-err"></div>
-      <button type="submit" class="submit-btn" id="login-btn">כניסה →</button>
-    </form>
+      <div class="step">
+        <div class="step-n">03</div>
+        <h4 id="s3-t">קבל ניתוח + המלצות</h4>
+        <p id="s3-d">מאקרו, קלוריות, טיפים בהתאמה אישית — תוך שניות.</p>
+      </div>
+    </div>
+  </div>
 
-    <!-- Register -->
-    <form class="form" id="form-reg" onsubmit="doReg(event)">
-      <div class="field">
-        <label id="r-name">שם מלא</label>
-        <input type="text" id="reg-name" required placeholder="ישראל ישראלי">
+  <!-- ── AUTH CARD ── -->
+  <div class="auth-shell" id="auth">
+    <div class="auth-card">
+      <div class="auth-title">
+        <h2 id="auth-title">מתחילים?</h2>
+        <p id="auth-sub">שתי דקות ואתה בפנים.</p>
       </div>
-      <div class="field">
-        <label id="r-email">אימייל</label>
-        <input type="email" id="reg-email" required autocomplete="email" placeholder="you@example.com">
+
+      <div class="tabs">
+        <button class="tab active" id="tab-login" onclick="switchTab('login')">כניסה</button>
+        <button class="tab" id="tab-reg" onclick="switchTab('reg')">הרשמה</button>
       </div>
-      <div class="field">
-        <label id="r-pass">סיסמה</label>
-        <input type="password" id="reg-pass" required minlength="6" autocomplete="new-password" placeholder="לפחות 6 תווים">
-      </div>
-      <div class="field">
-        <label id="r-phone">מספר WhatsApp (אופציונלי)</label>
-        <input type="tel" id="reg-phone" placeholder="05X-XXXXXXX" autocomplete="tel">
-      </div>
-      <div class="field">
-        <label id="r-lang">שפה מועדפת</label>
-        <div class="lang-sel">
-          <button type="button" class="lang-opt selected" id="opt-he" onclick="pickLang('he')">🇮🇱 עברית</button>
-          <button type="button" class="lang-opt" id="opt-en" onclick="pickLang('en')">🇺🇸 English</button>
+
+      <!-- Login -->
+      <form class="form active" id="form-login" onsubmit="doLogin(event)">
+        <div class="field">
+          <label id="l-email">אימייל</label>
+          <input type="email" id="login-email" required autocomplete="email" placeholder="you@example.com">
         </div>
-      </div>
-      <div class="err" id="reg-err"></div>
-      <button type="submit" class="submit-btn" id="reg-btn">צור חשבון →</button>
-    </form>
+        <div class="field">
+          <label id="l-pass">סיסמה</label>
+          <input type="password" id="login-pass" required autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <div class="err" id="login-err"></div>
+        <button type="submit" class="submit-btn" id="login-btn">כניסה →</button>
+      </form>
+
+      <!-- Register -->
+      <form class="form" id="form-reg" onsubmit="doReg(event)">
+        <div class="field">
+          <label id="r-name">שם מלא</label>
+          <input type="text" id="reg-name" required placeholder="ישראל ישראלי">
+        </div>
+        <div class="field">
+          <label id="r-email">אימייל</label>
+          <input type="email" id="reg-email" required autocomplete="email" placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label id="r-pass">סיסמה</label>
+          <input type="password" id="reg-pass" required minlength="6" autocomplete="new-password" placeholder="לפחות 6 תווים">
+        </div>
+        <div class="field">
+          <label id="r-phone">מספר WhatsApp (אופציונלי)</label>
+          <input type="tel" id="reg-phone" placeholder="05X-XXXXXXX" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label id="r-lang">שפה מועדפת</label>
+          <div class="lang-sel">
+            <button type="button" class="lang-opt selected" id="opt-he" onclick="pickLang('he')">🇮🇱 עברית</button>
+            <button type="button" class="lang-opt" id="opt-en" onclick="pickLang('en')">🇺🇸 English</button>
+          </div>
+        </div>
+        <div class="err" id="reg-err"></div>
+        <button type="submit" class="submit-btn" id="reg-btn">צור חשבון →</button>
+      </form>
+    </div>
   </div>
 
-  <div class="page-footer" id="footer-txt">NutriAI Longevity © 2026 · Powered by Claude AI</div>
-
-  {% if telegram_url %}
-  <div class="social-row">
-    <a class="social-ico" href="{{ telegram_url }}" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram channel">
-      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
-      </svg>
-    </a>
+  <!-- ── FOOTER ── -->
+  <div class="footer">
+    <div class="social-row">
+      {% if telegram_url %}
+      <a class="social-ico" href="{{ telegram_url }}" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram channel">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+      </a>
+      {% endif %}
+    </div>
+    <div class="footer-txt" id="footer-txt">NutriAI © 2026 · Powered by Claude AI · Made with ❤️ in Israel</div>
   </div>
-  {% endif %}
+
 </div>
 
 <script>
   let uiLang = 'he', regLang = 'he';
 
   const T = {
-    he:{badge:'LONGEVITY OS · 2026',h1a:'הסוכן התזונתי',h1b:'החכם שלך',
-        tag:'ניווט מטבולי מבוסס AI — הסוכן האישי שלך לבריאות ואריכות ימים.',
-        p1:'⚡ מעקב מטבולי',p2:'🧬 תזונה מדויקת',p3:'📸 ניתוח מזון AI',p4:'💬 זמין תמיד',p5:'🔒 פרטי ומאובטח',
-        tabL:'כניסה',tabR:'הרשמה',lEmail:'אימייל',lPass:'סיסמה',
-        rName:'שם מלא',rEmail:'אימייל',rPass:'סיסמה',rPhone:'מספר WhatsApp (אופציונלי)',rLang:'שפה מועדפת',
-        loginBtn:'כניסה →',regBtn:'צור חשבון →',
-        phName:'ישראל ישראלי',phEmail:'you@example.com',phPass6:'לפחות 6 תווים',phPhone:'05X-XXXXXXX',phPassLogin:'••••••••',
-        optHe:'🇮🇱 עברית',optEn:'🇺🇸 English',
-        footer:'NutriAI Longevity © 2026 · Powered by Claude AI'},
-    en:{badge:'LONGEVITY OS · 2026',h1a:'Your Personal',h1b:'Longevity AI',
-        tag:'Metabolic navigation powered by AI — your personal agent for health and longevity.',
-        p1:'⚡ Metabolic Tracking',p2:'🧬 Precision Nutrition',p3:'📸 Food Analysis AI',p4:'💬 Always Available',p5:'🔒 Private & Secure',
-        tabL:'Login',tabR:'Register',lEmail:'Email',lPass:'Password',
-        rName:'Full Name',rEmail:'Email',rPass:'Password',rPhone:'WhatsApp Number (optional)',rLang:'Preferred Language',
-        loginBtn:'Login →',regBtn:'Create Account →',
-        phName:'John Doe',phEmail:'you@example.com',phPass6:'At least 6 characters',phPhone:'+1 555 123 4567',phPassLogin:'••••••••',
-        optHe:'🇮🇱 Hebrew',optEn:'🇺🇸 English',
-        footer:'NutriAI Longevity © 2026 · Powered by Claude AI'},
-    ar:{badge:'LONGEVITY OS · 2026',h1a:'مساعدك الشخصي',h1b:'للتغذية الذكية',
-        tag:'تغذية ذكية بالذكاء الاصطناعي — خطط وجبات، تتبع الوزن، تحليل صور الطعام.',
-        p1:'⚡ تتبع الأيض',p2:'🧬 تغذية دقيقة',p3:'📸 تحليل الطعام',p4:'💬 متاح دائماً',p5:'🔒 خاص وآمن',
-        tabL:'دخول',tabR:'تسجيل',lEmail:'البريد الإلكتروني',lPass:'كلمة المرور',
-        rName:'الاسم الكامل',rEmail:'البريد الإلكتروني',rPass:'كلمة المرور',rPhone:'رقم واتساب (اختياري)',rLang:'اللغة المفضلة',
-        loginBtn:'دخول →',regBtn:'إنشاء حساب →',
-        phName:'محمد أحمد',phEmail:'you@example.com',phPass6:'6 أحرف على الأقل',phPhone:'05X-XXXXXXX',phPassLogin:'••••••••',
-        optHe:'🇮🇱 عبرية',optEn:'🇺🇸 إنجليزية',
-        footer:'NutriAI Longevity © 2026 · Powered by Claude AI'},
-    ru:{badge:'LONGEVITY OS · 2026',h1a:'Ваш личный',h1b:'диетолог на ИИ',
-        tag:'Персональное сопровождение на основе ИИ — меню, контроль веса, анализ фото еды.',
-        p1:'⚡ Метаболический трекинг',p2:'🧬 Точное питание',p3:'📸 Анализ еды AI',p4:'💬 Всегда на связи',p5:'🔒 Приватно и безопасно',
-        tabL:'Войти',tabR:'Регистрация',lEmail:'Email',lPass:'Пароль',
-        rName:'Полное имя',rEmail:'Email',rPass:'Пароль',rPhone:'Номер WhatsApp (необязательно)',rLang:'Язык',
-        loginBtn:'Войти →',regBtn:'Создать аккаунт →',
-        phName:'Иван Иванов',phEmail:'you@example.com',phPass6:'Не менее 6 символов',phPhone:'+7 999 123 4567',phPassLogin:'••••••••',
-        optHe:'🇮🇱 Иврит',optEn:'🇺🇸 Английский',
-        footer:'NutriAI Longevity © 2026 · Powered by Claude AI'}
+    he:{
+      badge:'Beta · נפתח למצטרפים חדשים',
+      h1a:'הגוף שלך יודע.',h1b:'אנחנו נעזור לו להקשיב.',
+      tag:'תזונאי AI אישי ב-WhatsApp — מצלם ארוחה, מקבל ניתוח מלא, ומוביל אותך לבריאות לטווח ארוך. בלי טבלאות. בלי שיפוטיות.',
+      ctaPrimary:'הצטרף חינם',ctaGhost:'איך זה עובד',
+      trust1:'⚡ רישום בדקה',trust2:'🔒 פרטי ומאובטח',trust3:'💳 ללא כרטיס אשראי',
+      f1t:'צלם. דע. עקוב.',f1d:'תמונה אחת של הצלחת — וה-AI מזהה מרכיבים, מנות, קלוריות ומאקרו. ללא ניחושים.',
+      f2t:'כבר ב-WhatsApp שלך',f2d:'בלי אפליקציה להוריד. שיחה טבעית כמו עם חבר תזונאי — זמין 24/7, בכל שפה.',
+      f3t:'מבוסס מדע אריכות ימים',f3d:'תכנית אישית לפי ראיות — לא טרנדים. מבוסס מחקרי longevity ומטבוליזם.',
+      howTitle:'שלושה צעדים. אפס דרמה.',howSub:'מ-0 ל-ניתוח תזונתי מדויק ב-60 שניות.',
+      s1t:'הרשמה בדקה',s1d:'אימייל, סיסמה, טלפון (אופציונלי ל-WhatsApp). זהו.',
+      s2t:'שלח תמונה',s2d:'מהאפליקציה או מ-WhatsApp. הארוחה שלך, לא משנה מאיפה.',
+      s3t:'קבל ניתוח + המלצות',s3d:'מאקרו, קלוריות, טיפים בהתאמה אישית — תוך שניות.',
+      authTitle:'מתחילים?',authSub:'שתי דקות ואתה בפנים.',
+      tabL:'כניסה',tabR:'הרשמה',
+      lEmail:'אימייל',lPass:'סיסמה',
+      rName:'שם מלא',rEmail:'אימייל',rPass:'סיסמה',rPhone:'מספר WhatsApp (אופציונלי)',rLang:'שפה מועדפת',
+      loginBtn:'כניסה →',regBtn:'צור חשבון →',
+      phName:'ישראל ישראלי',phEmail:'you@example.com',phPass6:'לפחות 6 תווים',phPhone:'05X-XXXXXXX',phPassLogin:'••••••••',
+      optHe:'🇮🇱 עברית',optEn:'🇺🇸 English',
+      footer:'NutriAI © 2026 · Powered by Claude AI · Made with ❤️ in Israel'
+    },
+    en:{
+      badge:'Beta · Open for early access',
+      h1a:'Your body knows.',h1b:"We'll help it be heard.",
+      tag:'A personal AI nutritionist in your WhatsApp — snap a meal, get instant analysis, and walk the path to long-term health. No spreadsheets. No judgment.',
+      ctaPrimary:'Start Free',ctaGhost:'How it works',
+      trust1:'⚡ 1-minute signup',trust2:'🔒 Private & secure',trust3:'💳 No credit card',
+      f1t:'Snap. Identified. Tracked.',f1d:'One photo of your plate — AI identifies ingredients, portions, calories and macros. No guessing.',
+      f2t:'Already in your WhatsApp',f2d:"No app to install. Natural conversation like a nutrition-savvy friend — available 24/7, in every language.",
+      f3t:'Built on longevity science',f3d:'Personalized plan rooted in evidence, not trends. Based on longevity and metabolic research.',
+      howTitle:'Three steps. Zero drama.',howSub:'From zero to accurate nutrition analysis in 60 seconds.',
+      s1t:'Sign up in a minute',s1d:'Email, password, phone (optional for WhatsApp). That’s it.',
+      s2t:'Send a photo',s2d:'From the app or WhatsApp. Your meal, wherever you are.',
+      s3t:'Get analysis + guidance',s3d:'Macros, calories, and personalized tips — in seconds.',
+      authTitle:'Ready to start?',authSub:'Two minutes and you’re in.',
+      tabL:'Login',tabR:'Register',
+      lEmail:'Email',lPass:'Password',
+      rName:'Full Name',rEmail:'Email',rPass:'Password',rPhone:'WhatsApp Number (optional)',rLang:'Preferred Language',
+      loginBtn:'Login →',regBtn:'Create Account →',
+      phName:'Jane Doe',phEmail:'you@example.com',phPass6:'At least 6 characters',phPhone:'+1 555 123 4567',phPassLogin:'••••••••',
+      optHe:'🇮🇱 Hebrew',optEn:'🇺🇸 English',
+      footer:'NutriAI © 2026 · Powered by Claude AI · Made with ❤️ in Israel'
+    },
+    ar:{
+      badge:'نسخة تجريبية · مفتوحة للمسجّلين الجدد',
+      h1a:'جسمك يعرف.',h1b:'نساعدك على الإصغاء له.',
+      tag:'خبير تغذية ذكي شخصي على واتساب — التقط صورة للوجبة، واحصل على تحليل كامل، ومسار نحو صحة طويلة الأمد. بدون جداول. بدون أحكام.',
+      ctaPrimary:'ابدأ مجاناً',ctaGhost:'كيف يعمل',
+      trust1:'⚡ تسجيل بدقيقة',trust2:'🔒 خاص وآمن',trust3:'💳 بدون بطاقة ائتمان',
+      f1t:'صوّر. عرّف. تتبع.',f1d:'صورة واحدة للطبق — ويعرّف الذكاء الاصطناعي المكونات والحصص والسعرات والماكرو. بدون تخمين.',
+      f2t:'موجود على واتساب',f2d:'لا حاجة لتطبيق. محادثة طبيعية كصديق خبير تغذية — متاح 24/7 بكل اللغات.',
+      f3t:'مبني على علم طول العمر',f3d:'خطة شخصية قائمة على الأدلة — لا على الموضة. مبنية على أبحاث اللونجيفيتي والأيض.',
+      howTitle:'ثلاث خطوات. بلا تعقيد.',howSub:'من الصفر إلى تحليل تغذوي دقيق خلال 60 ثانية.',
+      s1t:'سجّل خلال دقيقة',s1d:'بريد، كلمة مرور، هاتف (اختياري لواتساب). وانتهى.',
+      s2t:'أرسل صورة',s2d:'من التطبيق أو من واتساب. وجبتك، من أي مكان.',
+      s3t:'احصل على تحليل + توصيات',s3d:'ماكرو، سعرات، ونصائح شخصية — خلال ثواني.',
+      authTitle:'مستعد للبدء؟',authSub:'دقيقتان وأنت في الداخل.',
+      tabL:'دخول',tabR:'تسجيل',
+      lEmail:'البريد الإلكتروني',lPass:'كلمة المرور',
+      rName:'الاسم الكامل',rEmail:'البريد الإلكتروني',rPass:'كلمة المرور',rPhone:'رقم واتساب (اختياري)',rLang:'اللغة المفضلة',
+      loginBtn:'دخول →',regBtn:'إنشاء حساب →',
+      phName:'محمد أحمد',phEmail:'you@example.com',phPass6:'٦ أحرف على الأقل',phPhone:'05X-XXXXXXX',phPassLogin:'••••••••',
+      optHe:'🇮🇱 عبرية',optEn:'🇺🇸 إنجليزية',
+      footer:'NutriAI © 2026 · مدعوم بواسطة Claude AI · صُنع بحب في إسرائيل'
+    },
+    ru:{
+      badge:'Бета · Открыт набор новых пользователей',
+      h1a:'Ваше тело знает.',h1b:'Мы поможем его услышать.',
+      tag:'Персональный ИИ-диетолог прямо в WhatsApp — сфотографируйте еду, получите полный разбор и путь к долгосрочному здоровью. Без таблиц. Без осуждения.',
+      ctaPrimary:'Начать бесплатно',ctaGhost:'Как это работает',
+      trust1:'⚡ Регистрация за минуту',trust2:'🔒 Приватно и безопасно',trust3:'💳 Без карты',
+      f1t:'Снимок. Распознано. Учтено.',f1d:'Одно фото тарелки — ИИ распознаёт ингредиенты, порции, калории и макро. Без догадок.',
+      f2t:'Уже в вашем WhatsApp',f2d:'Ничего устанавливать не нужно. Естественный диалог, как с другом-диетологом — 24/7, на любом языке.',
+      f3t:'На основе науки о долголетии',f3d:'Персональный план на доказательствах — не на трендах. На основе исследований longevity и метаболизма.',
+      howTitle:'Три шага. Ноль драмы.',howSub:'От нуля к точному разбору питания за 60 секунд.',
+      s1t:'Регистрация за минуту',s1d:'Email, пароль, телефон (опционально для WhatsApp). И всё.',
+      s2t:'Отправьте фото',s2d:'Из приложения или WhatsApp. Ваша еда — откуда угодно.',
+      s3t:'Получите разбор + советы',s3d:'Макро, калории и персональные рекомендации — за секунды.',
+      authTitle:'Готовы начать?',authSub:'Две минуты — и вы внутри.',
+      tabL:'Войти',tabR:'Регистрация',
+      lEmail:'Email',lPass:'Пароль',
+      rName:'Полное имя',rEmail:'Email',rPass:'Пароль',rPhone:'Номер WhatsApp (необязательно)',rLang:'Язык',
+      loginBtn:'Войти →',regBtn:'Создать аккаунт →',
+      phName:'Иван Иванов',phEmail:'you@example.com',phPass6:'Не менее 6 символов',phPhone:'+7 999 123 4567',phPassLogin:'••••••••',
+      optHe:'🇮🇱 Иврит',optEn:'🇺🇸 Английский',
+      footer:'NutriAI © 2026 · Powered by Claude AI · Сделано с ❤️ в Израиле'
+    }
   };
 
   function setLang(l){
     uiLang=l;
     const t=T[l];
-    document.getElementById('html-root').lang=l;
-    document.getElementById('html-root').dir=(l==='ar'||l==='he')?'rtl':'ltr';
-    document.body.classList.toggle('ltr',l!=='he'&&l!=='ar');
-    document.getElementById('btn-he').classList.toggle('active',l==='he');
-    document.getElementById('btn-en').classList.toggle('active',l==='en');
-    document.getElementById('btn-ar').classList.toggle('active',l==='ar');
-    document.getElementById('btn-ru').classList.toggle('active',l==='ru');
-    document.getElementById('badge-txt').textContent=t.badge;
-    document.getElementById('h1-a').textContent=t.h1a;
-    document.getElementById('h1-b').textContent=t.h1b;
-    document.getElementById('tagline').textContent=t.tag;
-    ['p1','p2','p3','p4','p5'].forEach(id=>document.getElementById(id).textContent=t[id]);
-    document.getElementById('tab-login').textContent=t.tabL;
-    document.getElementById('tab-reg').textContent=t.tabR;
-    document.getElementById('l-email').textContent=t.lEmail;
-    document.getElementById('l-pass').textContent=t.lPass;
-    document.getElementById('r-name').textContent=t.rName;
-    document.getElementById('r-email').textContent=t.rEmail;
-    document.getElementById('r-pass').textContent=t.rPass;
-    document.getElementById('r-phone').textContent=t.rPhone;
-    document.getElementById('r-lang').textContent=t.rLang;
-    document.getElementById('login-btn').textContent=t.loginBtn;
-    document.getElementById('reg-btn').textContent=t.regBtn;
-    document.getElementById('footer-txt').textContent=t.footer;
+    const root=document.getElementById('html-root');
+    root.lang=l;
+    root.dir=(l==='ar'||l==='he')?'rtl':'ltr';
+    document.body.classList.toggle('ltr',l==='en'||l==='ru');
+
+    ['btn-he','btn-en','btn-ar','btn-ru'].forEach(id=>{
+      const btn=document.getElementById(id);
+      if(btn) btn.classList.toggle('active',id==='btn-'+l);
+    });
+
+    const set=(id,txt)=>{const e=document.getElementById(id);if(e)e.textContent=txt;};
+    set('badge-txt',t.badge);
+    set('h1-a',t.h1a);set('h1-b',t.h1b);
+    set('tagline',t.tag);
+    set('cta-primary-txt',t.ctaPrimary);set('cta-ghost-txt',t.ctaGhost);
+    set('trust1',t.trust1);set('trust2',t.trust2);set('trust3',t.trust3);
+    set('f1-t',t.f1t);set('f1-d',t.f1d);
+    set('f2-t',t.f2t);set('f2-d',t.f2d);
+    set('f3-t',t.f3t);set('f3-d',t.f3d);
+    set('how-title',t.howTitle);set('how-sub',t.howSub);
+    set('s1-t',t.s1t);set('s1-d',t.s1d);
+    set('s2-t',t.s2t);set('s2-d',t.s2d);
+    set('s3-t',t.s3t);set('s3-d',t.s3d);
+    set('auth-title',t.authTitle);set('auth-sub',t.authSub);
+    set('tab-login',t.tabL);set('tab-reg',t.tabR);
+    set('l-email',t.lEmail);set('l-pass',t.lPass);
+    set('r-name',t.rName);set('r-email',t.rEmail);set('r-pass',t.rPass);
+    set('r-phone',t.rPhone);set('r-lang',t.rLang);
+    set('login-btn',t.loginBtn);set('reg-btn',t.regBtn);
+    set('footer-txt',t.footer);
+
     // Placeholders
-    document.getElementById('login-email').placeholder = t.phEmail;
-    document.getElementById('login-pass').placeholder  = t.phPassLogin;
-    document.getElementById('reg-name').placeholder    = t.phName;
-    document.getElementById('reg-email').placeholder   = t.phEmail;
-    document.getElementById('reg-pass').placeholder    = t.phPass6;
-    document.getElementById('reg-phone').placeholder   = t.phPhone;
+    const ph=(id,v)=>{const e=document.getElementById(id);if(e)e.placeholder=v;};
+    ph('login-email',t.phEmail);ph('login-pass',t.phPassLogin);
+    ph('reg-name',t.phName);ph('reg-email',t.phEmail);
+    ph('reg-pass',t.phPass6);ph('reg-phone',t.phPhone);
+
     // Language option buttons inside the register form
-    document.getElementById('opt-he').textContent = t.optHe;
-    document.getElementById('opt-en').textContent = t.optEn;
+    set('opt-he',t.optHe);set('opt-en',t.optEn);
   }
 
   function switchTab(t){
@@ -395,26 +626,26 @@
     const err=document.getElementById('login-err');
     err.style.display='none';
     const btn=document.getElementById('login-btn');
-    btn.textContent=uiLang==='he'?'מתחבר...':'Logging in...';
+    btn.disabled=true;
+    const origTxt=btn.textContent;
+    btn.textContent = uiLang==='he'?'מתחבר...' : uiLang==='ar'?'جاري الدخول...' : uiLang==='ru'?'Вход...' : 'Logging in...';
     try{
       const r=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({email:document.getElementById('login-email').value,password:document.getElementById('login-pass').value})});
       const d=await r.json();
-      if(d.ok){window.location.href='/app';}
+      if(d.ok){window.location.href='/app';return;}
       else{err.textContent=d.error;err.style.display='block';}
     }catch(ex){err.textContent=ex.message;err.style.display='block';}
-    btn.textContent=T[uiLang].loginBtn;
+    btn.disabled=false;btn.textContent=T[uiLang].loginBtn;
   }
-
-  // Auto-switch to register tab if URL hash is #register
-  if(window.location.hash==='#register'){switchTab('reg');}
 
   async function doReg(e){
     e.preventDefault();
     const err=document.getElementById('reg-err');
     err.style.display='none';
     const btn=document.getElementById('reg-btn');
-    btn.textContent=uiLang==='he'?'יוצר חשבון...':'Creating...';
+    btn.disabled=true;
+    btn.textContent = uiLang==='he'?'יוצר חשבון...' : uiLang==='ar'?'جاري الإنشاء...' : uiLang==='ru'?'Создание...' : 'Creating...';
     const urlRef=new URLSearchParams(window.location.search).get('ref')||'';
     try{
       const r=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -425,11 +656,14 @@
           lang:regLang,
           ref_code:urlRef})});
       const d=await r.json();
-      if(d.ok){window.location.href='/onboarding';}
+      if(d.ok){window.location.href='/onboarding';return;}
       else{err.textContent=d.error;err.style.display='block';}
     }catch(ex){err.textContent=ex.message;err.style.display='block';}
-    btn.textContent=T[uiLang].regBtn;
+    btn.disabled=false;btn.textContent=T[uiLang].regBtn;
   }
+
+  // Auto-switch to register tab if URL hash is #register
+  if(window.location.hash==='#register'){switchTab('reg');}
 </script>
 </body>
 </html>
