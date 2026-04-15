@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'he' else 'ltr' }}">
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang in ('he','ar') else 'ltr' }}">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -45,7 +45,7 @@
       unicode-bidi:plaintext;
       background:var(--bg);color:var(--text);
       height:100vh;display:flex;overflow:hidden;
-      direction:{{ 'rtl' if lang == 'he' else 'ltr' }};
+      direction:{{ 'rtl' if lang in ('he','ar') else 'ltr' }};
     }
 
     /* ── Sidebar ── */
@@ -133,7 +133,7 @@
       background:transparent;border:none;
       color:var(--sub);border-radius:var(--radius-sm);padding:8px 10px;
       font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;
-      text-align:{{ 'right' if lang == 'he' else 'left' }};
+      text-align:{{ 'right' if lang in ('he','ar') else 'left' }};
       transition:background var(--t-fast),color var(--t-fast);width:100%;font-weight:500;
       letter-spacing:0.01em;
     }
@@ -384,18 +384,18 @@
       background:linear-gradient(135deg,rgba(139,92,246,.22),rgba(107,92,231,.18));
       border:1px solid rgba(139,92,246,.3);
       box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(139,92,246,.15);
-      border-top-{{ 'right' if lang == 'he' else 'left' }}-radius:4px;color:var(--text);
+      border-top-{{ 'right' if lang in ('he','ar') else 'left' }}-radius:4px;color:var(--text);
     }
     .msg.agent .bubble{
       background:rgba(139,92,246,.10);
       border:1px solid rgba(139,92,246,.18);
       box-shadow:inset 0 1px 0 rgba(255,255,255,.06),var(--shadow-sm);
-      border-top-{{ 'left' if lang == 'he' else 'right' }}-radius:4px;
+      border-top-{{ 'left' if lang in ('he','ar') else 'right' }}-radius:4px;
     }
     .bubble strong{color:var(--em-l);}
     .bubble .hd{color:var(--em-l);font-weight:700;font-size:13px;border-bottom:1px solid var(--border);padding-bottom:3px;margin:8px 0 5px;}
     .bubble hr{border:none;border-top:1px solid var(--border);margin:8px 0;}
-    .bubble li{margin:2px 0;padding-{{ 'right' if lang == 'he' else 'left' }}:4px;}
+    .bubble li{margin:2px 0;padding-{{ 'right' if lang in ('he','ar') else 'left' }}:4px;}
     .msg-time{font-size:10px;color:var(--muted);margin-top:5px;padding:0 2px;letter-spacing:0.02em;}
 
     /* Typing */
@@ -417,7 +417,7 @@
       align-items:center;gap:10px;
     }
     #img-preview img{height:48px;border-radius:8px;object-fit:cover;}
-    #img-preview .rm{cursor:pointer;color:#f43f5e;margin-{{ 'right' if lang == 'he' else 'left' }}:auto;font-size:16px;}
+    #img-preview .rm{cursor:pointer;color:#f43f5e;margin-{{ 'right' if lang in ('he','ar') else 'left' }}:auto;font-size:16px;}
 
     /* Input bar */
     #input-bar{
@@ -442,7 +442,7 @@
       flex:1;background:none;border:none;outline:none;
       color:var(--text);font-size:14px;font-family:'Inter',sans-serif;
       resize:none;max-height:100px;
-      direction:{{ 'rtl' if lang == 'he' else 'ltr' }};
+      direction:{{ 'rtl' if lang in ('he','ar') else 'ltr' }};
       line-height:1.5;padding:4px 0;font-weight:400;
     }
     #msg-input::placeholder{color:var(--muted);}
@@ -715,32 +715,32 @@
     </div>
     <div class="status-pill">
       <div class="status-dot"></div>
-      {{ '● LIVE' if lang == 'he' else '● LIVE' }}
+      ● LIVE
     </div>
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'נתוני בריאות' if lang == 'he' else 'BIOMARKERS' }}</div>
+    <div class="sb-sec-title">{{ t.biomarkers }}</div>
     <div class="stat-row">
       <div class="stat-card">
-        <div class="stat-lbl">{{ 'משקל גוף' if lang == 'he' else 'BODY MASS' }}</div>
+        <div class="stat-lbl">{{ t.body_mass }}</div>
         <div class="stat-val" id="s-w">—</div>
         <div class="stat-sub">kg</div>
       </div>
       <div class="stat-card">
-        <div class="stat-lbl">{{ 'יעד' if lang == 'he' else 'TARGET' }}</div>
+        <div class="stat-lbl">{{ t.target }}</div>
         <div class="stat-val" id="s-t">—</div>
         <div class="stat-sub">kg</div>
       </div>
       <div class="stat-card full">
-        <div class="stat-lbl">{{ 'שינוי משקל' if lang == 'he' else 'ΔWEIGHT' }}</div>
+        <div class="stat-lbl">{{ t.delta_weight }}</div>
         <div class="stat-val" id="s-l">—</div>
         <div class="stat-sub" id="s-ls"></div>
       </div>
     </div>
     <div class="prog-wrap">
       <div class="prog-label">
-        <span>{{ 'התקדמות לקראת היעד' if lang == 'he' else 'Progress to goal' }}</span>
+        <span>{{ t.progress_to_goal }}</span>
         <span id="prog-pct">0%</span>
       </div>
       <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
@@ -748,15 +748,15 @@
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'מסלול משקל' if lang == 'he' else 'WEIGHT TRAJECTORY' }}</div>
+    <div class="sb-sec-title">{{ t.weight_trajectory }}</div>
     <div class="chart-card">
-      <div class="chart-title">{{ 'יומן משקל' if lang == 'he' else 'WEIGHT LOG' }}</div>
+      <div class="chart-title">{{ t.weight_log }}</div>
       <canvas id="wChart"></canvas>
     </div>
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'קלוריות' if lang == 'he' else 'Calories' }}</div>
+    <div class="sb-sec-title">{{ t.calories }}</div>
     <div class="cal-ring-wrap">
       <svg class="cal-ring-svg" width="92" height="92" viewBox="0 0 92 92">
         <circle cx="46" cy="46" r="40" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
@@ -767,42 +767,42 @@
         <text x="46" y="56" text-anchor="middle" fill="#7A8BA8" font-size="8" font-family="Inter,sans-serif">kcal</text>
       </svg>
       <div class="cal-ring-info">
-        <div class="cal-ring-lbl">{{ 'עומס קלורי' if lang == 'he' else 'CALORIC LOAD' }}</div>
+        <div class="cal-ring-lbl">{{ t.caloric_load }}</div>
         <div class="cal-ring-val" id="cal-today">0</div>
-        <div class="cal-ring-sub">{{ 'מתוך' if lang == 'he' else 'of' }} <span id="cal-target">2100</span> יעד</div>
+        <div class="cal-ring-sub">{{ t.of_target }} <span id="cal-target">2100</span> יעד</div>
       </div>
     </div>
 
-    <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'רצף ימים' if lang == 'he' else 'Streak' }}</div>
+    <div class="sb-sec-title" style="margin-bottom:10px;">{{ t.streak_days }}</div>
     <div class="streak-card" id="streak-card">
       <div>
-        <div class="stat-lbl">{{ 'רצף ימים' if lang == 'he' else 'STREAK' }}</div>
+        <div class="stat-lbl">{{ t.streak_caps }}</div>
         <div class="streak-val normal-text" id="streak-val">0</div>
-        <div class="streak-info" id="streak-info">{{ 'רשום ארוחה כדי להתחיל!' if lang == 'he' else 'Log a meal to start!' }}</div>
+        <div class="streak-info" id="streak-info">{{ t.log_meal_to_start }}</div>
       </div>
       <div id="streak-emoji" style="color:var(--em);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2c0 6-6 8-6 13a6 6 0 0 0 12 0c0-5-6-7-6-13z"/><path d="M9 19c0-2 1.5-3 3-4 1.5 1 3 2 3 4"/></svg></div>
     </div>
 
-    <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'מים' if lang == 'he' else 'Water' }}</div>
+    <div class="sb-sec-title" style="margin-bottom:10px;">{{ t.water }}</div>
     <div class="water-wrap">
       <div class="water-header">
-        <span class="water-title">{{ 'הידרציה' if lang == 'he' else 'HYDRATION' }}</span>
-        <span class="water-count"><span id="water-count">0</span>/8 {{ 'כוסות' if lang == 'he' else 'glasses' }}</span>
+        <span class="water-title">{{ t.hydration }}</span>
+        <span class="water-count"><span id="water-count">0</span>/8 {{ t.glasses }}</span>
       </div>
       <div class="water-drops" id="water-drops">
         {% for i in range(8) %}
-        <span class="water-drop" id="drop-{{ i }}" onclick="addWater()" ondblclick="resetWater()" title="{{ 'לחץ להוסיף, לחיצה כפולה לאיפוס' if lang == 'he' else 'Click to add, double-click to reset' }}"><svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" stroke-width="1.5"/></svg></span>
+        <span class="water-drop" id="drop-{{ i }}" onclick="addWater()" ondblclick="resetWater()" title="{{ t.water_drop_tooltip }}"><svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" stroke-width="1.5"/></svg></span>
         {% endfor %}
       </div>
     </div>
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title" style="margin-bottom:10px;">{{ 'מדידות גוף' if lang == 'he' else 'Body Measurements' }}</div>
+    <div class="sb-sec-title" style="margin-bottom:10px;">{{ t.body_measurements }}</div>
     <div class="stat-card" id="measurements-card" style="margin-bottom:12px;">
-      <div class="stat-lbl">{{ 'מדידה אחרונה' if lang == 'he' else 'Latest Measurement' }}</div>
+      <div class="stat-lbl">{{ t.latest_measurement }}</div>
       <div id="measurements-display" style="font-size:12px;color:var(--sub);margin-top:6px;line-height:1.8;">
-        {{ 'טרם נמדד' if lang == 'he' else 'Not yet measured' }}
+        {{ t.not_yet_measured }}
       </div>
     </div>
   </div>
@@ -812,7 +812,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div class="sb-sec-title" style="margin-bottom:0;color:var(--gold);">
         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:4px;opacity:.9;"><ellipse cx="12" cy="13" rx="6" ry="8"/><path d="M12 5V2"/><path d="M9 2h6"/></svg>
-        {{ 'מעקב הריון' if lang == 'he' else 'Pregnancy' }}
+        {{ t.pregnancy }}
       </div>
       <label class="toggle-switch">
         <input type="checkbox" id="preg-toggle-check" onchange="togglePregnancyMode()">
@@ -822,72 +822,72 @@
     <div id="preg-panel" style="display:none;">
       <!-- Week input -->
       <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;">
-        <input type="number" id="preg-week-input" min="1" max="42" placeholder="{{ 'שבוע (1-42)' if lang == 'he' else 'Week (1-42)' }}"
+        <input type="number" id="preg-week-input" min="1" max="42" placeholder="{{ t.pregnancy_week }}"
           style="flex:1;padding:7px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;text-align:center;">
         <button onclick="savePregnancyWeek()" style="padding:7px 12px;background:rgba(232,121,160,.12);border:1px solid rgba(232,121,160,.2);border-radius:var(--radius-sm);color:var(--gold);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;transition:background var(--t-fast);">
-          {{ 'שמור' if lang == 'he' else 'Save' }}</button>
+          {{ t.save }}</button>
       </div>
       <div id="preg-trimester-badge" style="display:none;text-align:center;margin-bottom:10px;padding:5px 10px;background:rgba(232,121,160,.08);border-radius:var(--radius-sm);font-size:11px;color:var(--gold);font-weight:500;"></div>
 
       <!-- Vitamins tracker -->
-      <div class="sb-sec-title" style="margin-bottom:6px;">{{ 'ויטמינים יומיים' if lang == 'he' else 'Daily Vitamins' }}</div>
+      <div class="sb-sec-title" style="margin-bottom:6px;">{{ t.daily_vitamins }}</div>
       <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;" id="vitamin-list">
         <div class="vit-row" onclick="toggleVitamin(this,'folic')">
           <div class="vit-check" id="vit-folic">
             <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
           <div class="vit-info">
-            <div class="vit-name">{{ 'חומצה פולית' if lang == 'he' else 'Folic Acid' }}</div>
+            <div class="vit-name">{{ t.folic_acid }}</div>
             <div class="vit-dose">400–800 mcg</div>
           </div>
         </div>
         <div class="vit-row" onclick="toggleVitamin(this,'iron')">
           <div class="vit-check" id="vit-iron"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="vit-info"><div class="vit-name">{{ 'ברזל' if lang == 'he' else 'Iron' }}</div><div class="vit-dose">27 mg</div></div>
+          <div class="vit-info"><div class="vit-name">{{ t.iron }}</div><div class="vit-dose">27 mg</div></div>
         </div>
         <div class="vit-row" onclick="toggleVitamin(this,'calcium')">
           <div class="vit-check" id="vit-calcium"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="vit-info"><div class="vit-name">{{ 'סידן' if lang == 'he' else 'Calcium' }}</div><div class="vit-dose">1000 mg</div></div>
+          <div class="vit-info"><div class="vit-name">{{ t.calcium }}</div><div class="vit-dose">1000 mg</div></div>
         </div>
         <div class="vit-row" onclick="toggleVitamin(this,'dha')">
           <div class="vit-check" id="vit-dha"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="vit-info"><div class="vit-name">DHA / {{ 'אומגה 3' if lang == 'he' else 'Omega-3' }}</div><div class="vit-dose">200 mg</div></div>
+          <div class="vit-info"><div class="vit-name">DHA / {{ t.omega_3 }}</div><div class="vit-dose">200 mg</div></div>
         </div>
         <div class="vit-row" onclick="toggleVitamin(this,'vitd')">
           <div class="vit-check" id="vit-vitd"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="vit-icon" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="vit-info"><div class="vit-name">{{ 'ויטמין D' if lang == 'he' else 'Vitamin D' }}</div><div class="vit-dose">600 IU</div></div>
+          <div class="vit-info"><div class="vit-name">{{ t.vitamin_d }}</div><div class="vit-dose">600 IU</div></div>
         </div>
       </div>
 
       <!-- Blood tests reminder -->
-      <div class="sb-sec-title" style="margin-bottom:6px;">{{ 'בדיקות דם' if lang == 'he' else 'Blood Tests' }}</div>
+      <div class="sb-sec-title" style="margin-bottom:6px;">{{ t.blood_tests }}</div>
       <div id="blood-tests" style="font-size:11px;color:var(--sub);line-height:1.7;margin-bottom:10px;"></div>
 
       <!-- Forbidden foods quick check -->
-      <button onclick="(function(){ const food=prompt('{{ 'מה המזון לבדיקה?' if lang == 'he' else 'What food to check?' }}'); if(!food) return; if(pregnancyModeActive){ qs('האם ' + food + ' בטוח לאכול בהריון?'); } else { qs('האם ' + food + ' מתאים למצב התזונה שלי?'); } })()"
+      <button onclick="(function(){ const food=prompt('{{ t.what_food_to_check }}'); if(!food) return; if(pregnancyModeActive){ qs('האם ' + food + ' בטוח לאכול בהריון?'); } else { qs('האם ' + food + ' מתאים למצב התזונה שלי?'); } })()"
         style="width:100%;padding:7px;background:rgba(255,99,99,.06);border:1px solid rgba(255,99,99,.12);border-radius:var(--radius-sm);color:rgba(255,120,120,.8);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:background var(--t-fast);">
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        {{ 'בדוק: האם מותר לאכול?' if lang == 'he' else 'Check: Is this food safe?' }}
+        {{ t.check_is_safe }}
       </button>
     </div>
   </div>
 
   <!-- Diet Mode Selector -->
   <div class="sb-sec" style="border-top:1px solid var(--border);">
-    <div class="sb-sec-title">{{ 'מצב תזונה' if lang == 'he' else 'Diet Mode' }}</div>
+    <div class="sb-sec-title">{{ t.diet_mode }}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
       <button id="diet-balanced" onclick="setDietMode('balanced')"
         style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--em-dim);color:var(--em);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
-        {{ 'מאוזן' if lang == 'he' else 'Balanced' }}</button>
+        {{ t.diet_balanced }}</button>
       <button id="diet-keto" onclick="setDietMode('keto')"
         style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
-        {{ 'קטוגני' if lang == 'he' else 'Keto' }}</button>
+        {{ t.diet_keto }}</button>
       <button id="diet-mediterranean" onclick="setDietMode('mediterranean')"
         style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
-        {{ 'ים-תיכוני' if lang == 'he' else 'Mediterranean' }}</button>
+        {{ t.diet_mediterranean }}</button>
       <button id="diet-intermittent" onclick="setDietMode('intermittent')"
         style="padding:7px 4px;font-size:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s;">
-        {{ 'צום+חלבון' if lang == 'he' else 'IF+Protein' }}</button>
+        {{ t.diet_if_protein }}</button>
     </div>
     <div id="diet-status" style="font-size:10px;color:var(--sub);margin-top:4px;text-align:center;"></div>
   </div>
@@ -897,7 +897,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div class="sb-sec-title" style="margin-bottom:0;">
         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:3px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        {{ 'שריפת קלוריות' if lang == 'he' else 'Calorie Burn' }}
+        {{ t.calorie_burn }}
       </div>
       <button onclick="showAddBurnModal()" style="background:var(--em-dim);border:none;border-radius:var(--radius-sm);padding:3px 8px;color:var(--em);font-size:10px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">+ הוסף</button>
     </div>
@@ -905,20 +905,20 @@
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
       <div style="text-align:center;background:var(--card);border-radius:var(--radius-sm);padding:8px 4px;box-shadow:var(--shadow-sm);">
         <div style="font-size:14px;font-weight:700;color:var(--em);" id="burn-today">0</div>
-        <div style="font-size:8.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">{{ 'היום' if lang == 'he' else 'Today' }}</div>
+        <div style="font-size:8.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">{{ t.today }}</div>
       </div>
       <div style="text-align:center;background:var(--card);border-radius:var(--radius-sm);padding:8px 4px;box-shadow:var(--shadow-sm);">
         <div style="font-size:14px;font-weight:700;color:var(--sub);" id="burn-week">0</div>
-        <div style="font-size:8.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">{{ 'שבוע' if lang == 'he' else 'Week' }}</div>
+        <div style="font-size:8.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">{{ t.week }}</div>
       </div>
       <div style="text-align:center;background:var(--card);border-radius:var(--radius-sm);padding:8px 4px;box-shadow:var(--shadow-sm);">
         <div style="font-size:14px;font-weight:700;color:var(--sub);" id="burn-month">0</div>
-        <div style="font-size:8.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">{{ 'חודש' if lang == 'he' else 'Month' }}</div>
+        <div style="font-size:8.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">{{ t.month }}</div>
       </div>
     </div>
     <!-- Net calories -->
     <div style="background:var(--card);border-radius:var(--radius-sm);padding:8px 10px;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:10px;color:var(--sub);">{{ 'קלוריות נטו היום' if lang == 'he' else 'Net calories today' }}</div>
+      <div style="font-size:10px;color:var(--sub);">{{ t.net_calories_today }}</div>
       <div style="font-size:13px;font-weight:700;color:var(--em);" id="burn-net">—</div>
     </div>
     <!-- Today's activities -->
@@ -926,7 +926,7 @@
   </div>
 
   <div class="sb-section" style="padding:14px 18px;border-top:1px solid var(--border);">
-    <div style="font-size:11px;color:var(--sub);margin-bottom:8px;font-weight:600;letter-spacing:.5px;">{{ 'טיימר צום' if lang == 'he' else 'Fasting Timer' }}</div>
+    <div style="font-size:11px;color:var(--sub);margin-bottom:8px;font-weight:600;letter-spacing:.5px;">{{ t.fasting_timer }}</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;">
       <button onclick="setFastMode(16)" id="fast16" class="fast-mode-btn" style="flex:1;padding:5px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;">16:8</button>
       <button onclick="setFastMode(18)" id="fast18" class="fast-mode-btn" style="flex:1;padding:5px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;">18:6</button>
@@ -939,40 +939,40 @@
   </div>
 
   <div class="sb-sec">
-    <div class="sb-sec-title">{{ 'פעולות מהירות' if lang == 'he' else 'ACTIONS' }}</div>
+    <div class="sb-sec-title">{{ t.actions }}</div>
     <div class="qa-list">
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today&#39;s meal plan{% endif %}')">
-        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span>{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span>{{ t.today_plan }}</span>
       </button>
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את התפריט השבועי{% else %}Show me the weekly plan{% endif %}')">
-        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg></span><span>{{ 'תפריט שבועי' if lang == 'he' else 'Weekly Plan' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg></span><span>{{ t.weekly_plan }}</span>
       </button>
       <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי סיכום התקדמות{% else %}Show my progress summary{% endif %}')">
-        <span class="icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>{{ 'התקדמות' if lang == 'he' else 'Progress' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>{{ t.progress }}</span>
       </button>
       <button class="qa-btn" onclick="promptWeight()">
-        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><path d="M6.5 8a5.5 5.5 0 1 0 11 0"/><line x1="12" y1="8" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg></span><span>{{ 'עדכן משקל' if lang == 'he' else 'Log Weight' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><path d="M6.5 8a5.5 5.5 0 1 0 11 0"/><line x1="12" y1="8" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg></span><span>{{ t.log_weight }}</span>
       </button>
       <button class="qa-btn" onclick="document.getElementById('file-input').click()">
-        <span class="icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span>{{ 'שלח תמונת אוכל' if lang == 'he' else 'Send Food Photo' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span>{{ t.send_food_photo }}</span>
       </button>
       <button class="qa-btn" onclick="showShoppingList()">
-        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span>{{ 'רשימת קניות' if lang == 'he' else 'Shopping List' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span>{{ t.shopping_list }}</span>
       </button>
       <button class="qa-btn" onclick="window.open('/report','_blank')">
-        <span class="icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>{{ 'דוח שבועי' if lang == 'he' else 'Weekly Report' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>{{ t.weekly_report }}</span>
       </button>
       <button class="qa-btn" onclick="requestNotifications()">
-        <span class="icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span>{{ 'התראות' if lang == 'he' else 'Notifications' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span>{{ t.notifications }}</span>
       </button>
       <button class="qa-btn" onclick="generateShareCard()">
-        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span><span>{{ 'שתף התקדמות' if lang == 'he' else 'Share Progress' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span><span>{{ t.share_progress }}</span>
       </button>
       <button class="qa-btn" onclick="openBarcodeScanner()">
-        <span class="icon"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg></span><span>{{ 'סריקת ברקוד' if lang == 'he' else 'Barcode Scan' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg></span><span>{{ t.barcode_scan }}</span>
       </button>
       <button class="qa-btn" onclick="window.open('/gallery','_self')">
-        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span><span>{{ 'גלריית ארוחות' if lang == 'he' else 'Meal Gallery' }}</span>
+        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span><span>{{ t.meal_gallery }}</span>
       </button>
       <div id="notif-msg" style="font-size:11px;color:#8B5CF6;margin-top:4px;display:none;"></div>
     </div>
@@ -980,24 +980,24 @@
 
   <div class="sb-footer">
     <div id="referral-box" style="margin-bottom:10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;">
-      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">{{ 'הזמן חבר — קבל חודש פרמיום!' if lang == 'he' else 'Refer a friend — get premium!' }}</div>
-      <div id="ref-link" style="font-size:11px;color:#8B5CF6;word-break:break-all;margin-bottom:6px;cursor:pointer;" onclick="copyRefLink()">{{ 'טוען...' if lang == 'he' else 'Loading...' }}</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">{{ t.refer_friend }}</div>
+      <div id="ref-link" style="font-size:11px;color:#8B5CF6;word-break:break-all;margin-bottom:6px;cursor:pointer;" onclick="copyRefLink()">{{ t.loading }}</div>
       <div id="ref-count" style="font-size:11px;color:var(--sub);"></div>
     </div>
     <div id="wa-link-box" style="margin-bottom:10px;">
-      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;display:flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg> {{ 'חבר WhatsApp לחשבון' if lang == 'he' else 'Link WhatsApp' }}</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;display:flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg> {{ t.link_whatsapp }}</div>
       <div style="display:flex;gap:6px;">
-        <input id="wa-phone-input" type="tel" placeholder="{{ '05XXXXXXXX' if lang == 'he' else '+1XXXXXXXXXX' }}"
+        <input id="wa-phone-input" type="tel" placeholder="{{ t.phone_placeholder }}"
           style="flex:1;padding:7px 10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;">
         <button onclick="linkWhatsApp()"
           style="padding:7px 12px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
-          {{ 'חבר' if lang == 'he' else 'Link' }}
+          {{ t.link }}
         </button>
       </div>
       <div id="wa-link-msg" style="font-size:11px;margin-top:5px;display:none;"></div>
     </div>
     <a href="/logout" style="text-decoration:none;">
-      <button class="logout-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> {{ 'התנתקות' if lang == 'he' else 'Sign out' }}</button>
+      <button class="logout-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> {{ t.sign_out }}</button>
     </a>
   </div>
 </div>
@@ -1013,11 +1013,11 @@
     <div class="view-tabs">
       <button class="view-tab" id="tab-dashboard" onclick="switchView('dashboard')">
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        {{ 'דשבורד' if lang == 'he' else 'Dashboard' }}
+        {{ t.dashboard }}
       </button>
       <button class="view-tab active" id="tab-chat" onclick="switchView('chat')">
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        {{ 'צ׳אט' if lang == 'he' else 'Chat' }}
+        {{ t.chat }}
       </button>
     </div>
     <span class="top-badge" id="top-w" style="margin-right:auto;display:inline-flex;align-items:center;gap:4px;font-size:11px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.7;flex-shrink:0;"><circle cx="12" cy="5" r="3"/><path d="M6.5 8h11l-1.5 9H8L6.5 8z"/><path d="M9 12h6"/></svg><span id="top-w-val"></span></span>
@@ -1032,7 +1032,7 @@
       <div style="display:flex;align-items:flex-start;gap:10px;">
         <div class="nudge-icon">💡</div>
         <div>
-          <div class="nudge-lbl">{{ 'תובנה יומית' if lang == 'he' else 'Daily Insight' }}</div>
+          <div class="nudge-lbl">{{ t.daily_insight }}</div>
           <div class="nudge-text" id="db-nudge-text"></div>
         </div>
       </div>
@@ -1043,7 +1043,7 @@
       <div style="display:flex;align-items:center;justify-content:space-around;gap:8px;">
         <!-- Calorie Ring -->
         <div>
-          <div class="db-card-lbl" style="margin-bottom:6px;">{{ 'קלוריות' if lang == 'he' else 'Calories' }}</div>
+          <div class="db-card-lbl" style="margin-bottom:6px;">{{ t.calories }}</div>
           <div class="ring-wrap">
             <svg class="ring-svg" width="110" height="110" viewBox="0 0 110 110">
               <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="10"/>
@@ -1059,7 +1059,7 @@
         </div>
         <!-- Nutrition Score -->
         <div id="db-score-wrap" style="display:none;text-align:center;">
-          <div class="db-card-lbl" style="margin-bottom:6px;">{{ 'ציון יומי' if lang == 'he' else 'Daily Score' }}</div>
+          <div class="db-card-lbl" style="margin-bottom:6px;">{{ t.daily_score }}</div>
           <div id="db-score-grade" class="score-grade">—</div>
           <div class="score-bar-outer" style="margin-top:8px;">
             <div class="score-bar-bg"><div id="db-score-bar" class="score-bar-fill" style="width:0%;"></div></div>
@@ -1068,7 +1068,7 @@
         </div>
         <!-- Protein Ring -->
         <div id="db-protein-wrap" style="display:none;text-align:center;">
-          <div class="db-card-lbl" style="margin-bottom:6px;">{{ 'חלבון' if lang == 'he' else 'Protein' }}</div>
+          <div class="db-card-lbl" style="margin-bottom:6px;">{{ t.protein }}</div>
           <div style="position:relative;display:inline-flex;align-items:center;justify-content:center;">
             <svg width="80" height="80" viewBox="0 0 80 80">
               <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(96,165,250,.1)" stroke-width="8"/>
@@ -1086,8 +1086,8 @@
       <!-- Secondary macros -->
       <div id="db-macros" style="display:none;margin-top:10px;">
         <div class="macro-row">
-          <div class="macro-pill"><div class="macro-pill-val" id="db-carbs" style="color:#f59e0b;">—</div><div class="macro-pill-lbl">{{ 'פחמימות' if lang == 'he' else 'Carbs' }}</div></div>
-          <div class="macro-pill"><div class="macro-pill-val" id="db-fat" style="color:#ec4899;">—</div><div class="macro-pill-lbl">{{ 'שומן' if lang == 'he' else 'Fat' }}</div></div>
+          <div class="macro-pill"><div class="macro-pill-val" id="db-carbs" style="color:#f59e0b;">—</div><div class="macro-pill-lbl">{{ t.carbs }}</div></div>
+          <div class="macro-pill"><div class="macro-pill-val" id="db-fat" style="color:#ec4899;">—</div><div class="macro-pill-lbl">{{ t.fat }}</div></div>
         </div>
       </div>
     </div>
@@ -1095,22 +1095,22 @@
     <!-- Stats Row: Water, Streak, Weight -->
     <div class="db-row cols-3">
       <div class="db-card">
-        <div class="db-card-lbl">{{ 'מים' if lang == 'he' else 'Water' }}</div>
+        <div class="db-card-lbl">{{ t.water }}</div>
         <div class="db-card-val" id="db-water-val" style="font-size:20px;">0/8</div>
         <div class="db-water-drops" id="db-water-drops">
           {% for i in range(8) %}
-          <span class="db-water-drop" id="db-drop-{{i}}" onclick="dbAddWater()" title="{{ 'הוסף כוס' if lang == 'he' else 'Add glass' }}"><svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
+          <span class="db-water-drop" id="db-drop-{{i}}" onclick="dbAddWater()" title="{{ t.add_glass }}"><svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
           {% endfor %}
         </div>
       </div>
       <div class="db-card" style="text-align:center;" id="db-streak-card">
-        <div class="db-card-lbl">{{ 'רצף' if lang == 'he' else 'Streak' }}</div>
+        <div class="db-card-lbl">{{ t.streak }}</div>
         <div class="db-card-val" id="db-streak">—</div>
-        <div class="db-card-sub" id="db-streak-lbl">{{ 'ימים' if lang == 'he' else 'days' }}</div>
-        <button id="db-shield-btn" class="shield-btn" onclick="useStreakShield()" style="display:none;">🛡️ {{ 'הגן על הרצף' if lang == 'he' else 'Protect streak' }}</button>
+        <div class="db-card-sub" id="db-streak-lbl">{{ t.days }}</div>
+        <button id="db-shield-btn" class="shield-btn" onclick="useStreakShield()" style="display:none;">🛡️ {{ t.protect_streak }}</button>
       </div>
       <div class="db-card" style="text-align:center;">
-        <div class="db-card-lbl">{{ 'משקל' if lang == 'he' else 'Weight' }}</div>
+        <div class="db-card-lbl">{{ t.weight }}</div>
         <div class="db-card-val" id="db-weight" style="font-size:20px;">—</div>
         <div class="db-card-sub" id="db-weight-sub">kg</div>
       </div>
@@ -1119,7 +1119,7 @@
     <!-- Weekly Chart -->
     <div class="db-chart-card">
       <div class="db-chart-title">
-        <span>{{ 'קלוריות — 7 ימים אחרונים' if lang == 'he' else 'Calories — Last 7 Days' }}</span>
+        <span>{{ t.calories_last_7_days }}</span>
         <span id="db-week-avg" style="color:var(--em);"></span>
       </div>
       <div class="weekly-bars" id="db-weekly-bars"></div>
@@ -1130,10 +1130,10 @@
           <div class="day-detail-close" onclick="closeDayDetail()">✕</div>
         </div>
         <div class="day-macros-row">
-          <div class="day-macro-pill"><div class="day-macro-val" id="ddp-cal">—</div><div class="day-macro-lbl">{{ 'קל' if lang=='he' else 'kcal' }}</div></div>
-          <div class="day-macro-pill"><div class="day-macro-val" id="ddp-prot">—</div><div class="day-macro-lbl">{{ 'חלבון' if lang=='he' else 'prot' }}</div></div>
-          <div class="day-macro-pill"><div class="day-macro-val" id="ddp-carbs">—</div><div class="day-macro-lbl">{{ 'פחמ׳' if lang=='he' else 'carbs' }}</div></div>
-          <div class="day-macro-pill"><div class="day-macro-val" id="ddp-fat">—</div><div class="day-macro-lbl">{{ 'שומן' if lang=='he' else 'fat' }}</div></div>
+          <div class="day-macro-pill"><div class="day-macro-val" id="ddp-cal">—</div><div class="day-macro-lbl">{{ t.kcal_short }}</div></div>
+          <div class="day-macro-pill"><div class="day-macro-val" id="ddp-prot">—</div><div class="day-macro-lbl">{{ t.protein_short }}</div></div>
+          <div class="day-macro-pill"><div class="day-macro-val" id="ddp-carbs">—</div><div class="day-macro-lbl">{{ t.carbs_short }}</div></div>
+          <div class="day-macro-pill"><div class="day-macro-val" id="ddp-fat">—</div><div class="day-macro-lbl">{{ t.fat_short }}</div></div>
           <div class="day-macro-pill"><div class="day-macro-val" id="ddp-water">—</div><div class="day-macro-lbl">💧</div></div>
         </div>
         <div class="day-progress-bar"><div class="day-progress-fill" id="ddp-progress" style="width:0%"></div></div>
@@ -1143,43 +1143,43 @@
 
     <!-- Today's Meals -->
     <div>
-      <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;" id="meals-section-title">{{ 'ארוחות היום' if lang == 'he' else "Today's Meals" }}</div>
+      <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;" id="meals-section-title">{{ t.today_meals }}</div>
       <div class="meals-list" id="db-meals-list">
-        <div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">{{ 'עדיין לא דווחו ארוחות היום' if lang == 'he' else 'No meals logged today' }}</div>
+        <div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">{{ t.no_meals_today }}</div>
       </div>
     </div>
 
     <!-- Quick Actions -->
     <div>
-      <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">{{ 'פעולות מהירות' if lang == 'he' else 'Quick Actions' }}</div>
+      <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">{{ t.quick_actions }}</div>
       <div class="qa-grid">
         <div class="qa-card" onclick="switchView('chat');qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today&#39;s meal plan{% endif %}')">
-          <div class="qa-card-icon">📅</div><div class="qa-card-lbl">{{ 'תפריט היום' if lang == 'he' else "Today's Plan" }}</div>
+          <div class="qa-card-icon">📅</div><div class="qa-card-lbl">{{ t.today_plan }}</div>
         </div>
         <div class="qa-card" onclick="document.getElementById('file-input').click()">
-          <div class="qa-card-icon">📸</div><div class="qa-card-lbl">{{ 'צלם ארוחה' if lang == 'he' else 'Photo Meal' }}</div>
+          <div class="qa-card-icon">📸</div><div class="qa-card-lbl">{{ t.photo_meal }}</div>
         </div>
         <div class="qa-card" onclick="switchView('chat');promptWeight()">
-          <div class="qa-card-icon">⚖️</div><div class="qa-card-lbl">{{ 'עדכן משקל' if lang == 'he' else 'Log Weight' }}</div>
+          <div class="qa-card-icon">⚖️</div><div class="qa-card-lbl">{{ t.log_weight }}</div>
         </div>
         <div class="qa-card" onclick="switchView('chat');openBarcodeScanner()">
-          <div class="qa-card-icon">📦</div><div class="qa-card-lbl">{{ 'ברקוד' if lang == 'he' else 'Barcode' }}</div>
+          <div class="qa-card-icon">📦</div><div class="qa-card-lbl">{{ t.barcode }}</div>
         </div>
         <div class="qa-card" onclick="switchView('chat');showShoppingList()">
-          <div class="qa-card-icon">🛒</div><div class="qa-card-lbl">{{ 'קניות' if lang == 'he' else 'Shopping' }}</div>
+          <div class="qa-card-icon">🛒</div><div class="qa-card-lbl">{{ t.shopping }}</div>
         </div>
         <div class="qa-card" onclick="window.open('/report','_blank')">
-          <div class="qa-card-icon">📊</div><div class="qa-card-lbl">{{ 'דוח שבועי' if lang == 'he' else 'Weekly Report' }}</div>
+          <div class="qa-card-icon">📊</div><div class="qa-card-lbl">{{ t.weekly_report }}</div>
         </div>
         <div class="qa-card" onclick="shareStory()">
-          <div class="qa-card-icon">📤</div><div class="qa-card-lbl">{{ 'שתף סיפור' if lang == 'he' else 'Share Story' }}</div>
+          <div class="qa-card-icon">📤</div><div class="qa-card-lbl">{{ t.share_story }}</div>
         </div>
       </div>
     </div>
 
     <!-- Meal Templates / Favourites -->
     <div id="templates-section" style="display:none;">
-      <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:12px 0 8px;">{{ 'ארוחות שמורות' if lang == 'he' else 'SAVED MEALS' }}</div>
+      <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:12px 0 8px;">{{ t.saved_meals }}</div>
       <div id="templates-list" style="display:flex;flex-direction:column;gap:5px;"></div>
     </div>
 
@@ -1187,7 +1187,7 @@
     <div class="db-card" id="db-notes-card" style="display:none;">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">
         <span style="font-size:15px;">📌</span>
-        <span class="db-card-lbl" style="margin-bottom:0;">{{ 'טיפים ותובנות מהתזונאי' if lang == 'he' else 'TIPS & INSIGHTS' }}</span>
+        <span class="db-card-lbl" style="margin-bottom:0;">{{ t.tips_insights }}</span>
       </div>
       <div id="db-notes-list" style="display:flex;flex-direction:column;gap:7px;"></div>
     </div>
@@ -1204,13 +1204,13 @@
     </div>
     <div id="input-bar">
       <div id="input-row">
-        <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="{{ 'שלח תמונה' if lang == 'he' else 'Send image' }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+        <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="{{ t.send_image }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
         <!-- Voice input button -->
-        <button id="mic-btn" class="icon-btn" onclick="toggleVoice()" title="{{ 'קלט קולי' if lang == 'he' else 'Voice input' }}">
+        <button id="mic-btn" class="icon-btn" onclick="toggleVoice()" title="{{ t.voice_input }}">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M19 10a7 7 0 0 1-14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
         </button>
         <textarea id="msg-input" rows="1"
-          placeholder="{{ 'שאל אותי כל דבר, דווח על ארוחה, שלח תמונה...' if lang == 'he' else 'Ask anything, log a meal, send a photo...' }}"></textarea>
+          placeholder="{{ t.chat_placeholder }}"></textarea>
         <button id="send-btn" onclick="send()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
       </div>
     </div>
@@ -1225,17 +1225,31 @@
   <div style="background:var(--sidebar);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;position:relative;">
     <button onclick="document.getElementById('shop-modal').style.display='none'"
       style="position:absolute;top:12px;left:12px;background:none;border:none;color:var(--sub);cursor:pointer;display:flex;align-items:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3 style="color:#8B5CF6;margin-bottom:16px;font-size:16px;">{{ 'רשימת קניות שבועית' if lang == 'he' else 'Weekly Shopping List' }}</h3>
+    <h3 style="color:#8B5CF6;margin-bottom:16px;font-size:16px;">{{ t.weekly_shopping_list }}</h3>
     <div id="shop-content" style="color:var(--text);font-size:14px;line-height:1.7;white-space:pre-wrap;"></div>
     <button onclick="copyShoppingList()"
       style="margin-top:16px;width:100%;padding:10px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.2);border-radius:10px;color:#8B5CF6;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> {{ 'העתק רשימה' if lang == 'he' else 'Copy List' }}
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> {{ t.copy_list }}
     </button>
   </div>
 </div>
 
 <script>
   const LANG='{{ lang }}';
+  // ── i18n: translation table (sourced from chat_i18n.UI_STRINGS, resolved server-side) ──
+  const T_UI = {{ t | tojson | safe }};
+  function tr(key, fallback){
+    const v = T_UI[key];
+    return (v === undefined || v === null) ? (fallback || key) : v;
+  }
+  // tr-with-format: replaces {0}, {1}, ... in the translated string
+  function trf(key){
+    let s = tr(key, '');
+    for (let i = 1; i < arguments.length; i++) {
+      s = s.split('{' + (i-1) + '}').join(arguments[i]);
+    }
+    return s;
+  }
   let imgB64=null,imgName=null,loading=false,wChart=null;
   let _currentView='chat';
 
@@ -1548,14 +1562,14 @@
   async function useStreakShield(){
     const month = new Date().toISOString().slice(0,7);
     const key = 'shield_used_'+month;
-    if(localStorage.getItem(key)){ alert(LANG==='he'?'כבר השתמשת במגן החודש הזה':'Already used shield this month'); return; }
+    if(localStorage.getItem(key)){ alert(tr('shield_already_used')); return; }
     try{
       const r = await fetch('/api/streak-shield',{method:'POST'});
       const d = await r.json();
       if(d.ok){
         localStorage.setItem(key,'1');
         document.getElementById('db-shield-btn').style.display='none';
-        const msg = LANG==='he'?'🛡️ המגן הופעל! הרצף שלך מוגן להיום.':'🛡️ Shield activated! Your streak is protected today.';
+        const msg = tr('shield_activated');
         // Brief toast
         const t=document.createElement('div');
         t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#fbbf24;color:#000;padding:10px 20px;border-radius:20px;font-weight:600;z-index:9999;font-size:13px;animation:msgIn .3s ease;';
@@ -1601,9 +1615,9 @@
   function clearImg(){imgB64=null;imgName=null;document.getElementById('img-preview').style.display='none';document.getElementById('file-input').value='';}
 
   function promptWeight(){
-    const p=LANG==='he'?'מה המשקל שלך היום? (קג)':'Your weight today? (kg)';
+    const p=tr('weight_prompt');
     const w=window.prompt(p);
-    if(w&&!isNaN(+w))qs(LANG==='he'?`המשקל שלי היום ${w} קג`:`My weight today is ${w} kg`);
+    if(w&&!isNaN(+w))qs(trf('weight_today_msg', w));
   }
 
   function qs(t){document.getElementById('msg-input').value=t;send();}
@@ -1614,7 +1628,7 @@
     const d=document.createElement('div');
     d.className=`msg ${role}`;
     const av=role==='user'?'👤':'🥗';
-    const now=new Date().toLocaleTimeString(LANG==='he'?'he-IL':'en-US',{hour:'2-digit',minute:'2-digit'});
+    const now=new Date().toLocaleTimeString(tr('locale_code'),{hour:'2-digit',minute:'2-digit'});
     d.innerHTML=`<div class="msg-avatar">${av}</div><div class="msg-body"><div class="bubble">${isHtml?html:esc(html)}</div><div class="msg-time">${now}</div></div>`;
     chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
     return d;
@@ -1712,7 +1726,7 @@
         // Only reload dashboard if currently viewing it (avoid 3 wasted API calls per message)
         if(_currentView==='dashboard') loadDashboard();
       }
-    }catch(e){hideTyping();addMsg('agent',`❌ ${LANG==='he'?'שגיאת חיבור':'Connection error'}: ${e.message}`);}
+    }catch(e){hideTyping();addMsg('agent',`❌ ${tr('connection_error')}: ${e.message}`);}
     loading=false;document.getElementById('send-btn').disabled=false;
   }
 
@@ -1740,9 +1754,7 @@
   function toggleVoice(){
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if(!SR){
-      addMsg('agent', LANG==='he'
-        ? '❌ הדפדפן שלך לא תומך בקלט קולי. נסה Chrome.'
-        : '❌ Your browser does not support voice input. Try Chrome.');
+      addMsg('agent', tr('no_voice_support'));
       return;
     }
     if(_micActive){
@@ -1750,7 +1762,7 @@
       return;
     }
     _speechRec = new SR();
-    _speechRec.lang = LANG === 'he' ? 'he-IL' : 'en-US';
+    _speechRec.lang = tr('locale_code');
     _speechRec.continuous = false;
     _speechRec.interimResults = false;
     _speechRec.maxAlternatives = 1;
@@ -1845,9 +1857,7 @@
       } else {
         // Fallback: copy to clipboard
         await navigator.clipboard.writeText(story);
-        addMsg('agent', LANG==='he'
-          ? '📋 הסיפור השבועי הועתק ללוח — תוכל להדביק בWhatsApp!'
-          : '📋 Weekly story copied to clipboard — paste it in WhatsApp!');
+        addMsg('agent', tr('story_copied'));
       }
     }catch(e){
       if(e.name !== 'AbortError') console.error('share err',e);
@@ -1912,7 +1922,7 @@
         const lEl=document.getElementById('s-l');
         lEl.textContent=(d.lost>0?'-':d.lost<0?'+':'')+Math.abs(d.lost)+' kg';
         lEl.style.color=d.lost>0?'#22c55e':d.lost<0?'#fb7185':'var(--sub)';
-        document.getElementById('s-ls').textContent=LANG==='he'?`מ-${d.start_weight} kg`:`from ${d.start_weight} kg`;
+        document.getElementById('s-ls').textContent=trf('from_start_weight', d.start_weight);
       }
       const logs=d.weight_log||[];
       if(d.start_weight&&d.current_weight&&d.target_min){
@@ -1933,7 +1943,7 @@
         if(streakCard){streakCard.classList.add('gold');}
         if(streakEl){streakEl.classList.remove('normal-text');streakEl.classList.add('gold-text');}
         if(streakEmoji){streakEmoji.style.color='var(--gold)';streakEmoji.innerHTML='<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>';}
-        if(streakInfo)streakInfo.textContent=LANG==='he'?`${streak} ימים מדהים!`:`${streak} amazing days!`;
+        if(streakInfo)streakInfo.textContent=trf('streak_amazing', streak);
         // Confetti milestone (first time only)
         const milestones=[7,14,21];
         for(const m of milestones){
@@ -1947,7 +1957,7 @@
         if(streakCard)streakCard.classList.remove('gold');
         if(streakEl){streakEl.classList.add('normal-text');streakEl.classList.remove('gold-text');}
         if(streakEmoji){streakEmoji.style.color='var(--em)';streakEmoji.innerHTML='<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2c0 6-6 8-6 13a6 6 0 0 0 12 0c0-5-6-7-6-13z"/><path d="M9 19c0-2 1.5-3 3-4 1.5 1 3 2 3 4"/></svg>';}
-        if(streakInfo)streakInfo.textContent=streak>0?(LANG==='he'?`${streak} ימים ברצף`:`${streak} day streak`):(LANG==='he'?'רשום ארוחה כדי להתחיל!':'Log a meal to start!');
+        if(streakInfo)streakInfo.textContent=streak>0?(trf('streak_n_days', streak)):(tr('log_meal_to_start'));
       }
 
       // Calorie ring
@@ -1998,7 +2008,7 @@
         const _w = d.pregnancy_week;
         const _t = _w<=13?1:(_w<=26?2:3);
         const _badge = document.getElementById('preg-trimester-badge');
-        const _tNames = {1:LANG==='he'?'טרימסטר ראשון (שבועות 1-13)':'Trimester 1',2:LANG==='he'?'טרימסטר שני (שבועות 14-26)':'Trimester 2',3:LANG==='he'?'טרימסטר שלישי (שבועות 27-42)':'Trimester 3'};
+        const _tNames = {1:tr('trimester_1_short'),2:tr('trimester_2_short'),3:tr('trimester_3_short')};
         if(_badge){_badge.textContent=`שבוע ${_w} · ${_tNames[_t]}`;_badge.style.display='block';}
         if(typeof updateBloodTests==='function') updateBloodTests(_w, _t);
         loadVitaminState();
@@ -2029,11 +2039,11 @@
   async function linkWhatsApp(){
     const phone=document.getElementById('wa-phone-input').value.trim();
     const msg=document.getElementById('wa-link-msg');
-    if(!phone){msg.textContent=LANG==='he'?'הכנס מספר טלפון':'Enter phone number';msg.style.color='#fb7185';msg.style.display='block';return;}
+    if(!phone){msg.textContent=tr('enter_phone');msg.style.color='#fb7185';msg.style.display='block';return;}
     try{
       const r=await fetch('/api/link-phone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone})});
       const d=await r.json();
-      if(d.ok){msg.textContent=LANG==='he'?'✅ WhatsApp חובר בהצלחה!':'✅ WhatsApp linked!';msg.style.color='#00D4FF';}
+      if(d.ok){msg.textContent=tr('whatsapp_linked');msg.style.color='#00D4FF';}
       else{msg.textContent=d.error||'שגיאה';msg.style.color='#fb7185';}
     }catch(e){msg.textContent=e.message;msg.style.color='#fb7185';}
     msg.style.display='block';
@@ -2042,7 +2052,7 @@
   // ── Shopping list ──
   async function showShoppingList() {
     document.getElementById('shop-modal').style.display='flex';
-    document.getElementById('shop-content').textContent = LANG==='he'?'מייצר רשימה...':'Generating...';
+    document.getElementById('shop-content').textContent = tr('generating');
     try {
       const d = await (await fetch('/api/shopping-list')).json();
       document.getElementById('shop-content').textContent = d.list || d.error;
@@ -2053,7 +2063,7 @@
 
   function copyShoppingList() {
     navigator.clipboard.writeText(document.getElementById('shop-content').textContent)
-      .then(() => alert(LANG==='he'?'הועתק!':'Copied!'));
+      .then(() => alert(tr('copied')));
   }
 
   // ── Measurements display (populated via loadStats) ──
@@ -2061,13 +2071,13 @@
     const el = document.getElementById('measurements-display');
     if (!el) return;
     if (!m || (!m.waist_cm && !m.chest_cm && !m.hips_cm)) {
-      el.textContent = LANG==='he'?'טרם נמדד':'Not yet measured';
+      el.textContent = tr('not_yet_measured');
       return;
     }
     const parts = [];
-    if (m.waist_cm) parts.push(`📏 ${LANG==='he'?'מותניים':'Waist'}: ${m.waist_cm} ס"מ`);
-    if (m.chest_cm) parts.push(`📏 ${LANG==='he'?'חזה':'Chest'}: ${m.chest_cm} ס"מ`);
-    if (m.hips_cm) parts.push(`📏 ${LANG==='he'?'ירכיים':'Hips'}: ${m.hips_cm} ס"מ`);
+    if (m.waist_cm) parts.push(`📏 ${tr('waist')}: ${m.waist_cm} ס"מ`);
+    if (m.chest_cm) parts.push(`📏 ${tr('chest')}: ${m.chest_cm} ס"מ`);
+    if (m.hips_cm) parts.push(`📏 ${tr('hips')}: ${m.hips_cm} ס"מ`);
     if (m.date) parts.push(`🗓 ${m.date}`);
     el.innerHTML = parts.join('<br>');
   }
@@ -2435,7 +2445,7 @@
     loadBurnData();
     loadTemplates();  // load saved meal templates
     loadDashboard(); // pre-load dashboard data in background
-    qs(LANG==='he'?'שלום!':'Hello!');
+    qs(tr('hello'));
   };
 
 // ── Calorie Burn Tracker ──
@@ -2486,9 +2496,9 @@ async function saveBurnActivity() {
   const duration = parseInt(durEl.value) || 30;
   const calories = parseInt(calEl.value) || 300;
   // Basic client-side validation (mirrors server)
-  if(!activity) { alert(LANG==='he'?'נא לבחור פעילות':'Please select an activity'); return; }
-  if(calories < 1 || calories > 10000) { alert(LANG==='he'?'קלוריות חייבות להיות בין 1 ל-10000':'Calories must be 1–10000'); return; }
-  if(duration < 0 || duration > 1440) { alert(LANG==='he'?'משך חייב להיות בין 0 ל-1440 דקות':'Duration must be 0–1440 min'); return; }
+  if(!activity) { alert(tr('select_activity')); return; }
+  if(calories < 1 || calories > 10000) { alert(tr('calories_range_error')); return; }
+  if(duration < 0 || duration > 1440) { alert(tr('duration_range_error')); return; }
   try {
     const r = await fetch('/api/calorie-burn', {
       method: 'POST',
@@ -2584,7 +2594,7 @@ function savePregnancyWeek() {
   if(week < 1 || week > 42) return;
   const trimester = week<=13?1:(week<=26?2:3);
   const badge = document.getElementById('preg-trimester-badge');
-  const trimesterNames = {1: LANG==='he'?'טרימסטר ראשון (שבועות 1-13)':'Trimester 1 (weeks 1–13)', 2: LANG==='he'?'טרימסטר שני (שבועות 14-26)':'Trimester 2 (weeks 14–26)', 3: LANG==='he'?'טרימסטר שלישי (שבועות 27-42)':'Trimester 3 (weeks 27–42)'};
+  const trimesterNames = {1: tr('trimester_1_long'), 2: tr('trimester_2_long'), 3: tr('trimester_3_long')};
   if(badge){
     badge.textContent = `שבוע ${week} · ${trimesterNames[trimester]}`;
     badge.style.display = 'block';
@@ -2794,7 +2804,7 @@ async function saveProfileEdit() {
 <div id="barcode-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;">
   <div style="background:var(--sidebar);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:24px;width:90%;max-width:400px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h3 style="color:#8B5CF6;font-size:15px;">{{ 'סריקת ברקוד' if lang == 'he' else 'Barcode Scanner' }}</h3>
+      <h3 style="color:#8B5CF6;font-size:15px;">{{ t.barcode_scanner }}</h3>
       <button onclick="closeBarcodeScanner()" style="background:none;border:none;color:var(--sub);cursor:pointer;display:flex;align-items:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <video id="barcode-video" style="width:100%;border-radius:10px;background:#000;max-height:220px;" autoplay playsinline muted></video>
@@ -2810,11 +2820,11 @@ async function saveProfileEdit() {
 <div id="burn-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:var(--sidebar);border-radius:var(--radius-lg);padding:24px;max-width:360px;width:90%;box-shadow:var(--shadow-lg);">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div style="font-size:14px;font-weight:600;color:var(--text);">{{ 'הוסף פעילות' if lang == 'he' else 'Add Activity' }}</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);">{{ t.add_activity }}</div>
       <button onclick="document.getElementById('burn-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--sub);display:flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div style="margin-bottom:12px;">
-      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ 'סוג פעילות' if lang == 'he' else 'Activity type' }}</label>
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ t.activity_type }}</label>
       <select id="burn-activity-type" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
         <option value="ריצה">🏃 ריצה</option>
         <option value="הליכה">🚶 הליכה</option>
@@ -2829,16 +2839,16 @@ async function saveProfileEdit() {
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
       <div>
-        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ 'משך (דקות)' if lang == 'he' else 'Duration (min)' }}</label>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ t.duration_min }}</label>
         <input type="number" id="burn-duration" min="1" max="480" value="30" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;text-align:center;">
       </div>
       <div>
-        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ 'קלוריות' if lang == 'he' else 'Calories burned' }}</label>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ t.calories_burned }}</label>
         <input type="number" id="burn-calories" min="1" max="3000" value="300" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;text-align:center;">
       </div>
     </div>
     <button onclick="saveBurnActivity()" style="width:100%;padding:10px;background:linear-gradient(135deg,var(--em),var(--vi));border:none;border-radius:var(--radius-sm);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity var(--t-fast);">
-      {{ 'שמור פעילות' if lang == 'he' else 'Save Activity' }}
+      {{ t.save_activity }}
     </button>
   </div>
 </div>

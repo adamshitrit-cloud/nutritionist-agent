@@ -27,6 +27,7 @@ def _today_minus(days: int) -> str:
 
 sys.path.insert(0, str(Path(__file__).parent))
 import agent as nutritionist
+from chat_i18n import get_ui_strings as _get_chat_ui_strings
 
 BASE_DIR   = Path(__file__).parent
 DATA_DIR   = BASE_DIR / "data"
@@ -536,7 +537,8 @@ def app_page():
         return redir
     lang = session.get("lang", "he")
     name = session.get("name", "")
-    return render_template("chat.html", lang=lang, user_name=name)
+    t = _get_chat_ui_strings(lang)
+    return render_template("chat.html", lang=lang, user_name=name, t=t)
 
 @app.route("/register", methods=["POST"])
 @limiter.limit("5 per minute")
