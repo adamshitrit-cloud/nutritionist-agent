@@ -28,6 +28,7 @@ def _today_minus(days: int) -> str:
 sys.path.insert(0, str(Path(__file__).parent))
 import agent as nutritionist
 from chat_i18n import get_ui_strings as _get_chat_ui_strings
+from chat_i18n import get_day_names as _get_chat_day_names
 
 BASE_DIR   = Path(__file__).parent
 DATA_DIR   = BASE_DIR / "data"
@@ -521,7 +522,10 @@ def require_login():
 def index():
     if current_user_id():
         return redirect(url_for("app_page"))
-    return render_template("index.html")
+    return render_template(
+        "landing.html",
+        telegram_url=os.environ.get("TELEGRAM_CHANNEL_URL", ""),
+    )
 
 @app.route("/landing")
 def landing():
@@ -529,6 +533,10 @@ def landing():
         "landing.html",
         telegram_url=os.environ.get("TELEGRAM_CHANNEL_URL", ""),
     )
+
+@app.route("/legacy")
+def legacy_index():
+    return render_template("index.html")
 
 @app.route("/app")
 def app_page():
@@ -538,7 +546,8 @@ def app_page():
     lang = session.get("lang", "he")
     name = session.get("name", "")
     t = _get_chat_ui_strings(lang)
-    return render_template("chat.html", lang=lang, user_name=name, t=t)
+    days = _get_chat_day_names(lang)
+    return render_template("chat.html", lang=lang, user_name=name, t=t, days=days)
 
 @app.route("/register", methods=["POST"])
 @limiter.limit("5 per minute")
