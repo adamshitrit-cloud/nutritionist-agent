@@ -708,10 +708,10 @@
       <div>
         <div class="sb-name">NutriAI Longevity</div>
         <div class="sb-user">{{ user_name }}</div>
-        <button onclick="openProfileEdit()" style="background:none;border:none;cursor:pointer;color:var(--sub);font-size:10px;font-family:'Inter',sans-serif;padding:2px 6px;border-radius:4px;transition:color var(--t-fast);" onmouseenter="this.style.color='var(--em)'" onmouseleave="this.style.color='var(--sub)'">✏️ עריכת פרופיל</button>
+        <button onclick="openProfileEdit()" style="background:none;border:none;cursor:pointer;color:var(--sub);font-size:10px;font-family:'Inter',sans-serif;padding:2px 6px;border-radius:4px;transition:color var(--t-fast);" onmouseenter="this.style.color='var(--em)'" onmouseleave="this.style.color='var(--sub)'">{{ t.edit_profile }}</button>
       </div>
       <div id="premium-badge" onclick="document.getElementById('premium-modal').style.display='flex'"
-        style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;cursor:pointer;margin-top:6px;">⭐ שדרג לפרמיום</div>
+        style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;cursor:pointer;margin-top:6px;">{{ t.upgrade_premium }}</div>
     </div>
     <div class="status-pill">
       <div class="status-dot"></div>
@@ -769,7 +769,7 @@
       <div class="cal-ring-info">
         <div class="cal-ring-lbl">{{ t.caloric_load }}</div>
         <div class="cal-ring-val" id="cal-today">0</div>
-        <div class="cal-ring-sub">{{ t.of_target }} <span id="cal-target">2100</span> יעד</div>
+        <div class="cal-ring-sub">{{ t.of_target }} <span id="cal-target">2100</span> {{ t.goal_short }}</div>
       </div>
     </div>
 
@@ -864,7 +864,7 @@
       <div id="blood-tests" style="font-size:11px;color:var(--sub);line-height:1.7;margin-bottom:10px;"></div>
 
       <!-- Forbidden foods quick check -->
-      <button onclick="(function(){ const food=prompt('{{ t.what_food_to_check }}'); if(!food) return; if(pregnancyModeActive){ qs('האם ' + food + ' בטוח לאכול בהריון?'); } else { qs('האם ' + food + ' מתאים למצב התזונה שלי?'); } })()"
+      <button onclick="(function(){ const food=prompt('{{ t.what_food_to_check }}'); if(!food) return; if(pregnancyModeActive){ qs(trf('food_safe_preg', food)); } else { qs(trf('food_safe_diet', food)); } })()"
         style="width:100%;padding:7px;background:rgba(255,99,99,.06);border:1px solid rgba(255,99,99,.12);border-radius:var(--radius-sm);color:rgba(255,120,120,.8);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:background var(--t-fast);">
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         {{ t.check_is_safe }}
@@ -899,7 +899,7 @@
         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:3px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         {{ t.calorie_burn }}
       </div>
-      <button onclick="showAddBurnModal()" style="background:var(--em-dim);border:none;border-radius:var(--radius-sm);padding:3px 8px;color:var(--em);font-size:10px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">+ הוסף</button>
+      <button onclick="showAddBurnModal()" style="background:var(--em-dim);border:none;border-radius:var(--radius-sm);padding:3px 8px;color:var(--em);font-size:10px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">{{ t.add_plus_btn }}</button>
     </div>
     <!-- Burn stats row -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
@@ -933,21 +933,21 @@
     </div>
     <div id="fast-display" style="text-align:center;margin-bottom:8px;">
       <div id="fast-elapsed" style="font-size:22px;font-weight:700;color:#8B5CF6;letter-spacing:1px;">00:00:00</div>
-      <div id="fast-status" style="font-size:11px;color:var(--sub);">לא פעיל</div>
+      <div id="fast-status" style="font-size:11px;color:var(--sub);">{{ t.fast_inactive }}</div>
     </div>
-    <button id="fast-btn" onclick="toggleFast()" style="width:100%;padding:7px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">▶ התחל צום</button>
+    <button id="fast-btn" onclick="toggleFast()" style="width:100%;padding:7px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">{{ t.fast_start }}</button>
   </div>
 
   <div class="sb-sec">
     <div class="sb-sec-title">{{ t.actions }}</div>
     <div class="qa-list">
-      <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today&#39;s meal plan{% endif %}')">
+      <button class="qa-btn" onclick="qs({{ t.show_today_plan | tojson | safe }})">
         <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span>{{ t.today_plan }}</span>
       </button>
-      <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי את התפריט השבועי{% else %}Show me the weekly plan{% endif %}')">
+      <button class="qa-btn" onclick="qs({{ t.show_weekly_plan | tojson | safe }})">
         <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg></span><span>{{ t.weekly_plan }}</span>
       </button>
-      <button class="qa-btn" onclick="qs('{% if lang=="he" %}תראה לי סיכום התקדמות{% else %}Show my progress summary{% endif %}')">
+      <button class="qa-btn" onclick="qs({{ t.show_progress | tojson | safe }})">
         <span class="icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>{{ t.progress }}</span>
       </button>
       <button class="qa-btn" onclick="promptWeight()">
@@ -1008,7 +1008,7 @@
 <!-- Main -->
 <div id="main">
   <div id="topbar">
-    <button id="menu-btn" onclick="toggleSidebar()" aria-label="תפריט" style="min-width:36px;min-height:36px;background:transparent;border:none;border-radius:8px;color:var(--sub);cursor:pointer;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
+    <button id="menu-btn" onclick="toggleSidebar()" aria-label="{{ t.menu }}" style="min-width:36px;min-height:36px;background:transparent;border:none;border-radius:8px;color:var(--sub);cursor:pointer;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
     <div class="top-avatar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" color="var(--em)"><path d="M12 22V12"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M12 12C12 12 7 9 7 4a5 5 0 0 1 10 0c0 5-5 8-5 8z"/></svg></div>
     <div class="view-tabs">
       <button class="view-tab" id="tab-dashboard" onclick="switchView('dashboard')">
@@ -1021,7 +1021,7 @@
       </button>
     </div>
     <span class="top-badge" id="top-w" style="margin-right:auto;display:inline-flex;align-items:center;gap:4px;font-size:11px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.7;flex-shrink:0;"><circle cx="12" cy="5" r="3"/><path d="M6.5 8h11l-1.5 9H8L6.5 8z"/><path d="M9 12h6"/></svg><span id="top-w-val"></span></span>
-    <button id="theme-btn" onclick="toggleTheme()" title="החלף מצב תצוגה" style="background:transparent;border:none;border-radius:var(--radius-sm);padding:6px;color:var(--sub);cursor:pointer;transition:color var(--t-fast),background var(--t-fast);display:flex;align-items:center;" onmouseenter="this.style.background='var(--card)'" onmouseleave="this.style.background='transparent'"><svg id="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    <button id="theme-btn" onclick="toggleTheme()" title="{{ t.toggle_theme }}" style="background:transparent;border:none;border-radius:var(--radius-sm);padding:6px;color:var(--sub);cursor:pointer;transition:color var(--t-fast),background var(--t-fast);display:flex;align-items:center;" onmouseenter="this.style.background='var(--card)'" onmouseleave="this.style.background='transparent'"><svg id="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
   </div>
 
   <!-- ── Dashboard View ── -->
@@ -1053,7 +1053,7 @@
             </svg>
             <div class="ring-center">
               <div class="ring-kcal" id="db-kcal-consumed" style="font-size:19px;">—</div>
-              <div class="ring-target" id="db-kcal-target" style="font-size:9px;">/ — קל</div>
+              <div class="ring-target" id="db-kcal-target" style="font-size:9px;">{{ t.welcome_chat_empty }}</div>
             </div>
           </div>
         </div>
@@ -1153,7 +1153,7 @@
     <div>
       <div style="font-size:11px;color:var(--sub);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">{{ t.quick_actions }}</div>
       <div class="qa-grid">
-        <div class="qa-card" onclick="switchView('chat');qs('{% if lang=="he" %}תראה לי את תפריט היום{% else %}Show me today&#39;s meal plan{% endif %}')">
+        <div class="qa-card" onclick="switchView('chat');qs({{ t.show_today_plan | tojson | safe }})">
           <div class="qa-card-icon">📅</div><div class="qa-card-lbl">{{ t.today_plan }}</div>
         </div>
         <div class="qa-card" onclick="document.getElementById('file-input').click()">
@@ -1289,8 +1289,8 @@
       weekly:'rgba(34,197,94,.08)', bloating:'rgba(251,191,36,.1)'
     };
     const catLabels = {
-      tip:'💡 טיפ', insight:'🔍 תובנה', weekly:'📅 שבועי',
-      bloating:'⚠️ נפיחות', default:'📌 הערה'
+      tip:tr('label_tip'), insight:tr('label_insight'), weekly:tr('label_weekly'),
+      bloating:tr('label_bloating'), default:tr('label_note')
     };
     list.innerHTML = notes.map(n=>{
       const bg = catColors[n.category]||'rgba(139,92,246,.06)';
@@ -1314,7 +1314,6 @@
   }
 
   function renderDashboard(db, glasses){
-    const IS_HE = LANG==='he';
     window._dashboardData = db;  // store globally so showDayDetail can access db.today
 
     // ── AI Nudge Card ──
@@ -1334,7 +1333,7 @@
     const circ = 2*Math.PI*46;
     document.getElementById('db-ring').style.strokeDashoffset = circ*(1-pct);
     document.getElementById('db-kcal-consumed').textContent = consumed;
-    document.getElementById('db-kcal-target').textContent = `/ ${target} ${IS_HE?'קל':'kcal'}`;
+    document.getElementById('db-kcal-target').textContent = `/ ${target} ${tr('kcal_short')}`;
 
     // ── Nutrition Score ──
     if(db.nutrition_score){
@@ -1385,7 +1384,7 @@
     } else {
       streakEl.textContent = streak||'0';
     }
-    document.getElementById('db-streak-lbl').textContent = IS_HE?(streak===1?'יום':'ימים'):'days';
+    document.getElementById('db-streak-lbl').textContent = streak===1 ? tr('day_singular') : tr('day_plural');
     // Bounce animation on streak increase
     const prevStreak = parseInt(localStorage.getItem('prev_streak')||'0');
     if(streak > prevStreak && streak > 0){
@@ -1416,12 +1415,12 @@
     const weightSub = document.getElementById('db-weight-sub');
     if(db.weekly_avg_weight){
       weightEl.textContent = db.weekly_avg_weight+'kg';
-      weightSub.textContent = IS_HE?'ממוצע 7 ימים':'7-day avg';
+      weightSub.textContent = tr('avg_7_days');
     } else if(db.current_weight){
       weightEl.textContent = db.current_weight+'kg';
       const lost = db.lost;
-      if(lost>0) weightSub.textContent = IS_HE?`-${lost}kg מהתחלה`:`-${lost}kg lost`;
-      else if(db.target_min) weightSub.textContent = IS_HE?`יעד: ${db.target_min}kg`:`Goal: ${db.target_min}kg`;
+      if(lost>0) weightSub.textContent = trf('lost_from_start', lost);
+      else if(db.target_min) weightSub.textContent = trf('goal_kg', db.target_min);
     }
 
     // ── Weekly bars ──
@@ -1429,7 +1428,7 @@
       const bars = document.getElementById('db-weekly-bars');
       bars.innerHTML='';
       // JS getDay(): Sun=0,Mon=1,Tue=2,Wed=3,Thu=4,Fri=5,Sat=6 — array must start at Sunday
-      const days = IS_HE?['א','ב','ג','ד','ה','ו','ש']:['Su','Mo','Tu','We','Th','Fr','Sa'];
+      const days = DAYS_SHORT;
       const maxKcal = Math.max(...db.weekly_calories.map(d=>d.calories), 1);
       // Use server-supplied today (IL timezone) to avoid UTC vs IL mismatch
       const todayStr = db.today || (()=>{const n=new Date();n.setMinutes(n.getMinutes()-n.getTimezoneOffset());return n.toISOString().slice(0,10);})();
@@ -1443,10 +1442,10 @@
         const wrap = document.createElement('div');
         wrap.className='weekly-bar-wrap';
         wrap.dataset.date = d.date;
-        wrap.innerHTML=`<div class="weekly-bar${isToday?' today':''}" style="height:${h}%" title="${d.calories} קל" onclick="showDayDetail('${d.date}',this.parentElement)"></div><div class="weekly-bar-lbl">${dayLbl}</div>`;
+        wrap.innerHTML=`<div class="weekly-bar${isToday?' today':''}" style="height:${h}%" title="${trf('template_kcal_tooltip', d.calories)}" onclick="showDayDetail('${d.date}',this.parentElement)"></div><div class="weekly-bar-lbl">${dayLbl}</div>`;
         bars.appendChild(wrap);
       });
-      if(count>0) document.getElementById('db-week-avg').textContent = IS_HE?`ממוצע: ${Math.round(total/count)} קל`:`Avg: ${Math.round(total/count)}`;
+      if(count>0) document.getElementById('db-week-avg').textContent = trf('avg_kcal', Math.round(total/count));
       // Auto-open today on load
       const todayWrap = bars.querySelector(`[data-date="${todayStr}"]`);
       if(todayWrap) showDayDetail(todayStr, todayWrap, true);
@@ -1464,22 +1463,27 @@
             <div class="meal-items">${(m.items||[]).join(', ')||'—'}</div>
           </div>
           <div style="text-align:end;flex-shrink:0;">
-            <div class="meal-kcal">${m.calories||0} ${IS_HE?'קל':'kcal'}</div>
-            ${m.protein>0?`<div style="font-size:9px;color:#60a5fa;">${m.protein}g ${IS_HE?'חלבון':'prot'}</div>`:''}
+            <div class="meal-kcal">${m.calories||0} ${tr('kcal_short')}</div>
+            ${m.protein>0?`<div style="font-size:9px;color:#60a5fa;">${m.protein}g ${tr('protein_short')}</div>`:''}
             <div class="meal-time">${m.time||''}</div>
           </div>
         </div>`).join('');
     } else {
-      mealsList.innerHTML=`<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">${IS_HE?'עדיין לא דווחו ארוחות היום — לחץ על 📸 לצלם':'No meals logged today — tap 📸 to log'}</div>`;
+      mealsList.innerHTML=`<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">${tr('no_meals_today_long')}</div>`;
     }
 
     // Sync sidebar water too
     setWater(g);
   }
 
-  const DAY_NAMES_HE = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-  const DAY_NAMES_EN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const MONTH_HE = ['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
+  // Day/month names — localized from chat_i18n.py (all 4 languages)
+  const DAYS_LONG   = {{ days['long']  | tojson | safe }};
+  const DAYS_SHORT  = {{ days['short'] | tojson | safe }};
+  const MONTHS_SHORT= {{ days['months_short'] | tojson | safe }};
+  // Back-compat aliases
+  const DAY_NAMES_HE = DAYS_LONG;
+  const DAY_NAMES_EN = DAYS_LONG;
+  const MONTH_HE     = MONTHS_SHORT;
 
   let _selectedDayWrap = null;
 
@@ -1497,14 +1501,11 @@
 
     // Format date title
     const d = new Date(dateStr+'T12:00:00');
-    const _isHe = (LANG==='he');
-    const dayName = _isHe ? DAY_NAMES_HE[d.getDay()] : DAY_NAMES_EN[d.getDay()];
-    const dateLbl = _isHe
-      ? `${dayName}, ${d.getDate()} ${MONTH_HE[d.getMonth()]}`
-      : `${dayName}, ${d.toLocaleDateString(_isHe?'he-IL':'en-US',{month:'short',day:'numeric'})}`;
+    const dayName = DAYS_LONG[d.getDay()];
+    const dateLbl = `${dayName}, ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
     const isToday = dateStr === (window._dashboardData?.today || '');
     document.getElementById('day-detail-title').textContent = isToday
-      ? (_isHe ? `📅 היום — ${dateLbl}` : `📅 Today — ${dateLbl}`)
+      ? trf('today_dash_label', dateLbl)
       : `📅 ${dateLbl}`;
 
     // Fetch day data
@@ -1536,20 +1537,20 @@
               <div class="meal-items">${(m.items||[]).join(', ')||'—'}</div>
             </div>
             <div style="text-align:end;flex-shrink:0;">
-              <div class="meal-kcal">${m.calories||0} ${_isHe?'קל':'kcal'}</div>
-              ${m.protein>0?`<div style="font-size:9px;color:#60a5fa;">${m.protein}g ${_isHe?'חלבון':'prot'}</div>`:''}
+              <div class="meal-kcal">${m.calories||0} ${tr('kcal_short')}</div>
+              ${m.protein>0?`<div style="font-size:9px;color:#60a5fa;">${m.protein}g ${tr('protein_short')}</div>`:''}
               <div class="meal-time">${m.time||''}</div>
             </div>
           </div>`).join('');
         // Burn entries
         if(data.burn_entries && data.burn_entries.length>0){
-          mList.innerHTML += `<div style="font-size:10px;color:var(--sub);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">🏃 ${_isHe?'פעילות גופנית':'Exercise'}: ${data.burn_entries.map(e=>e.activity+' ('+e.calories+' קל)').join(', ')}</div>`;
+          mList.innerHTML += `<div style="font-size:10px;color:var(--sub);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">🏃 ${tr('exercise')}: ${data.burn_entries.map(e=>e.activity+' ('+e.calories+' '+tr('kcal_short')+')').join(', ')}</div>`;
         }
         if(data.weight){
-          mList.innerHTML += `<div style="font-size:10px;color:var(--sub);margin-top:4px;">⚖️ ${_isHe?'משקל':'Weight'}: ${data.weight.weight_kg} kg</div>`;
+          mList.innerHTML += `<div style="font-size:10px;color:var(--sub);margin-top:4px;">⚖️ ${tr('weight_label')}: ${data.weight.weight_kg} kg</div>`;
         }
       } else {
-        mList.innerHTML = `<div style="text-align:center;padding:14px;color:var(--sub);font-size:12px;">${_isHe?'לא דווחו ארוחות ביום זה':'No meals logged this day'}</div>`;
+        mList.innerHTML = `<div style="text-align:center;padding:14px;color:var(--sub);font-size:12px;">${tr('no_meals_day')}</div>`;
       }
     } catch(e){ console.error('day-log fetch error',e); }
   }
@@ -1575,7 +1576,7 @@
         t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#fbbf24;color:#000;padding:10px 20px;border-radius:20px;font-weight:600;z-index:9999;font-size:13px;animation:msgIn .3s ease;';
         t.textContent=msg; document.body.appendChild(t);
         setTimeout(()=>t.remove(),3000);
-      } else { alert(d.msg||'שגיאה'); }
+      } else { alert(d.msg||tr('error_short')); }
     }catch(e){ console.error(e); }
   }
 
@@ -1708,7 +1709,7 @@
       } else {
         const txt=await r.text();
         console.error('Non-JSON from /chat:',r.status,txt.slice(0,200));
-        d={error:`שרת החזיר ${r.status} — נסה שוב בעוד רגע 🔁`};
+        d={error:trf('server_returned_retry', r.status)};
       }
       hideTyping();
       if(d.error)addMsg('agent',`❌ ${d.error}`);
@@ -1720,7 +1721,8 @@
         }
         if(d.weight)refreshWeight(d.weight);
         // Reload templates if a template was saved
-        if(d.response&&d.response.includes('תבנית')) loadTemplates();
+        // Template saved detection — check for 'תבנית'/'template' markers in response (case-insensitive)
+        if(d.response&&/(תבנית|template|قالب|шаблон)/i.test(d.response)) loadTemplates();
         loadStats();
         loadBurnData();
         // Only reload dashboard if currently viewing it (avoid 3 wasted API calls per message)
@@ -1807,9 +1809,9 @@
           <div style="font-size:16px;">⭐</div>
           <div style="flex:1;min-width:0;">
             <div class="tmpl-name">${esc(t.name)}</div>
-            <div class="tmpl-meta">${cal} קל | ${prot}g חלבון</div>
+            <div class="tmpl-meta">${trf('template_kcal_prot', cal, prot)}</div>
           </div>
-          <button class="tmpl-del" onclick="deleteTemplate(event,'${t.id}')" title="מחק תבנית">
+          <button class="tmpl-del" onclick="deleteTemplate(event,'${t.id}')" title="${tr('delete_template')}">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>`;
         card.addEventListener('click', (e)=>{ if(!e.target.closest('.tmpl-del')) logTemplate(t.id); });
@@ -1833,7 +1835,7 @@
         loadStats(); loadBurnData();
         if(_currentView==='dashboard') loadDashboard();
       }
-    }catch(e){ hideTyping(); addMsg('agent',`❌ שגיאה: ${e.message}`); }
+    }catch(e){ hideTyping(); addMsg('agent',`${tr('error_colon')}: ${e.message}`); }
     loading=false; document.getElementById('send-btn').disabled=false;
   }
 
@@ -1968,7 +1970,7 @@
       const netEl = document.getElementById('burn-net');
       if(netEl) {
         const net = (d.today_calories||0) - (d.today_burn||0);
-        netEl.textContent = (net > 0 ? '+' : '') + net + ' קל';
+        netEl.textContent = (net > 0 ? '+' : '') + net + tr('kcal_net_suffix');
         netEl.style.color = net < 0 ? '#22c55e' : (net > 500 ? '#fb7185' : 'var(--em)');
       }
 
@@ -1978,18 +1980,18 @@
       // Premium badge
       if(d.is_premium){
         const badge=document.getElementById('premium-badge');
-        if(badge){badge.style.display='inline-flex';badge.textContent='💎 פרמיום';}
+        if(badge){badge.style.display='inline-flex';badge.textContent=tr('premium');}
       } else {
         const badge=document.getElementById('premium-badge');
         if(badge){badge.style.display='inline-flex';}
         const pText=document.getElementById('premium-progress-text');
         const pBar=document.getElementById('premium-bar');
-        if(pText)pText.textContent=(d.referral_count||0)+'/3 חברים הצטרפו';
+        if(pText)pText.textContent=trf('friends_joined', d.referral_count||0);
         if(pBar)pBar.style.width=Math.min(100,(d.referral_count||0)/3*100)+'%';
       }
 
       // Restore diet mode
-      if(d.diet_mode) { currentDietMode = d.diet_mode; updateDietButtons(d.diet_mode); const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'}; const ds = document.getElementById('diet-status'); if(ds) ds.textContent = d.diet_mode !== 'balanced' ? 'מצב פעיל: '+(labels[d.diet_mode]||d.diet_mode) : ''; }
+      if(d.diet_mode) { currentDietMode = d.diet_mode; updateDietButtons(d.diet_mode); const labels = {balanced:'⚖️ '+tr('diet_balanced'),keto:'🔥 '+tr('diet_keto'),mediterranean:'🫒 '+tr('diet_mediterranean'),intermittent:'⏱️ '+tr('diet_if_protein')}; const ds = document.getElementById('diet-status'); if(ds) ds.textContent = d.diet_mode !== 'balanced' ? (labels[d.diet_mode]||d.diet_mode) : ''; }
       if(d.gender !== undefined) {
         const pregSection = document.getElementById('preg-section');
         if(pregSection) {
@@ -2009,7 +2011,7 @@
         const _t = _w<=13?1:(_w<=26?2:3);
         const _badge = document.getElementById('preg-trimester-badge');
         const _tNames = {1:tr('trimester_1_short'),2:tr('trimester_2_short'),3:tr('trimester_3_short')};
-        if(_badge){_badge.textContent=`שבוע ${_w} · ${_tNames[_t]}`;_badge.style.display='block';}
+        if(_badge){_badge.textContent=trf('trimester_badge', _w, _tNames[_t]);_badge.style.display='block';}
         if(typeof updateBloodTests==='function') updateBloodTests(_w, _t);
         loadVitaminState();
       }
@@ -2044,7 +2046,7 @@
       const r=await fetch('/api/link-phone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone})});
       const d=await r.json();
       if(d.ok){msg.textContent=tr('whatsapp_linked');msg.style.color='#00D4FF';}
-      else{msg.textContent=d.error||'שגיאה';msg.style.color='#fb7185';}
+      else{msg.textContent=d.error||tr('error_short');msg.style.color='#fb7185';}
     }catch(e){msg.textContent=e.message;msg.style.color='#fb7185';}
     msg.style.display='block';
   }
@@ -2057,7 +2059,7 @@
       const d = await (await fetch('/api/shopping-list')).json();
       document.getElementById('shop-content').textContent = d.list || d.error;
     } catch(e) {
-      document.getElementById('shop-content').textContent = 'שגיאה: ' + e.message;
+      document.getElementById('shop-content').textContent = tr('error_short') + ': ' + e.message;
     }
   }
 
@@ -2075,9 +2077,9 @@
       return;
     }
     const parts = [];
-    if (m.waist_cm) parts.push(`📏 ${tr('waist')}: ${m.waist_cm} ס"מ`);
-    if (m.chest_cm) parts.push(`📏 ${tr('chest')}: ${m.chest_cm} ס"מ`);
-    if (m.hips_cm) parts.push(`📏 ${tr('hips')}: ${m.hips_cm} ס"מ`);
+    if (m.waist_cm) parts.push(`📏 ${tr('waist')}: ${m.waist_cm} ${tr('cm_unit')}`);
+    if (m.chest_cm) parts.push(`📏 ${tr('chest')}: ${m.chest_cm} ${tr('cm_unit')}`);
+    if (m.hips_cm) parts.push(`📏 ${tr('hips')}: ${m.hips_cm} ${tr('cm_unit')}`);
     if (m.date) parts.push(`🗓 ${m.date}`);
     el.innerHTML = parts.join('<br>');
   }
@@ -2085,24 +2087,24 @@
   // ── Push Notifications ──
   async function requestNotifications() {
     if (!('Notification' in window)) {
-      showNotifMsg('❌ הדפדפן שלך לא תומך בהתראות');
+      showNotifMsg(tr('notif_no_support'));
       return;
     }
     const perm = await Notification.requestPermission();
     if (perm === 'granted') {
       scheduleReminders();
-      showNotifMsg('✅ התראות פעילות!');
+      showNotifMsg(tr('notif_active'));
     } else {
-      showNotifMsg('❌ ההרשאה נדחתה');
+      showNotifMsg(tr('notif_denied'));
     }
   }
 
   function scheduleReminders() {
     const reminders = [
-      {hour: 8,  min: 0,  msg: '🍳 בוקר טוב! זמן לארוחת בוקר'},
-      {hour: 13, min: 0,  msg: '🥗 זמן ארוחת צהריים!'},
-      {hour: 16, min: 0,  msg: '💧 שתית מים היום?'},
-      {hour: 19, min: 30, msg: '🌙 ערב! אל תשכח לדווח על מה שאכלת'}
+      {hour: 8,  min: 0,  msg: tr('remind_breakfast')},
+      {hour: 13, min: 0,  msg: tr('remind_lunch')},
+      {hour: 16, min: 0,  msg: tr('remind_water')},
+      {hour: 19, min: 30, msg: tr('remind_evening')}
     ];
     localStorage.setItem('notif_enabled', '1');
     checkAndFireReminders(reminders);
@@ -2162,14 +2164,14 @@
       // Stop fast
       localStorage.removeItem('fast_start');
       clearInterval(fastInterval);
-      document.getElementById('fast-btn').textContent = '▶ התחל צום';
-      document.getElementById('fast-status').textContent = 'לא פעיל';
+      document.getElementById('fast-btn').textContent = tr('fast_start');
+      document.getElementById('fast-status').textContent = tr('fast_inactive_text');
       document.getElementById('fast-elapsed').textContent = '00:00:00';
       document.getElementById('fast-elapsed').style.color = '#00D4FF';
     } else {
       // Start fast
       localStorage.setItem('fast_start', Date.now().toString());
-      document.getElementById('fast-btn').textContent = '⏹ עצור צום';
+      document.getElementById('fast-btn').textContent = tr('fast_stop');
       startFastTimer();
     }
   }
@@ -2188,12 +2190,12 @@
       document.getElementById('fast-elapsed').textContent =
         `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
       if (elapsed >= totalMs) {
-        document.getElementById('fast-status').textContent = `✅ צום ${fastMode} שעות הושלם!`;
+        document.getElementById('fast-status').textContent = trf('fast_complete', fastMode);
         document.getElementById('fast-elapsed').style.color = '#C9A960';
       } else {
         const rh = Math.floor(remaining/3600000);
         const rm = Math.floor((remaining%3600000)/60000);
-        document.getElementById('fast-status').textContent = `נותרו ${rh}ש ${rm}ד לסיום הצום`;
+        document.getElementById('fast-status').textContent = trf('fast_remaining', rh, rm);
         document.getElementById('fast-elapsed').style.color = elapsed/totalMs > 0.8 ? '#C9A960' : '#00D4FF';
       }
     }, 1000);
@@ -2202,7 +2204,7 @@
   // Init fasting timer on load
   setFastMode(fastMode);
   if (localStorage.getItem('fast_start')) {
-    document.getElementById('fast-btn').textContent = '⏹ עצור צום';
+    document.getElementById('fast-btn').textContent = tr('fast_stop');
     startFastTimer();
   }
 
@@ -2283,13 +2285,13 @@
     ctx.fillStyle = '#E8F0FE';
     ctx.font = 'bold 48px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('ההתקדמות שלי השבוע', 400, 120);
+    ctx.fillText(tr('share_title'), 400, 120);
 
     // Stats cards
     const stats = [
-      {label: 'משקל נוכחי', val: weight + ' ק"ג', x: 160},
-      {label: 'יעד', val: target + ' ק"ג', x: 400},
-      {label: 'ירדתי', val: lost, x: 640}
+      {label: tr('share_current_weight'), val: weight + ' ' + tr('share_kg'), x: 160},
+      {label: tr('target'),                val: target + ' ' + tr('share_kg'), x: 400},
+      {label: tr('share_lost'),            val: lost, x: 640}
     ];
 
     stats.forEach(s => {
@@ -2315,7 +2317,7 @@
     ctx.fillStyle = '#E8F0FE';
     ctx.font = 'bold 22px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('\uD83D\uDD25 ' + streak + ' ימים ברצף של דיווח', 400, 315);
+    ctx.fillText(trf('share_streak', streak), 400, 315);
 
     // Footer
     ctx.fillStyle = '#2A3A52';
@@ -2335,14 +2337,14 @@
       const d=await(await fetch('/api/referral')).json();
       if(d.link){
         document.getElementById('ref-link').textContent=d.link;
-        document.getElementById('ref-count').textContent=d.referrals+' חברים הצטרפו';
+        document.getElementById('ref-count').textContent=trf('friends_joined_plain', d.referrals);
       }
     }catch(e){}
   }
   function copyRefLink(){
     const link=document.getElementById('ref-link').textContent;
     navigator.clipboard.writeText(link).then(()=>{
-      document.getElementById('ref-link').textContent='✅ הועתק!';
+      document.getElementById('ref-link').textContent=tr('copied_check');
       setTimeout(loadReferral,2000);
     });
   }
@@ -2363,7 +2365,7 @@
   async function openBarcodeScanner(){
     document.getElementById('barcode-modal').style.display='flex';
     const status=document.getElementById('barcode-status');
-    status.textContent='טוען...';
+    status.textContent=tr('loading');
     try{
       await loadZXing();
       const hints=new Map();
@@ -2377,7 +2379,7 @@
       zxingReader=new ZXing.BrowserMultiFormatReader(hints);
 
       const video=document.getElementById('barcode-video');
-      status.textContent='מכוון את המצלמה לברקוד...';
+      status.textContent=tr('aiming_camera');
 
       // Get back camera
       const devices=await ZXing.BrowserCodeReader.listVideoInputDevices();
@@ -2389,9 +2391,9 @@
           lookupBarcode(result.getText());
         }
       });
-      status.textContent='מכוון את המצלמה לברקוד...';
+      status.textContent=tr('aiming_camera');
     }catch(e){
-      status.textContent='לא ניתן לגשת למצלמה — הכנס ברקוד ידנית';
+      status.textContent=tr('camera_unavailable');
       console.error(e);
     }
   }
@@ -2408,14 +2410,14 @@
     if(!code||code.trim().length<4)return;
     closeBarcodeScanner();
     const status=document.getElementById('barcode-status');
-    status.textContent='מחפש מוצר...';
+    status.textContent=tr('searching_product');
 
     try{
       const res=await fetch(`https://world.openfoodfacts.org/api/v0/product/${code.trim()}.json`);
       const data=await res.json();
       if(data.status===1&&data.product){
         const p=data.product;
-        const name=p.product_name||p.product_name_he||p.product_name_en||'לא ידוע';
+        const name=p.product_name||p.product_name_he||p.product_name_en||tr('product_unknown');
         const n=p.nutriments||{};
         const kcal=Math.round(n['energy-kcal_100g']||n['energy-kcal']||0);
         const protein=Math.round((n['proteins_100g']||0)*10)/10;
@@ -2423,17 +2425,17 @@
         const carbs=Math.round((n['carbohydrates_100g']||0)*10)/10;
         const fiber=Math.round((n['fiber_100g']||0)*10)/10;
         const brand=p.brands||'';
-        let msg=`סרקתי ברקוד ${code.trim()} — מצאתי את המוצר:\n`;
+        let msg=trf('barcode_scanned_found', code.trim());
         msg+=`**${name}**${brand?' ('+brand+')':''}\n`;
-        msg+=`ל-100 גרם: ${kcal} קל, חלבון ${protein}ג, שומן ${fat}ג, פחמימות ${carbs}ג`;
-        if(fiber>0)msg+=`, סיבים ${fiber}ג`;
-        msg+=`\nכמה אכלתי? תעזור לי לחשב`;
+        msg+=trf('per_100g', kcal, protein, fat, carbs);
+        if(fiber>0)msg+=trf('fiber_suffix', fiber);
+        msg+=tr('how_much_ate');
         qs(msg);
       }else{
-        qs(`סרקתי ברקוד ${code.trim()} — המוצר לא נמצא במסד הנתונים. האם אתה מכיר אותו? מה הערכים התזונתיים שלו?`);
+        qs(trf('barcode_unknown', code.trim()));
       }
     }catch(e){
-      qs(`סרקתי ברקוד: ${code.trim()} — מה המוצר הזה? כמה קלוריות יש ב-100 גרם?`);
+      qs(trf('barcode_ask', code.trim()));
     }
   }
 
@@ -2463,7 +2465,7 @@ async function loadBurnData() {
       const calOut = d.today_burn || 0;
       const net = calIn - calOut;
       const netEl2 = document.getElementById('burn-net');
-      if(netEl2) { netEl2.textContent = (net > 0 ? '+' : '') + net + ' קל'; netEl2.style.color = net < 0 ? '#22c55e' : (net > 500 ? '#fb7185' : 'var(--em)'); }
+      if(netEl2) { netEl2.textContent = (net > 0 ? '+' : '') + net + tr('kcal_suffix_space'); netEl2.style.color = net < 0 ? '#22c55e' : (net > 500 ? '#fb7185' : 'var(--em)'); }
     }
     // Today activities
     const container = document.getElementById('burn-activities');
@@ -2471,8 +2473,8 @@ async function loadBurnData() {
       if(d.today_entries && d.today_entries.length > 0) {
         container.innerHTML = d.today_entries.map((e) =>
           `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--card);border-radius:var(--radius-sm);font-size:11px;gap:6px;">
-            <span style="color:var(--sub);flex:1;">${e.activity} · ${e.duration_min} דק'</span>
-            <span style="color:var(--em);font-weight:600;">${e.calories} קל</span>
+            <span style="color:var(--sub);flex:1;">${trf('activity_entry_line', e.activity, e.duration_min)}</span>
+            <span style="color:var(--em);font-weight:600;">${trf('calories_kcal', e.calories)}</span>
             <button onclick="deleteBurnEntry('${e.id||''}')" style="background:none;border:none;cursor:pointer;color:var(--sub);padding:0 2px;font-size:13px;line-height:1;transition:color .15s;" onmouseenter="this.style.color='#fb7185'" onmouseleave="this.style.color='var(--sub)'">✕</button>
           </div>`
         ).join('');
@@ -2541,15 +2543,15 @@ function setDietMode(mode) {
     if(d.ok) {
       currentDietMode = mode;
       updateDietButtons(mode);
-      const labels = {balanced:'⚖️ מאוזן',keto:'🔥 קטוגני',mediterranean:'🫒 ים-תיכוני',intermittent:'⏱️ צום+חלבון'};
-      const ds = document.getElementById('diet-status'); if(ds) ds.textContent = mode !== 'balanced' ? 'מצב פעיל: '+(labels[mode]||mode) : '';
+      const labels = {balanced:'⚖️ '+tr('diet_balanced'),keto:'🔥 '+tr('diet_keto'),mediterranean:'🫒 '+tr('diet_mediterranean'),intermittent:'⏱️ '+tr('diet_if_protein')};
+      const ds = document.getElementById('diet-status'); if(ds) ds.textContent = mode !== 'balanced' ? trf('diet_mode_active', (labels[mode]||mode)) : '';
       loadStats();
       // If history was cleared, add a system note to chat and clear UI
       if(d.history_cleared) {
         const chat = document.getElementById('chat');
         if(chat) {
           chat.innerHTML = '';
-          addMsg('assistant', `🔄 עברת למצב <strong>${labels[mode]||mode}</strong> — ההיסטוריה אופסה כדי למנוע ערבוב כללים. בואו נתחיל מחדש! 💪`);
+          addMsg('assistant', trf('diet_switched', (labels[mode]||mode)) + ' 💪');
         }
       }
     }
@@ -2594,9 +2596,9 @@ function savePregnancyWeek() {
   if(week < 1 || week > 42) return;
   const trimester = week<=13?1:(week<=26?2:3);
   const badge = document.getElementById('preg-trimester-badge');
-  const trimesterNames = {1: tr('trimester_1_long'), 2: tr('trimester_2_long'), 3: tr('trimester_3_long')};
+  const trimesterNames = {1: tr('tri_1_short'), 2: tr('tri_2_short'), 3: tr('tri_3_short')};
   if(badge){
-    badge.textContent = `שבוע ${week} · ${trimesterNames[trimester]}`;
+    badge.textContent = trf('trimester_badge', week, trimesterNames[trimester]);
     badge.style.display = 'block';
   }
   // Update blood tests section
@@ -2608,12 +2610,10 @@ function savePregnancyWeek() {
 function updateBloodTests(week, trimester) {
   const el = document.getElementById('blood-tests');
   if(!el) return;
-  const tests = {
-    1: ['CBC — ספירת דם מלאה','TSH — תפקוד בלוטת התריס','Rubella immunity — חיסוניות לאדמת','Blood type + Rh factor','Fasting glucose — סוכר בצום','NIPT / סקר ראשון (שבוע 11-14)'],
-    2: ['AFP — אלפא פטופרוטאין (שבוע 15-20)','Anatomy scan — סקר מורפולוגי (שבוע 20-22)','Glucose tolerance test — סוכרת הריון (שבוע 24-28)','Hemoglobin — המוגלובין','Ferritin — מאגרי ברזל'],
-    3: ['GBS — סטרפטוקוקוס קבוצה B (שבוע 35-37)','Biophysical profile — פרופיל ביופיזי','NST — מוניטור עוברי (משבוע 36)','Platelet count — טסיות דם','Coagulation panel — קרישת דם']
-  };
-  const list = tests[trimester] || [];
+  // tests-by-trimester with per-language lists injected server-side via tr('blood_tests_tri{n}')
+  // Each string in the pipe-separated list is one bullet.
+  const listStr = tr('blood_tests_tri' + trimester) || '';
+  const list = listStr.split('|').map(s => s.trim()).filter(Boolean);
   el.innerHTML = list.map(t => `<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="12" cy="12" r="1"/></svg>${t}</div>`).join('');
 }
 
@@ -2672,25 +2672,33 @@ async function openProfileEdit() {
     if(p.sleep_time) document.getElementById('pe-sleep').value = p.sleep_time;
     // Gender
     if(p.gender) { peGenderVal = p.gender; peGender(p.gender); }
-    // Exercise
+    // Exercise — extract the data tag from the onclick attribute
     peExerciseVal = p.exercise || '';
     document.querySelectorAll('#pe-exercise-chips button').forEach(btn => {
-      const match = peExerciseVal && btn.textContent.replace(/[🛋️🚶🏋️⚡\s]/g,'').includes(peExerciseVal.replace(/[^א-ת0-9\-]/g,'').substring(0,4));
+      const oc = btn.getAttribute('onclick') || '';
+      const m = oc.match(/pePickExercise\(this,\s*['"]([^'"]+)['"]\)/);
+      const tag = m ? m[1] : '';
+      const match = peExerciseVal && tag && (peExerciseVal === tag || peExerciseVal.includes(tag.substring(0,4)));
       if(match){btn.style.background='var(--em-dim)';btn.style.borderColor='var(--em)';btn.style.color='var(--em)';}
       else{btn.style.background='transparent';btn.style.borderColor='rgba(255,255,255,.12)';btn.style.color='var(--sub)';}
     });
-    // Restrictions
+    // Restrictions — extract data tag from onclick
     peRestrictArr = p.restrictions || [];
     document.querySelectorAll('#pe-restrict-chips button').forEach(btn => {
-      const txt = btn.textContent.trim().replace(/^[^\s]+\s/,'');
-      const active = peRestrictArr.some(r => btn.textContent.includes(r) || r.includes(txt));
+      const oc = btn.getAttribute('onclick') || '';
+      const m = oc.match(/peToggleRestrict\(this,\s*['"]([^'"]+)['"]\)/);
+      const tag = m ? m[1] : '';
+      const active = tag && peRestrictArr.some(r => r === tag || r.includes(tag) || tag.includes(r));
       if(active){btn.style.background='var(--em-dim)';btn.style.borderColor='var(--em)';btn.style.color='var(--em)';}
       else{btn.style.background='transparent';btn.style.borderColor='rgba(255,255,255,.12)';btn.style.color='var(--sub)';}
     });
-    // Health chips
+    // Health chips — extract data tag from onclick
     peHealthArr = p.health_conditions || [];
     document.querySelectorAll('#pe-health-chips button').forEach(btn => {
-      const active = peHealthArr.some(h => btn.textContent.includes(h) || h.includes(btn.textContent.trim()));
+      const oc = btn.getAttribute('onclick') || '';
+      const m = oc.match(/pToggleHealth\(this,\s*['"]([^'"]+)['"]\)/);
+      const tag = m ? m[1] : btn.textContent.trim();
+      const active = peHealthArr.some(h => h === tag || h.includes(tag) || tag.includes(h));
       if(active){btn.style.background='var(--em-dim)';btn.style.borderColor='var(--em)';btn.style.color='var(--em)';}
       else{btn.style.background='transparent';btn.style.borderColor='rgba(255,255,255,.12)';btn.style.color='var(--sub)';}
     });
@@ -2773,7 +2781,7 @@ async function saveProfileEdit() {
     if(d.ok) {
       closeProfileEdit();
       loadStats();
-      showNotifMsg('✅ הפרופיל עודכן בהצלחה!');
+      showNotifMsg(tr('profile_updated_ok'));
     }
   } catch(e) { console.log('save profile err', e); }
 }
@@ -2783,20 +2791,20 @@ async function saveProfileEdit() {
 <div id="premium-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;">
   <div style="background:var(--sidebar);border:1px solid rgba(201,169,96,.4);border-radius:20px;padding:32px;max-width:380px;width:90%;text-align:center;">
     <div style="margin-bottom:12px;display:flex;justify-content:center;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#fbbf24" stroke-width="1.5"><polygon points="12 2 2 7 12 22 22 7 12 2"/><polyline points="2 7 12 12 22 7"/><line x1="12" y1="12" x2="12" y2="22"/></svg></div>
-    <h3 style="color:#fbbf24;margin-bottom:8px;font-size:18px;">NutriAI פרמיום</h3>
-    <p style="color:var(--sub);font-size:13px;margin-bottom:20px;line-height:1.6;">הזמן 3 חברים ותקבל גישה פרמיום לצמיתות — חינם לגמרי!</p>
+    <h3 style="color:#fbbf24;margin-bottom:8px;font-size:18px;">{{ t.premium_title }}</h3>
+    <p style="color:var(--sub);font-size:13px;margin-bottom:20px;line-height:1.6;">{{ t.premium_desc }}</p>
     <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:16px;margin-bottom:20px;">
-      <div id="premium-progress-text" style="color:#fbbf24;font-size:15px;font-weight:600;margin-bottom:10px;">0/3 חברים הצטרפו</div>
+      <div id="premium-progress-text" style="color:#fbbf24;font-size:15px;font-weight:600;margin-bottom:10px;">{{ t.friends_joined.replace('{0}', '0') }}</div>
       <div style="background:rgba(255,255,255,.1);border-radius:4px;height:8px;">
         <div id="premium-bar" style="background:linear-gradient(90deg,#fbbf24,#f59e0b);height:8px;border-radius:4px;width:0%;transition:width .5s;"></div>
       </div>
     </div>
     <button onclick="copyRefLink();document.getElementById('premium-modal').style.display='none'"
       style="width:100%;padding:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:10px;color:#000;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> העתק קישור הזמנה
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> {{ t.copy_invite_link }}
     </button>
     <button onclick="document.getElementById('premium-modal').style.display='none'"
-      style="width:100%;padding:8px;background:none;border:none;color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;">סגור</button>
+      style="width:100%;padding:8px;background:none;border:none;color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;">{{ t.close_btn }}</button>
   </div>
 </div>
 
@@ -2808,11 +2816,11 @@ async function saveProfileEdit() {
       <button onclick="closeBarcodeScanner()" style="background:none;border:none;color:var(--sub);cursor:pointer;display:flex;align-items:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <video id="barcode-video" style="width:100%;border-radius:10px;background:#000;max-height:220px;" autoplay playsinline muted></video>
-    <div id="barcode-status" style="text-align:center;color:var(--sub);font-size:12px;margin:10px 0;">מכוון את המצלמה לברקוד...</div>
-    <input id="barcode-manual" type="text" placeholder="או הכנס ברקוד ידנית (EAN-13...)"
+    <div id="barcode-status" style="text-align:center;color:var(--sub);font-size:12px;margin:10px 0;">{{ t.aiming_camera }}</div>
+    <input id="barcode-manual" type="text" placeholder="{{ t.manual_barcode_ph }}"
       style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;margin-bottom:8px;">
     <button onclick="lookupBarcode(document.getElementById('barcode-manual').value)"
-      style="width:100%;padding:9px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">חפש מוצר</button>
+      style="width:100%;padding:9px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.25);border-radius:8px;color:#8B5CF6;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">{{ t.search_product }}</button>
   </div>
 </div>
 
@@ -2826,15 +2834,15 @@ async function saveProfileEdit() {
     <div style="margin-bottom:12px;">
       <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:5px;">{{ t.activity_type }}</label>
       <select id="burn-activity-type" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
-        <option value="ריצה">🏃 ריצה</option>
-        <option value="הליכה">🚶 הליכה</option>
-        <option value="אופניים">🚴 אופניים</option>
-        <option value="חדר כושר">🏋️ חדר כושר</option>
-        <option value="שחייה">🏊 שחייה</option>
-        <option value="יוגה">🧘 יוגה</option>
-        <option value="כדורסל">🏀 כדורסל</option>
-        <option value="כדורגל">⚽ כדורגל</option>
-        <option value="אחר">💪 אחר</option>
+        <option value="ריצה">{{ t.exercise_running }}</option>
+        <option value="הליכה">{{ t.exercise_walking }}</option>
+        <option value="אופניים">{{ t.exercise_cycling }}</option>
+        <option value="חדר כושר">{{ t.exercise_gym }}</option>
+        <option value="שחייה">{{ t.exercise_swim }}</option>
+        <option value="יוגה">{{ t.exercise_yoga }}</option>
+        <option value="כדורסל">{{ t.exercise_basketball }}</option>
+        <option value="כדורגל">{{ t.exercise_football }}</option>
+        <option value="אחר">{{ t.exercise_other }}</option>
       </select>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
@@ -2857,115 +2865,115 @@ async function saveProfileEdit() {
 <div id="profile-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px;">
   <div style="background:var(--sidebar);border-radius:var(--radius-lg);width:100%;max-width:460px;padding:24px;margin:auto;position:relative;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div style="font-size:15px;font-weight:600;color:var(--text);">עריכת פרופיל</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);">{{ t.edit_profile_title }}</div>
       <button onclick="closeProfileEdit()" style="background:none;border:none;cursor:pointer;color:var(--sub);display:flex;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
 
     <!-- Gender -->
     <div style="margin-bottom:16px;">
-      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">מגדר</label>
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">{{ t.gender }}</label>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-        <button type="button" onclick="peGender('male')" id="pe-g-male" style="padding:8px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;">זכר ♂</button>
-        <button type="button" onclick="peGender('female')" id="pe-g-female" style="padding:8px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;">נקבה ♀</button>
-        <button type="button" onclick="peGender('other')" id="pe-g-other" style="padding:8px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;">אחר</button>
+        <button type="button" onclick="peGender('male')" id="pe-g-male" style="padding:8px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;">{{ t.gender_male }}</button>
+        <button type="button" onclick="peGender('female')" id="pe-g-female" style="padding:8px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;">{{ t.gender_female }}</button>
+        <button type="button" onclick="peGender('other')" id="pe-g-other" style="padding:8px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;">{{ t.gender_other }}</button>
       </div>
     </div>
 
     <!-- Age / Height / Weight / Target -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
       <div>
-        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">גיל</label>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.age }}</label>
         <input type="number" id="pe-age" min="10" max="100" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
       </div>
       <div>
-        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">גובה (ס"מ)</label>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.height_cm }}</label>
         <input type="number" id="pe-height" min="100" max="250" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
       </div>
       <div>
-        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">משקל נוכחי (ק"ג)</label>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.current_weight_kg }}</label>
         <input type="number" id="pe-weight" min="30" max="300" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
       </div>
       <div>
-        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">משקל יעד (ק"ג)</label>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.target_weight_kg }}</label>
         <input type="number" id="pe-target" min="30" max="300" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
       </div>
     </div>
     <div style="margin-bottom:12px;">
-      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">יעד קלוריות יומי (קל)</label>
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.daily_calorie_goal }}</label>
       <input type="number" id="pe-kcal" min="800" max="5000" step="50" placeholder="2100" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
     </div>
 
     <!-- Food prefs -->
     <div style="margin-bottom:12px;">
-      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">אוכלים שאוהב</label>
-      <input type="text" id="pe-fav" placeholder="סלמון, ביצים, אבוקדו..." style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.foods_like }}</label>
+      <input type="text" id="pe-fav" placeholder="{{ t.food_fav_ph }}" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
     </div>
     <div style="margin-bottom:12px;">
-      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">אוכלים שלא אוהב</label>
-      <input type="text" id="pe-dis" placeholder="כרוב, מיונז..." style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.foods_dislike }}</label>
+      <input type="text" id="pe-dis" placeholder="{{ t.food_dis_ph }}" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
     </div>
 
     <!-- Cooking level -->
     <div style="margin-bottom:16px;">
-      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">רמת בישול</label>
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.cooking_level }}</label>
       <select id="pe-cooking" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
-        <option value="מינימלי">מינימלי — מוכן / משלוח</option>
-        <option value="בסיסי">בסיסי — ביצים, פסטה, סנדוויצ'</option>
-        <option value="בינוני">בינוני — מבשל ארוחות מלאות</option>
-        <option value="מתקדם">מתקדם — נהנה לבשל</option>
+        <option value="מינימלי">{{ t.cooking_minimal_desc }}</option>
+        <option value="בסיסי">{{ t.cooking_basic_desc }}</option>
+        <option value="בינוני">{{ t.cooking_medium_desc }}</option>
+        <option value="מתקדם">{{ t.cooking_advanced_desc }}</option>
       </select>
     </div>
 
     <!-- Exercise frequency -->
     <div style="margin-bottom:14px;">
-      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">תדירות פעילות גופנית</label>
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">{{ t.exercise_freq }}</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="pe-exercise-chips">
-        <button type="button" onclick="pePickExercise(this,'כמעט ללא פעילות')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🛋️ כמעט ללא</button>
-        <button type="button" onclick="pePickExercise(this,'1-2 פעמים בשבוע')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🚶 1-2 פעמים</button>
-        <button type="button" onclick="pePickExercise(this,'3-4 פעמים בשבוע')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🏋️ 3-4 פעמים</button>
-        <button type="button" onclick="pePickExercise(this,'כל יום')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">⚡ כל יום</button>
+        <button type="button" onclick="pePickExercise(this,'כמעט ללא פעילות')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.exercise_barely }}</button>
+        <button type="button" onclick="pePickExercise(this,'1-2 פעמים בשבוע')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.exercise_1_2 }}</button>
+        <button type="button" onclick="pePickExercise(this,'3-4 פעמים בשבוע')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.exercise_3_4 }}</button>
+        <button type="button" onclick="pePickExercise(this,'כל יום')" style="padding:7px 6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.exercise_daily }}</button>
       </div>
     </div>
 
     <!-- Wake / Sleep times -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
       <div>
-        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">שעת קימה</label>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.wake_time }}</label>
         <input type="time" id="pe-wake" value="07:00" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
       </div>
       <div>
-        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">שעת שינה</label>
+        <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px;">{{ t.sleep_time }}</label>
         <input type="time" id="pe-sleep" value="23:00" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
       </div>
     </div>
 
     <!-- Dietary restrictions -->
     <div style="margin-bottom:14px;">
-      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">הגבלות תזונה</label>
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">{{ t.dietary_restrictions }}</label>
       <div id="pe-restrict-chips" style="display:flex;flex-wrap:wrap;gap:6px;">
-        <button type="button" onclick="peToggleRestrict(this,'צמחוני')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🌱 צמחוני</button>
-        <button type="button" onclick="peToggleRestrict(this,'טבעוני')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🌿 טבעוני</button>
-        <button type="button" onclick="peToggleRestrict(this,'ללא גלוטן')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🌾 ללא גלוטן</button>
-        <button type="button" onclick="peToggleRestrict(this,'ללא לקטוז')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🥛 ללא לקטוז</button>
-        <button type="button" onclick="peToggleRestrict(this,'כשר')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">✡️ כשר</button>
-        <button type="button" onclick="peToggleRestrict(this,'ללא בוטנים')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">🥜 ללא בוטנים</button>
+        <button type="button" onclick="peToggleRestrict(this,'צמחוני')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.restrict_veggie }}</button>
+        <button type="button" onclick="peToggleRestrict(this,'טבעוני')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.restrict_vegan }}</button>
+        <button type="button" onclick="peToggleRestrict(this,'ללא גלוטן')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.restrict_gluten_free }}</button>
+        <button type="button" onclick="peToggleRestrict(this,'ללא לקטוז')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.restrict_lactose_free }}</button>
+        <button type="button" onclick="peToggleRestrict(this,'כשר')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.restrict_kosher }}</button>
+        <button type="button" onclick="peToggleRestrict(this,'ללא בוטנים')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.restrict_peanut_free }}</button>
       </div>
     </div>
 
     <!-- Health conditions -->
     <div style="margin-bottom:20px;">
-      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">מצב בריאותי (אופציונלי)</label>
+      <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:8px;">{{ t.health_status }}</label>
       <div id="pe-health-chips" style="display:flex;flex-wrap:wrap;gap:6px;">
-        <button type="button" onclick="pToggleHealth(this,'סוכרת סוג 2')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">סוכרת סוג 2</button>
-        <button type="button" onclick="pToggleHealth(this,'לחץ דם גבוה')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">לחץ דם גבוה</button>
-        <button type="button" onclick="pToggleHealth(this,'כולסטרול גבוה')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">כולסטרול גבוה</button>
-        <button type="button" onclick="pToggleHealth(this,'IBS / מעי רגיז')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">IBS</button>
-        <button type="button" onclick="pToggleHealth(this,'תירואיד')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">תירואיד</button>
+        <button type="button" onclick="pToggleHealth(this,'סוכרת סוג 2')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.health_diabetes }}</button>
+        <button type="button" onclick="pToggleHealth(this,'לחץ דם גבוה')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.health_bp }}</button>
+        <button type="button" onclick="pToggleHealth(this,'כולסטרול גבוה')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.health_chol }}</button>
+        <button type="button" onclick="pToggleHealth(this,'IBS / מעי רגיז')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.health_ibs }}</button>
+        <button type="button" onclick="pToggleHealth(this,'תירואיד')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">{{ t.health_thyroid }}</button>
         <button type="button" onclick="pToggleHealth(this,'PCOS')" style="padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;">PCOS</button>
       </div>
     </div>
 
-    <button onclick="saveProfileEdit()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--em),var(--vi));border:none;border-radius:var(--radius-sm);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">שמור שינויים</button>
+    <button onclick="saveProfileEdit()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--em),var(--vi));border:none;border-radius:var(--radius-sm);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">{{ t.save_changes }}</button>
   </div>
 </div>
 
