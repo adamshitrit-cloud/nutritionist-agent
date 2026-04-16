@@ -1561,21 +1561,27 @@ def process_for_whatsapp(user_id: str, user_text: str) -> str:
 
 @app.route("/whatsapp", methods=["POST"])
 def whatsapp_webhook():
-    # Verify Twilio signature to prevent forged webhooks
+    # Fail-closed: if TWILIO_AUTH_TOKEN is not configured, reject ALL requests.
+    # This prevents forged webhooks from reaching the handler when the integration
+    # is not actively provisioned. To re-enable, set TWILIO_AUTH_TOKEN in env.
     twilio_auth = os.environ.get("TWILIO_AUTH_TOKEN", "")
-    if twilio_auth:
-        try:
-            from twilio.request_validator import RequestValidator
-            validator = RequestValidator(twilio_auth)
-            sig = request.headers.get("X-Twilio-Signature", "")
-            if not validator.validate(request.url, request.form, sig):
-                return Response("Forbidden", status=403)
-        except ImportError:
-            # twilio package not installed — skip verification but log
-            print("[WhatsApp] WARN: twilio package not installed, skipping signature verification")
-        except Exception as e:
-            print(f"[WhatsApp] signature verification error: {e}")
+    if not twilio_auth:
+        print("[WhatsApp] REJECTED: TWILIO_AUTH_TOKEN not configured (fail-closed)")
+        return Response("Forbidden", status=403)
+    # Verify Twilio signature to prevent forged webhooks
+    try:
+        from twilio.request_validator import RequestValidator
+        validator = RequestValidator(twilio_auth)
+        sig = request.headers.get("X-Twilio-Signature", "")
+        if not validator.validate(request.url, request.form, sig):
             return Response("Forbidden", status=403)
+    except ImportError:
+        # twilio package not installed — fail closed rather than skipping verification
+        print("[WhatsApp] REJECTED: twilio package not installed (fail-closed)")
+        return Response("Forbidden", status=403)
+    except Exception as e:
+        print(f"[WhatsApp] signature verification error: {e}")
+        return Response("Forbidden", status=403)
     try:
         incoming_msg = request.values.get("Body", "").strip()
         from_number  = request.values.get("From", "unknown")
